@@ -250,7 +250,7 @@ bool DBMS::addSection(uint8_t blockID, dbSection_t section)
     block[blockID].section[block[blockID].sections].parameterType = section.parameterType;
     block[blockID].section[block[blockID].sections].preserveOnPartialReset = section.preserveOnPartialReset;
     block[blockID].section[block[blockID].sections].defaultValue = section.defaultValue;
-    block[blockID].section[block[blockID].sections].parameters = section.parameters;
+    block[blockID].section[block[blockID].sections].numberOfParameters = section.numberOfParameters;
 
     block[blockID].sections++;
     return true;
@@ -277,19 +277,19 @@ void DBMS::commitLayout()
                 switch(block[i].section[j-1].parameterType)
                 {
                     case BIT_PARAMETER:
-                    block[i].sectionAddress[j] = ((block[i].section[j].parameters % 8 != 0) + block[i].section[j-1].parameters/8) + block[i].sectionAddress[j-1];
+                    block[i].sectionAddress[j] = ((block[i].section[j].numberOfParameters % 8 != 0) + block[i].section[j-1].numberOfParameters/8) + block[i].sectionAddress[j-1];
                     break;
 
                     case BYTE_PARAMETER:
-                    block[i].sectionAddress[j] = block[i].section[j-1].parameters + block[i].sectionAddress[j-1];
+                    block[i].sectionAddress[j] = block[i].section[j-1].numberOfParameters + block[i].sectionAddress[j-1];
                     break;
 
                     case WORD_PARAMETER:
-                    block[i].sectionAddress[j] = 2*block[i].section[j-1].parameters + block[i].sectionAddress[j-1];
+                    block[i].sectionAddress[j] = 2*block[i].section[j-1].numberOfParameters + block[i].sectionAddress[j-1];
                     break;
 
                     case DWORD_PARAMETER:
-                    block[i].sectionAddress[j] = 4*block[i].section[j-1].parameters + block[i].sectionAddress[j-1];
+                    block[i].sectionAddress[j] = 4*block[i].section[j-1].numberOfParameters + block[i].sectionAddress[j-1];
                     break;
                 }
             }
@@ -300,19 +300,19 @@ void DBMS::commitLayout()
         switch(block[i].section[lastSection].parameterType)
         {
             case BIT_PARAMETER:
-            memory_usage = block[i].sectionAddress[lastSection]+((block[i].section[lastSection].parameters%8 != 0) + block[i].section[lastSection].parameters/8);
+            memory_usage = block[i].sectionAddress[lastSection]+((block[i].section[lastSection].numberOfParameters%8 != 0) + block[i].section[lastSection].numberOfParameters/8);
             break;
 
             case BYTE_PARAMETER:
-            memory_usage = block[i].sectionAddress[lastSection] + block[i].section[lastSection].parameters;
+            memory_usage = block[i].sectionAddress[lastSection] + block[i].section[lastSection].numberOfParameters;
             break;
 
             case WORD_PARAMETER:
-            memory_usage = block[i].sectionAddress[lastSection] + 2*block[i].section[lastSection].parameters;
+            memory_usage = block[i].sectionAddress[lastSection] + 2*block[i].section[lastSection].numberOfParameters;
             break;
 
             case DWORD_PARAMETER:
-            memory_usage = block[i].sectionAddress[lastSection] + 4*block[i].section[lastSection].parameters;
+            memory_usage = block[i].sectionAddress[lastSection] + 4*block[i].section[lastSection].numberOfParameters;
             break;
         }
 
@@ -338,7 +338,7 @@ void DBMS::initData(initType_t type)
             uint16_t startAddress = getSectionAddress(i, j);
             uint8_t parameterType = getParameterType(i, j);
             uint8_t defaultValue = block[i].section[j].defaultValue;
-            uint8_t numberOfParameters = block[i].section[j].parameters;
+            uint8_t numberOfParameters = block[i].section[j].numberOfParameters;
 
             switch(parameterType)
             {

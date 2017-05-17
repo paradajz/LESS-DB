@@ -15,7 +15,7 @@ typedef enum
 ///
 typedef struct
 {
-    uint16_t parameters;
+    uint16_t numberOfParameters;
     sectionParameterType_t parameterType;
     bool preserveOnPartialReset;
     uint16_t defaultValue;
