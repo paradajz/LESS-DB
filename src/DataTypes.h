@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Config.h"
-
+///
+/// \brief List of possible parameter types in section.
+///
 typedef enum
 {
     BIT_PARAMETER,
@@ -15,10 +16,11 @@ typedef enum
 ///
 typedef struct
 {
-    uint16_t numberOfParameters;
+    uint16_t parameters;
     sectionParameterType_t parameterType;
     bool preserveOnPartialReset;
     uint16_t defaultValue;
+    bool autoIncrement;
 } dbSection_t;
 
 ///
@@ -28,10 +30,13 @@ typedef struct
 {
     uint8_t sections;
     uint16_t blockStartAddress;
-    uint16_t sectionAddress[MAX_SECTIONS];
-    dbSection_t section[MAX_SECTIONS];
-} blockDescriptor;
+    uint16_t sectionAddress[DBMS_MAX_SECTIONS];
+    dbSection_t section[DBMS_MAX_SECTIONS];
+} dbBlock_t;
 
+///
+/// \brief List of possible database initialization types.
+///
 typedef enum
 {
     initPartial,
