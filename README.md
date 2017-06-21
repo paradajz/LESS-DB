@@ -4,7 +4,7 @@ This module simulates database using internal EEPROM memory on AVR microcontroll
 
 ## Data organization
 
-DBMS is using blocks and sections to organize data into blocks and sections with various parameters. Image
+DBMS is using blocks and sections with various parameters to organize data in EEPROM memory. Image
 below displays internal data organization in EEPROM memory using DBMS.
 
 ![](https://github.com/paradajz/AVR-DB/blob/master/img/memory.png)
