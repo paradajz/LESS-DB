@@ -36,6 +36,7 @@ class DBMS
     void clear();
     int32_t read(uint8_t blockID, uint8_t sectionID, uint16_t parameterID = 0);
     bool update(uint8_t blockID, uint8_t sectionID, uint16_t parameterID, int32_t newValue, bool async = false);
+    uint32_t getDBsize();
 
     protected:
     bool addBlock();
@@ -63,5 +64,6 @@ class DBMS
     #endif
 
     uint8_t blockCounter;
+    uint32_t memoryUsage;
 };
 /// @}

@@ -243,15 +243,15 @@ bool DBMS::addBlocks(uint8_t numberOfBlocks)
 ///
 bool DBMS::addSection(uint8_t blockID, dbSection_t section)
 {
-    if (block[blockID].sections >= DBMS_MAX_SECTIONS)
+    if (block[blockID].numberOfSections >= DBMS_MAX_SECTIONS)
         return false;
 
-    block[blockID].section[block[blockID].sections].parameterType = section.parameterType;
-    block[blockID].section[block[blockID].sections].preserveOnPartialReset = section.preserveOnPartialReset;
-    block[blockID].section[block[blockID].sections].defaultValue = section.defaultValue;
-    block[blockID].section[block[blockID].sections].numberOfParameters = section.numberOfParameters;
+    block[blockID].section[block[blockID].numberOfSections].parameterType = section.parameterType;
+    block[blockID].section[block[blockID].numberOfSections].preserveOnPartialReset = section.preserveOnPartialReset;
+    block[blockID].section[block[blockID].numberOfSections].defaultValue = section.defaultValue;
+    block[blockID].section[block[blockID].numberOfSections].numberOfParameters = section.numberOfParameters;
 
-    block[blockID].sections++;
+    block[blockID].numberOfSections++;
 
     return true;
 }
@@ -263,9 +263,9 @@ void DBMS::commitLayout()
 {
     for (int i=0; i<blockCounter; i++)
     {
-        uint16_t memory_usage = 0;
+        memoryUsage = 0;
 
-        for (int j=0; j<block[i].sections; j++)
+        for (int j=0; j<block[i].numberOfSections; j++)
         {
             if (!j)
             {
@@ -295,29 +295,29 @@ void DBMS::commitLayout()
             }
         }
 
-        uint8_t lastSection = block[i].sections-1;
+        uint8_t lastSection = block[i].numberOfSections-1;
 
         switch(block[i].section[lastSection].parameterType)
         {
             case BIT_PARAMETER:
-            memory_usage = block[i].sectionAddress[lastSection]+((block[i].section[lastSection].numberOfParameters%8 != 0) + block[i].section[lastSection].numberOfParameters/8);
+            memoryUsage = block[i].sectionAddress[lastSection]+((block[i].section[lastSection].numberOfParameters%8 != 0) + block[i].section[lastSection].numberOfParameters/8);
             break;
 
             case BYTE_PARAMETER:
-            memory_usage = block[i].sectionAddress[lastSection] + block[i].section[lastSection].numberOfParameters;
+            memoryUsage = block[i].sectionAddress[lastSection] + block[i].section[lastSection].numberOfParameters;
             break;
 
             case WORD_PARAMETER:
-            memory_usage = block[i].sectionAddress[lastSection] + 2*block[i].section[lastSection].numberOfParameters;
+            memoryUsage = block[i].sectionAddress[lastSection] + 2*block[i].section[lastSection].numberOfParameters;
             break;
 
             case DWORD_PARAMETER:
-            memory_usage = block[i].sectionAddress[lastSection] + 4*block[i].section[lastSection].numberOfParameters;
+            memoryUsage = block[i].sectionAddress[lastSection] + 4*block[i].section[lastSection].numberOfParameters;
             break;
         }
 
         if (i < blockCounter-1)
-            block[i+1].blockStartAddress = block[i].blockStartAddress + memory_usage;
+            block[i+1].blockStartAddress = block[i].blockStartAddress + memoryUsage;
     }
 }
 
@@ -330,7 +330,7 @@ void DBMS::initData(initType_t type)
 {
     for (int i=0; i<blockCounter; i++)
     {
-        for (int j=0; j<block[i].sections; j++)
+        for (int j=0; j<block[i].numberOfSections; j++)
         {
             if (block[i].section[j].preserveOnPartialReset && (type == initPartial))
                 continue;
@@ -446,3 +446,12 @@ bool DBMS::checkQueue()
     return true;
 }
 #endif
+
+///
+/// \brief Checks for total memory usage of database.
+/// \returns Database size in bytes.
+///
+uint32_t DBMS::getDBsize()
+{
+    return memoryUsage;
+}

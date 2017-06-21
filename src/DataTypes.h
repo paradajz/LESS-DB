@@ -28,7 +28,7 @@ typedef struct
 ///
 typedef struct
 {
-    uint8_t sections;
+    uint8_t numberOfSections;
     uint16_t blockStartAddress;
     uint16_t sectionAddress[DBMS_MAX_SECTIONS];
     dbSection_t section[DBMS_MAX_SECTIONS];
