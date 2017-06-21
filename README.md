@@ -13,7 +13,7 @@ below displays possible internal data organization in EEPROM memory using DBMS.
 
 A block of data is specified using the following parameters:
 
-- Number of sections (specified by user)
+- Number of sections
 - Section
 
 ### Sections
