@@ -261,9 +261,11 @@ bool DBMS::addSection(uint8_t blockID, dbSection_t section)
 ///
 void DBMS::commitLayout()
 {
+    memoryUsage = 0;
+
     for (int i=0; i<blockCounter; i++)
     {
-        memoryUsage = 0;
+        uint32_t blockUsage = 0;
 
         for (int j=0; j<block[i].numberOfSections; j++)
         {
@@ -300,24 +302,26 @@ void DBMS::commitLayout()
         switch(block[i].section[lastSection].parameterType)
         {
             case BIT_PARAMETER:
-            memoryUsage = block[i].sectionAddress[lastSection]+((block[i].section[lastSection].numberOfParameters%8 != 0) + block[i].section[lastSection].numberOfParameters/8);
+            blockUsage = block[i].sectionAddress[lastSection]+((block[i].section[lastSection].numberOfParameters%8 != 0) + block[i].section[lastSection].numberOfParameters/8);
             break;
 
             case BYTE_PARAMETER:
-            memoryUsage = block[i].sectionAddress[lastSection] + block[i].section[lastSection].numberOfParameters;
+            blockUsage = block[i].sectionAddress[lastSection] + block[i].section[lastSection].numberOfParameters;
             break;
 
             case WORD_PARAMETER:
-            memoryUsage = block[i].sectionAddress[lastSection] + 2*block[i].section[lastSection].numberOfParameters;
+            blockUsage = block[i].sectionAddress[lastSection] + 2*block[i].section[lastSection].numberOfParameters;
             break;
 
             case DWORD_PARAMETER:
-            memoryUsage = block[i].sectionAddress[lastSection] + 4*block[i].section[lastSection].numberOfParameters;
+            blockUsage = block[i].sectionAddress[lastSection] + 4*block[i].section[lastSection].numberOfParameters;
             break;
         }
 
         if (i < blockCounter-1)
-            block[i+1].blockStartAddress = block[i].blockStartAddress + memoryUsage;
+            block[i+1].blockStartAddress = block[i].blockStartAddress + blockUsage;
+
+        memoryUsage += blockUsage;
     }
 }
 
