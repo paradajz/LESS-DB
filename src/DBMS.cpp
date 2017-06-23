@@ -341,13 +341,13 @@ void DBMS::initData(initType_t type)
 
             uint16_t startAddress = getSectionAddress(i, j);
             uint8_t parameterType = getParameterType(i, j);
-            uint8_t defaultValue = block[i].section[j].defaultValue;
-            uint8_t numberOfParameters = block[i].section[j].numberOfParameters;
+            uint32_t defaultValue = block[i].section[j].defaultValue;
+            uint16_t numberOfParameters = block[i].section[j].numberOfParameters;
 
             switch(parameterType)
             {
                 case BIT_PARAMETER:
-                for (int k=0; k<numberOfParameters/8+1; k++)
+                for (int k=0; k<(int)(numberOfParameters/8+1); k++)
                     eeprom_update_byte((uint8_t*)startAddress+k, defaultValue);
                 break;
 
@@ -375,7 +375,7 @@ void DBMS::initData(initType_t type)
                 while (numberOfParameters--)
                 {
                     if (block[i].section[j].autoIncrement)
-                        eeprom_update_dword((uint32_t*)(uint16_t)(startAddress+(numberOfParameters*4)), numberOfParameters+defaultValue);
+                        eeprom_update_dword((uint32_t*)(uint16_t)(startAddress+(numberOfParameters*4)), (uint32_t)numberOfParameters+defaultValue);
                     else
                         eeprom_update_dword((uint32_t*)(uint16_t)(startAddress+(numberOfParameters*4)), (uint32_t)defaultValue);
                 }
