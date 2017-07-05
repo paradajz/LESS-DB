@@ -25,6 +25,7 @@
 /// \ingroup eeprom
 /// @{
 ///
+
 class DBMS
 {
     public:
@@ -66,4 +67,5 @@ class DBMS
     uint8_t blockCounter;
     uint32_t memoryUsage;
 };
+
 /// @}
