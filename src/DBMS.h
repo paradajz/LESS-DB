@@ -21,17 +21,15 @@
 #endif
 
 ///
-/// \brief Simple database-like management system.
-/// \ingroup eeprom
+/// \ingroup avrDBMS
 /// @{
-///
 
 class DBMS
 {
     public:
     DBMS();
     void init();
-    #ifdef DBMS_ENABLE_ASYNC_UPDATE
+    #if defined(DBMS_ENABLE_ASYNC_UPDATE) || defined(__DOXYGEN__)
     bool checkQueue();
     #endif
     void clear();
@@ -47,11 +45,11 @@ class DBMS
     void initData(initType_t type = initWipe);
 
     private:
-    #ifdef DBMS_ENABLE_ASYNC_UPDATE
+    #if defined(DBMS_ENABLE_ASYNC_UPDATE) || defined(__DOXYGEN__)
     void queueData(uint16_t eepromAddress, uint16_t data, uint8_t parameterType);
     #endif
 
-    #ifdef DBMS_ENABLE_ASYNC_UPDATE
+    #if defined(DBMS_ENABLE_ASYNC_UPDATE) || defined(__DOXYGEN__)
     ///
     /// \brief Variables used for internal buffer implementation used for async EEPROM update.
     /// @{

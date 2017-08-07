@@ -385,7 +385,7 @@ void DBMS::initData(initType_t type)
     }
 }
 
-#ifdef DBMS_ENABLE_ASYNC_UPDATE
+#if defined(DBMS_ENABLE_ASYNC_UPDATE) || defined(__DOXYGEN__)
 ///
 /// \brief Writes data to internal queue instead of directly to EEPROM.
 /// @param [in] eepromAddress Address at which to write data.
