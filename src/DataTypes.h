@@ -1,6 +1,10 @@
 #pragma once
 
 ///
+/// \ingroup avrDBMS
+/// @{
+
+///
 /// \brief List of possible parameter types in section.
 ///
 typedef enum
@@ -42,3 +46,5 @@ typedef enum
     initPartial,
     initWipe
 } initType_t;
+
+/// @}
