@@ -2,12 +2,14 @@
 
 ///
 /// \brief Array of DBMS blocks.
+/// \ingroup avrDBMS
 ///
 dbBlock_t block[DBMS_MAX_BLOCKS];
 
 ///
 /// \brief Returns section address for specified section within block.
 /// \returns Section address.
+/// \ingroup avrDBMS
 ///
 inline uint16_t getSectionAddress(uint8_t blockID, uint8_t sectionID)
 {
@@ -17,6 +19,7 @@ inline uint16_t getSectionAddress(uint8_t blockID, uint8_t sectionID)
 ///
 /// \brief Returns block address for specified block.
 /// \returns Block address.
+/// \ingroup avrDBMS
 ///
 inline uint16_t getBlockAddress(uint8_t blockID)
 {
@@ -26,6 +29,7 @@ inline uint16_t getBlockAddress(uint8_t blockID)
 ///
 /// \brief Returns parameter type for specified block and section.
 /// \returns Parameter type.
+/// \ingroup avrDBMS
 ///
 inline sectionParameterType_t getParameterType(uint8_t blockID, uint8_t sectionID)
 {
@@ -51,41 +55,41 @@ DBMS::DBMS()
 }
 
 ///
-/// \brief Reads value from database.
-/// @param [in] blockID     Block for wanted parameter.
-/// @param [in] sectionID   Section for wanted parameter.
-/// @param [in] parameterID Parameter ID
+/// \brief Reads a value from database.
+/// @param [in] blockID         Block for wanted parameter.
+/// @param [in] sectionID       Section for wanted parameter.
+/// @param [in] parameterIndex  Parameter index.
 /// \returns Retrieved value.
 ///
-int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterID)
+int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
 {
     uint16_t startAddress = getSectionAddress(blockID, sectionID);
     uint8_t parameterType = getParameterType(blockID, sectionID);
 
     uint8_t arrayIndex;
-    uint8_t parameterIndex;
+    uint8_t bitIndex;
 
     switch(parameterType)
     {
         case BIT_PARAMETER:
-        arrayIndex = parameterID/8;
-        parameterIndex = parameterID - 8*arrayIndex;
+        arrayIndex = parameterIndex/8;
+        bitIndex = parameterIndex - 8*arrayIndex;
         startAddress += arrayIndex;
-        return bitRead(eeprom_read_byte((uint8_t*)startAddress), parameterIndex);
+        return bitRead(eeprom_read_byte((uint8_t*)startAddress), bitIndex);
         break;
 
         case BYTE_PARAMETER:
-        startAddress += parameterID;
+        startAddress += parameterIndex;
         return eeprom_read_byte((uint8_t*)startAddress);
         break;
 
         case WORD_PARAMETER:
-        startAddress += ((uint16_t)parameterID*2);
+        startAddress += ((uint16_t)parameterIndex*2);
         return eeprom_read_word((uint16_t*)startAddress);
         break;
 
         case DWORD_PARAMETER:
-        startAddress += ((uint16_t)parameterID*4);
+        startAddress += ((uint16_t)parameterIndex*4);
         return eeprom_read_dword((uint32_t*)startAddress);
         break;
     }
@@ -95,14 +99,14 @@ int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterID)
 
 ///
 /// \brief Updates value for specified block and section in database.
-/// @param [in] blockID     Block for wanted parameter.
-/// @param [in] sectionID   Section for wanted parameter.
-/// @param [in] parameterID Parameter ID.
-/// @param [in] newValue    New value for parameter
-/// @param [in] async       Whether to update value immediately (false) or later (true).
+/// @param [in] blockID         Block for wanted parameter.
+/// @param [in] sectionID       Section for wanted parameter.
+/// @param [in] parameterIndex  Parameter index.
+/// @param [in] newValue        New value for parameter.
+/// @param [in] async           Whether to update value immediately (false) or later (true).
 /// \returns True on success, false otherwise.
 ///
-bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterID, int32_t newValue, bool async)
+bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue, bool async)
 {
     uint16_t startAddress = getSectionAddress(blockID, sectionID);
 
@@ -113,15 +117,15 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterID, int3
 
     uint8_t arrayIndex;
     uint8_t arrayValue;
-    uint8_t parameterIndex;
+    uint8_t bitIndex;
 
     switch(parameterType)
     {
         case BIT_PARAMETER:
-        arrayIndex = parameterID/8;
-        parameterIndex = parameterID - 8*arrayIndex;
+        arrayIndex = parameterIndex/8;
+        bitIndex = parameterIndex - 8*arrayIndex;
         arrayValue = eeprom_read_byte((uint8_t*)startAddress+arrayIndex);
-        bitWrite(arrayValue, parameterIndex, newValue);
+        bitWrite(arrayValue, bitIndex, newValue);
         #ifdef DBMS_ENABLE_ASYNC_UPDATE
         if (async)
         {
@@ -143,17 +147,17 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterID, int3
         #ifdef DBMS_ENABLE_ASYNC_UPDATE
         if (async)
         {
-            queueData(startAddress+parameterID, newValue, BYTE_PARAMETER);
+            queueData(startAddress+parameterIndex, newValue, BYTE_PARAMETER);
             return true;
         }
         else
         {
-            eeprom_update_byte((uint8_t*)startAddress+parameterID, newValue);
-            return (newValue == eeprom_read_byte((uint8_t*)startAddress+parameterID));
+            eeprom_update_byte((uint8_t*)startAddress+parameterIndex, newValue);
+            return (newValue == eeprom_read_byte((uint8_t*)startAddress+parameterIndex));
         }
         #else
-        eeprom_update_byte((uint8_t*)startAddress+parameterID, newValue);
-        return (newValue == eeprom_read_byte((uint8_t*)startAddress+parameterID));
+        eeprom_update_byte((uint8_t*)startAddress+parameterIndex, newValue);
+        return (newValue == eeprom_read_byte((uint8_t*)startAddress+parameterIndex));
         #endif
         break;
 
@@ -161,17 +165,17 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterID, int3
         #ifdef DBMS_ENABLE_ASYNC_UPDATE
         if (async)
         {
-            queueData(startAddress+parameterID, newValue, WORD_PARAMETER);
+            queueData(startAddress+parameterIndex, newValue, WORD_PARAMETER);
             return true;
         }
         else
         {
-            eeprom_update_word((uint16_t*)startAddress+parameterID, newValue);
-            return (newValue == read(blockID, sectionID, parameterID));
+            eeprom_update_word((uint16_t*)startAddress+parameterIndex, newValue);
+            return (newValue == read(blockID, sectionID, parameterIndex));
         }
         #else
-        eeprom_update_word((uint16_t*)startAddress+parameterID, newValue);
-        return (newValue == read(blockID, sectionID, parameterID));
+        eeprom_update_word((uint16_t*)startAddress+parameterIndex, newValue);
+        return (newValue == read(blockID, sectionID, parameterIndex));
         #endif
         break;
 
@@ -179,17 +183,17 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterID, int3
         #ifdef DBMS_ENABLE_ASYNC_UPDATE
         if (async)
         {
-            queueData(startAddress+parameterID, newValue, DWORD_PARAMETER);
+            queueData(startAddress+parameterIndex, newValue, DWORD_PARAMETER);
             return true;
         }
         else
         {
-            eeprom_update_dword((uint32_t*)startAddress+parameterID, newValue);
-            return (newValue == read(blockID, sectionID, parameterID));
+            eeprom_update_dword((uint32_t*)startAddress+parameterIndex, newValue);
+            return (newValue == read(blockID, sectionID, parameterIndex));
         }
         #else
-        eeprom_update_dword((uint32_t*)startAddress+parameterID, newValue);
-        return (newValue == read(blockID, sectionID, parameterID));
+        eeprom_update_dword((uint32_t*)startAddress+parameterIndex, newValue);
+        return (newValue == read(blockID, sectionID, parameterIndex));
         #endif
         break;
     }
@@ -237,8 +241,8 @@ bool DBMS::addBlocks(uint8_t numberOfBlocks)
 
 ///
 /// \brief Adds section to specified block.
-/// @param [in] blockID Block on which to add section.
-/// @param [in] section Structure holding description of section.
+/// @param [in] blockID     Block on which to add section.
+/// @param [in] section     Structure holding description of section.
 /// \returns True on success, false otherwise.
 ///
 bool DBMS::addSection(uint8_t blockID, dbSection_t section)
@@ -388,9 +392,9 @@ void DBMS::initData(initType_t type)
 #if defined(DBMS_ENABLE_ASYNC_UPDATE) || defined(__DOXYGEN__)
 ///
 /// \brief Writes data to internal queue instead of directly to EEPROM.
-/// @param [in] eepromAddress Address at which to write data.
-/// @param [in] data Data to write.
-/// @param [in] parameterType Type of parameter.
+/// @param [in] eepromAddress   Address at which to write data.
+/// @param [in] data            Data to write.
+/// @param [in] parameterType   Type of parameter.
 ///
 void DBMS::queueData(uint16_t eepromAddress, uint16_t data, uint8_t parameterType)
 {
