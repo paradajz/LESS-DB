@@ -8,8 +8,6 @@ dbBlock_t block[DBMS_MAX_BLOCKS];
 
 ///
 /// \brief Returns section address for specified section within block.
-/// @param [in] blockID     Block index.
-/// @param [in] sectionID   Section index.
 /// \returns Section address.
 /// \ingroup avrDBMS
 ///
@@ -20,7 +18,6 @@ inline uint16_t getSectionAddress(uint8_t blockID, uint8_t sectionID)
 
 ///
 /// \brief Returns block address for specified block.
-/// @param [in] blockID     Block index.
 /// \returns Block address.
 /// \ingroup avrDBMS
 ///
@@ -31,8 +28,6 @@ inline uint16_t getBlockAddress(uint8_t blockID)
 
 ///
 /// \brief Returns parameter type for specified block and section.
-/// @param [in] blockID     Block index.
-/// @param [in] sectionID   Section index.
 /// \returns Parameter type.
 /// \ingroup avrDBMS
 ///
@@ -61,8 +56,8 @@ DBMS::DBMS()
 
 ///
 /// \brief Reads a value from database.
-/// @param [in] blockID         Block index.
-/// @param [in] sectionID       Section index.
+/// @param [in] blockID         Block for wanted parameter.
+/// @param [in] sectionID       Section for wanted parameter.
 /// @param [in] parameterIndex  Parameter index.
 /// \returns Retrieved value.
 ///
@@ -104,8 +99,8 @@ int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
 
 ///
 /// \brief Updates value for specified block and section in database.
-/// @param [in] blockID         Block index.
-/// @param [in] sectionID       Section index.
+/// @param [in] blockID         Block for wanted parameter.
+/// @param [in] sectionID       Section for wanted parameter.
 /// @param [in] parameterIndex  Parameter index.
 /// @param [in] newValue        New value for parameter.
 /// @param [in] async           Whether to update value immediately (false) or later (true).
@@ -423,7 +418,7 @@ void DBMS::queueData(uint16_t eepromAddress, uint16_t data, uint8_t parameterTyp
 ///
 /// \brief Checks if there is any data in queue.
 /// If there is data, a single write command will be executed, removing one queued event from queue.
-/// \return True if there is data in queue, false otherwise.
+/// \returns True if there is data in queue, false otherwise.
 ///
 bool DBMS::checkQueue()
 {
