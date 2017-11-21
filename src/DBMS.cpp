@@ -1,16 +1,26 @@
 /*
+    Copyright 2017 Igor Petroviæ
 
-Copyright 2017 Igor PetroviÄ‡
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+    sell copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 #include "DBMS.h"
+#include <avr/eeprom.h>
 
 ///
 /// \brief Array of DBMS blocks.
@@ -20,6 +30,8 @@ dbBlock_t block[DBMS_MAX_BLOCKS];
 
 ///
 /// \brief Returns section address for specified section within block.
+/// @param [in] blockID     Block index.
+/// @param [in] sectionID   Section index.
 /// \returns Section address.
 /// \ingroup avrDBMS
 ///
@@ -30,6 +42,7 @@ inline uint16_t getSectionAddress(uint8_t blockID, uint8_t sectionID)
 
 ///
 /// \brief Returns block address for specified block.
+/// @param [in] blockID     Block index.
 /// \returns Block address.
 /// \ingroup avrDBMS
 ///
@@ -40,6 +53,8 @@ inline uint16_t getBlockAddress(uint8_t blockID)
 
 ///
 /// \brief Returns parameter type for specified block and section.
+/// @param [in] blockID     Block index.
+/// @param [in] sectionID   Section index.
 /// \returns Parameter type.
 /// \ingroup avrDBMS
 ///
@@ -68,8 +83,8 @@ DBMS::DBMS()
 
 ///
 /// \brief Reads a value from database.
-/// @param [in] blockID         Block for wanted parameter.
-/// @param [in] sectionID       Section for wanted parameter.
+/// @param [in] blockID         Block index.
+/// @param [in] sectionID       Section index.
 /// @param [in] parameterIndex  Parameter index.
 /// \returns Retrieved value.
 ///
@@ -87,7 +102,7 @@ int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
         arrayIndex = parameterIndex/8;
         bitIndex = parameterIndex - 8*arrayIndex;
         startAddress += arrayIndex;
-        return bitRead(eeprom_read_byte((uint8_t*)startAddress), bitIndex);
+        return BIT_READ(eeprom_read_byte((uint8_t*)startAddress), bitIndex);
         break;
 
         case BYTE_PARAMETER:
@@ -111,8 +126,8 @@ int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
 
 ///
 /// \brief Updates value for specified block and section in database.
-/// @param [in] blockID         Block for wanted parameter.
-/// @param [in] sectionID       Section for wanted parameter.
+/// @param [in] blockID         Block index.
+/// @param [in] sectionID       Section index.
 /// @param [in] parameterIndex  Parameter index.
 /// @param [in] newValue        New value for parameter.
 /// @param [in] async           Whether to update value immediately (false) or later (true).
@@ -137,7 +152,7 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
         arrayIndex = parameterIndex/8;
         bitIndex = parameterIndex - 8*arrayIndex;
         arrayValue = eeprom_read_byte((uint8_t*)startAddress+arrayIndex);
-        bitWrite(arrayValue, bitIndex, newValue);
+        BIT_WRITE(arrayValue, bitIndex, newValue);
         #ifdef DBMS_ENABLE_ASYNC_UPDATE
         if (async)
         {
@@ -430,7 +445,7 @@ void DBMS::queueData(uint16_t eepromAddress, uint16_t data, uint8_t parameterTyp
 ///
 /// \brief Checks if there is any data in queue.
 /// If there is data, a single write command will be executed, removing one queued event from queue.
-/// \returns True if there is data in queue, false otherwise.
+/// \return True if there is data in queue, false otherwise.
 ///
 bool DBMS::checkQueue()
 {
