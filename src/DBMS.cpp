@@ -281,6 +281,7 @@ bool DBMS::addSection(uint8_t blockID, dbSection_t section)
     block[blockID].section[block[blockID].numberOfSections].preserveOnPartialReset = section.preserveOnPartialReset;
     block[blockID].section[block[blockID].numberOfSections].defaultValue = section.defaultValue;
     block[blockID].section[block[blockID].numberOfSections].numberOfParameters = section.numberOfParameters;
+    block[blockID].section[block[blockID].numberOfSections].autoIncrement = section.autoIncrement;
 
     block[blockID].numberOfSections++;
 

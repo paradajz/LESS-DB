@@ -56,7 +56,7 @@
 #ifndef BIT_WRITE
 #define BIT_SET(value, bit)              ((value) |= (1UL << (bit)))
 #define BIT_CLEAR(value, bit)            ((value) &= ~(1UL << (bit)))
-#define BIT_WRITE(value, bit, bitvalue)  (bitvalue ? bitSet(value, bit) : bitClear(value, bit))
+#define BIT_WRITE(value, bit, bitvalue)  (bitvalue ? BIT_SET(value, bit) : BIT_CLEAR(value, bit))
 #endif
 
 ///
