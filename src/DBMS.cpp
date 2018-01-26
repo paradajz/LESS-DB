@@ -1,5 +1,5 @@
 /*
-    Copyright 2017 Igor Petroviæ
+    Copyright 2017 Igor Petroviï¿½
 
     Permission is hereby granted, free of charge, to any person obtaining
     a copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,31 @@
 /// \brief Array of DBMS blocks.
 /// \ingroup avrDBMS
 ///
-dbBlock_t block[DBMS_MAX_BLOCKS];
+static dbBlock_t block[DBMS_MAX_BLOCKS];
+
+///
+/// \brief Holds amount of blocks.
+///
+static uint8_t blockCounter;
+
+///
+/// \brief Holds total memory usage in EEPROM for current database layout.
+///
+static uint32_t memoryUsage;
+
+#if defined(DBMS_ENABLE_ASYNC_UPDATE) || defined(__DOXYGEN__)
+///
+/// \brief Variables used for internal buffer implementation used for async EEPROM update.
+/// @{
+
+uint8_t     eeprom_update_bufer_param_type[DBMS_UPDATE_BUFFER_SIZE];
+uint16_t    eeprom_update_bufer_value[DBMS_UPDATE_BUFFER_SIZE];
+uint16_t    eeprom_update_bufer_address[DBMS_UPDATE_BUFFER_SIZE];
+uint8_t     eeprom_update_buffer_head;
+uint8_t     eeprom_update_buffer_tail;
+
+/// @}
+#endif
 
 ///
 /// \brief Returns section address for specified section within block.
@@ -39,29 +63,6 @@ inline uint16_t getSectionAddress(uint8_t blockID, uint8_t sectionID)
 {
     return block[blockID].blockStartAddress+block[blockID].sectionAddress[sectionID];
 };
-
-///
-/// \brief Returns block address for specified block.
-/// @param [in] blockID     Block index.
-/// \returns Block address.
-/// \ingroup avrDBMS
-///
-inline uint16_t getBlockAddress(uint8_t blockID)
-{
-    return block[blockID].blockStartAddress;
-};
-
-///
-/// \brief Returns parameter type for specified block and section.
-/// @param [in] blockID     Block index.
-/// @param [in] sectionID   Section index.
-/// \returns Parameter type.
-/// \ingroup avrDBMS
-///
-inline sectionParameterType_t getParameterType(uint8_t blockID, uint8_t sectionID)
-{
-    return block[blockID].section[sectionID].parameterType;
-}
 
 ///
 /// \brief Default constructor
@@ -91,7 +92,7 @@ DBMS::DBMS()
 int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
 {
     uint16_t startAddress = getSectionAddress(blockID, sectionID);
-    uint8_t parameterType = getParameterType(blockID, sectionID);
+    uint8_t parameterType = block[blockID].section[sectionID].parameterType;
 
     uint8_t arrayIndex;
     uint8_t bitIndex;
@@ -140,7 +141,7 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
     if (startAddress > EEPROM_SIZE)
         return 0;
 
-    uint8_t parameterType = getParameterType(blockID, sectionID);
+    uint8_t parameterType = block[blockID].section[sectionID].parameterType;
 
     uint8_t arrayIndex;
     uint8_t arrayValue;
@@ -372,7 +373,7 @@ void DBMS::initData(initType_t type)
                 continue;
 
             uint16_t startAddress = getSectionAddress(i, j);
-            uint8_t parameterType = getParameterType(i, j);
+            uint8_t parameterType = block[i].section[j].parameterType;
             uint32_t defaultValue = block[i].section[j].defaultValue;
             uint16_t numberOfParameters = block[i].section[j].numberOfParameters;
 
