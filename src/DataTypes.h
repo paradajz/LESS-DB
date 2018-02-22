@@ -1,5 +1,5 @@
 /*
-    Copyright 2017 Igor Petroviæ
+    Copyright 2017-2018 Igor Petrovic
 
     Permission is hereby granted, free of charge, to any person obtaining
     a copy of this software and associated documentation files (the "Software"),
