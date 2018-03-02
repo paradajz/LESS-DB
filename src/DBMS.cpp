@@ -111,6 +111,12 @@ int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
         return eeprom_read_byte((uint8_t*)startAddress);
         break;
 
+        case HALFBYTE_PARAMETER:
+        startAddress += (parameterIndex/2);
+        arrayIndex = eeprom_read_byte((uint8_t*)startAddress);
+        return (parameterIndex%2) ? (arrayIndex >> 4) : (arrayIndex & 0x0F);
+        break;
+
         case WORD_PARAMETER:
         startAddress += ((uint16_t)parameterIndex*2);
         return eeprom_read_word((uint16_t*)startAddress);
@@ -186,6 +192,58 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
         #else
         eeprom_update_byte((uint8_t*)startAddress+parameterIndex, newValue);
         return (newValue == eeprom_read_byte((uint8_t*)startAddress+parameterIndex));
+        #endif
+        break;
+
+        case HALFBYTE_PARAMETER:
+        //sanitize input
+        newValue &= 0x0F;
+        #ifdef DBMS_ENABLE_ASYNC_UPDATE
+        if (async)
+        {
+            queueData(startAddress+parameterIndex, newValue, HALFBYTE_PARAMETER);
+            return true;
+        }
+        else
+        {
+            //read old value first
+            arrayValue = eeprom_read_byte((uint8_t*)startAddress+(parameterIndex/2));
+
+            if (parameterIndex%2)
+            {
+                //clear content in bits 4-7 and update the value
+                arrayValue &= 0x0F;
+                arrayValue |= (newValue << 4);
+            }
+            else
+            {
+                //clear content in bits 0-3 and update the value
+                arrayValue &= 0xF0;
+                arrayValue |= newValue;
+            }
+
+            eeprom_update_byte((uint8_t*)startAddress+(parameterIndex/2), arrayValue);
+            return (arrayValue == eeprom_read_byte((uint8_t*)startAddress+(parameterIndex/2)));
+        }
+        #else
+        //read old value first
+        arrayValue = eeprom_read_byte((uint8_t*)startAddress+(parameterIndex/2));
+
+        if (parameterIndex % 2)
+        {
+            //clear content in bits 4-7 and update the value
+            arrayValue &= 0x0F;
+            arrayValue |= (newValue << 4);
+        }
+        else
+        {
+            //clear content in bits 0-3 and update the value
+            arrayValue &= 0xF0;
+            arrayValue |= newValue;
+        }
+
+        eeprom_update_byte((uint8_t*)startAddress+(parameterIndex/2), arrayValue);
+        return (arrayValue == eeprom_read_byte((uint8_t*)startAddress+(parameterIndex/2)));
         #endif
         break;
 
@@ -319,6 +377,10 @@ void DBMS::commitLayout()
                     block[i].sectionAddress[j] = block[i].section[j-1].numberOfParameters + block[i].sectionAddress[j-1];
                     break;
 
+                    case HALFBYTE_PARAMETER:
+                    block[i].sectionAddress[j] = block[i].section[j-1].numberOfParameters/2 + block[i].sectionAddress[j-1];
+                    break;
+
                     case WORD_PARAMETER:
                     block[i].sectionAddress[j] = 2*block[i].section[j-1].numberOfParameters + block[i].sectionAddress[j-1];
                     break;
@@ -340,6 +402,10 @@ void DBMS::commitLayout()
 
             case BYTE_PARAMETER:
             blockUsage = block[i].sectionAddress[lastSection] + block[i].section[lastSection].numberOfParameters;
+            break;
+
+            case HALFBYTE_PARAMETER:
+            blockUsage = block[i].sectionAddress[lastSection] + block[i].section[lastSection].numberOfParameters/2;
             break;
 
             case WORD_PARAMETER:
@@ -372,45 +438,30 @@ void DBMS::initData(initType_t type)
             if (block[i].section[j].preserveOnPartialReset && (type == initPartial))
                 continue;
 
-            uint16_t startAddress = getSectionAddress(i, j);
             uint8_t parameterType = block[i].section[j].parameterType;
             uint32_t defaultValue = block[i].section[j].defaultValue;
-            uint16_t numberOfParameters = block[i].section[j].numberOfParameters;
+            int16_t numberOfParameters = block[i].section[j].numberOfParameters;
 
             switch(parameterType)
             {
-                case BIT_PARAMETER:
-                for (int k=0; k<(int)(numberOfParameters/8+1); k++)
-                    eeprom_update_byte((uint8_t*)startAddress+k, defaultValue);
-                break;
-
                 case BYTE_PARAMETER:
-                while (numberOfParameters--)
-                {
-                    if (block[i].section[j].autoIncrement)
-                        eeprom_update_byte((uint8_t*)startAddress+numberOfParameters, numberOfParameters+defaultValue);
-                    else
-                        eeprom_update_byte((uint8_t*)startAddress+numberOfParameters, defaultValue);
-                }
-                break;
-
                 case WORD_PARAMETER:
-                while (numberOfParameters--)
+                case DWORD_PARAMETER:
+                for (int k=0; k<numberOfParameters; k++)
                 {
                     if (block[i].section[j].autoIncrement)
-                        eeprom_update_word((uint16_t*)(uint16_t)(startAddress+(numberOfParameters*2)), numberOfParameters+defaultValue);
+                        update(i, j, k, defaultValue+k);
                     else
-                        eeprom_update_word((uint16_t*)(uint16_t)(startAddress+(numberOfParameters*2)), (uint16_t)defaultValue);
+                        update(i, j, k, defaultValue);
                 }
                 break;
 
-                case DWORD_PARAMETER:
-                while (numberOfParameters--)
+                case BIT_PARAMETER:
+                case HALFBYTE_PARAMETER:
+                //no auto-increment here
+                for (int k=0; k<numberOfParameters; k++)
                 {
-                    if (block[i].section[j].autoIncrement)
-                        eeprom_update_dword((uint32_t*)(uint16_t)(startAddress+(numberOfParameters*4)), (uint32_t)numberOfParameters+defaultValue);
-                    else
-                        eeprom_update_dword((uint32_t*)(uint16_t)(startAddress+(numberOfParameters*4)), (uint32_t)defaultValue);
+                    update(i, j, k, defaultValue);
                 }
                 break;
             }
@@ -475,6 +526,10 @@ bool DBMS::checkQueue()
 
         case WORD_PARAMETER:
         eeprom_update_word((uint16_t*)eeprom_update_bufer_address[index], eeprom_update_bufer_value[index]);
+        break;
+
+        case DWORD_PARAMETER:
+        eeprom_update_dword((uint32_t*)eeprom_update_bufer_address[index], eeprom_update_bufer_value[index]);
         break;
     }
 

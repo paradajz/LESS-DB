@@ -34,6 +34,7 @@ typedef enum
 {
     BIT_PARAMETER,
     BYTE_PARAMETER,
+    HALFBYTE_PARAMETER,
     WORD_PARAMETER,
     DWORD_PARAMETER
 } sectionParameterType_t;
