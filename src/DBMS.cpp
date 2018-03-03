@@ -317,7 +317,7 @@ bool DBMS::addBlock()
 ///
 bool DBMS::addBlocks(uint8_t numberOfBlocks)
 {
-    if (blockCounter+numberOfBlocks >= DBMS_MAX_BLOCKS)
+    if (blockCounter+numberOfBlocks > DBMS_MAX_BLOCKS)
         return false;
 
     blockCounter += numberOfBlocks;
@@ -333,7 +333,7 @@ bool DBMS::addBlocks(uint8_t numberOfBlocks)
 ///
 bool DBMS::addSection(uint8_t blockID, dbSection_t section)
 {
-    if (block[blockID].numberOfSections >= DBMS_MAX_SECTIONS)
+    if (block[blockID].numberOfSections > DBMS_MAX_SECTIONS)
         return false;
 
     block[blockID].section[block[blockID].numberOfSections].parameterType = section.parameterType;
