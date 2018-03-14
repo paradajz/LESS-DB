@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/paradajz/sysex-conf.svg?branch=master)](https://travis-ci.org/paradajz/sysex-conf)
+[![Coverage Status](https://coveralls.io/repos/github/paradajz/sysex-conf/badge.svg?branch=master&service=github)](https://coveralls.io/github/paradajz/sysex-conf?branch=master)
+
 # Simple database-like management system for AVR
 
 This module simulates database using internal EEPROM memory on AVR microcontrollers. DBMS takes care of accessing, writing and organizing data into EEPROM, so no knowledge of memory addressing is required for the user.
