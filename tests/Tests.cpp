@@ -91,6 +91,38 @@ TEST_F(DBMStest, Read)
     EXPECT_EQ(returnValue, true);
 }
 
+TEST_F(DBMStest, Update)
+{
+    int32_t value;
+    bool returnValue;
+
+    returnValue = db.update(TEST_BLOCK_INDEX, 0, 0, 1);
+    EXPECT_EQ(returnValue, true);
+    returnValue = db.read(TEST_BLOCK_INDEX, 0, 0, value);
+    EXPECT_EQ(returnValue, true);
+    EXPECT_EQ(value, 1);
+
+    returnValue = db.update(TEST_BLOCK_INDEX, 1, 0, 240);
+    EXPECT_EQ(returnValue, true);
+    returnValue = db.read(TEST_BLOCK_INDEX, 1, 0, value);
+    EXPECT_EQ(value, 240);
+
+    returnValue = db.update(TEST_BLOCK_INDEX, 2, 0, 12);
+    EXPECT_EQ(returnValue, true);
+    returnValue = db.read(TEST_BLOCK_INDEX, 2, 0, value);
+    EXPECT_EQ(value, 12);
+
+    returnValue = db.update(TEST_BLOCK_INDEX, 3, 0, 1000);
+    EXPECT_EQ(returnValue, true);
+    returnValue = db.read(TEST_BLOCK_INDEX, 3, 0, value);
+    EXPECT_EQ(value, 1000);
+
+    returnValue = db.update(TEST_BLOCK_INDEX, 4, 0, 32000);
+    EXPECT_EQ(returnValue, true);
+    returnValue = db.read(TEST_BLOCK_INDEX, 4, 0, value);
+    EXPECT_EQ(value, 32000);
+}
+
 TEST_F(DBMStest, OutOfBounds)
 {
     int32_t value;
