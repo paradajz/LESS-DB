@@ -55,7 +55,6 @@ int32_t memoryRead(uint32_t address, sectionParameterType_t type)
         if (address >= (EEPROM_SIZE-4))
         {
             return -1;
-            
         }
         else
         {
