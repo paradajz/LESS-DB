@@ -35,12 +35,6 @@
 #error Number of DBMS sections undefined
 #endif
 
-#ifdef DBMS_ENABLE_ASYNC_UPDATE
-#ifndef DBMS_UPDATE_BUFFER_SIZE
-#error DBMS update buffer size undefined
-#endif
-#endif
-
 #ifndef LOW_BYTE
 #define LOW_BYTE(value)                  ((value) & 0xFF)
 #endif
@@ -67,26 +61,14 @@ class DBMS
 {
     public:
     DBMS();
-    static void init();
-    #if defined(DBMS_ENABLE_ASYNC_UPDATE) || defined(__DOXYGEN__)
-    static bool checkQueue();
-    #endif
     static void clear();
     static int32_t read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex = 0);
-    static bool update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue, bool async = false);
+    static bool update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue);
     static uint32_t getDBsize();
-
-    protected:
-    static bool addBlock();
     static bool addBlocks(uint8_t numberOfBlocks);
     static bool addSection(uint8_t blockID, dbSection_t section);
     static void commitLayout();
     static void initData(initType_t type = initWipe);
-
-    private:
-    #if defined(DBMS_ENABLE_ASYNC_UPDATE) || defined(__DOXYGEN__)
-    static void queueData(uint16_t eepromAddress, uint16_t data, uint8_t parameterType);
-    #endif
 };
 
 /// @}

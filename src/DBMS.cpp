@@ -20,7 +20,7 @@
 */
 
 #include "DBMS.h"
-#include <avr/eeprom.h>
+#include "memsrc/MemRead.h"
 
 ///
 /// \brief Array of DBMS blocks.
@@ -37,20 +37,6 @@ static uint8_t blockCounter;
 /// \brief Holds total memory usage in EEPROM for current database layout.
 ///
 static uint32_t memoryUsage;
-
-#if defined(DBMS_ENABLE_ASYNC_UPDATE) || defined(__DOXYGEN__)
-///
-/// \brief Variables used for internal buffer implementation used for async EEPROM update.
-/// @{
-
-uint8_t     eeprom_update_bufer_param_type[DBMS_UPDATE_BUFFER_SIZE];
-uint16_t    eeprom_update_bufer_value[DBMS_UPDATE_BUFFER_SIZE];
-uint16_t    eeprom_update_bufer_address[DBMS_UPDATE_BUFFER_SIZE];
-uint8_t     eeprom_update_buffer_head;
-uint8_t     eeprom_update_buffer_tail;
-
-/// @}
-#endif
 
 ///
 /// \brief Returns section address for specified section within block.
@@ -69,17 +55,7 @@ inline uint16_t getSectionAddress(uint8_t blockID, uint8_t sectionID)
 ///
 DBMS::DBMS()
 {
-    #ifdef DBMS_ENABLE_ASYNC_UPDATE
-    for (int i=0; i<DBMS_UPDATE_BUFFER_SIZE; i++)
-    {
-        eeprom_update_bufer_param_type[i] = 0;
-        eeprom_update_bufer_value[i] = 0;
-        eeprom_update_bufer_address[i] = 0;
-    }
 
-    eeprom_update_buffer_head = 0;
-    eeprom_update_buffer_tail = 0;
-    #endif
 }
 
 ///
@@ -103,32 +79,34 @@ int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
         arrayIndex = parameterIndex/8;
         bitIndex = parameterIndex - 8*arrayIndex;
         startAddress += arrayIndex;
-        return BIT_READ(eeprom_read_byte((uint8_t*)startAddress), bitIndex);
+        return BIT_READ(memoryRead(startAddress, BIT_PARAMETER), bitIndex);
         break;
 
         case BYTE_PARAMETER:
         startAddress += parameterIndex;
-        return eeprom_read_byte((uint8_t*)startAddress);
+        return memoryRead(startAddress, BYTE_PARAMETER);
         break;
 
         case HALFBYTE_PARAMETER:
         startAddress += (parameterIndex/2);
-        arrayIndex = eeprom_read_byte((uint8_t*)startAddress);
+        arrayIndex = memoryRead(startAddress, HALFBYTE_PARAMETER);
         return (parameterIndex%2) ? (arrayIndex >> 4) : (arrayIndex & 0x0F);
         break;
 
         case WORD_PARAMETER:
         startAddress += ((uint16_t)parameterIndex*2);
-        return eeprom_read_word((uint16_t*)startAddress);
+        return memoryRead(startAddress, WORD_PARAMETER);
         break;
 
         case DWORD_PARAMETER:
         startAddress += ((uint16_t)parameterIndex*4);
-        return eeprom_read_dword((uint32_t*)startAddress);
+        return memoryRead(startAddress, DWORD_PARAMETER);
+        break;
+
+        default:
+        return 0;
         break;
     }
-
-    return 0;
 }
 
 ///
@@ -137,16 +115,11 @@ int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
 /// @param [in] sectionID       Section index.
 /// @param [in] parameterIndex  Parameter index.
 /// @param [in] newValue        New value for parameter.
-/// @param [in] async           Whether to update value immediately (false) or later (true).
 /// \returns True on success, false otherwise.
 ///
-bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue, bool async)
+bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue)
 {
     uint16_t startAddress = getSectionAddress(blockID, sectionID);
-
-    if (startAddress > EEPROM_SIZE)
-        return 0;
-
     uint8_t parameterType = block[blockID].section[sectionID].parameterType;
 
     uint8_t arrayIndex;
@@ -158,76 +131,22 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
         case BIT_PARAMETER:
         arrayIndex = parameterIndex/8;
         bitIndex = parameterIndex - 8*arrayIndex;
-        arrayValue = eeprom_read_byte((uint8_t*)startAddress+arrayIndex);
+        arrayValue = memoryRead(startAddress+arrayIndex, BIT_PARAMETER);
         BIT_WRITE(arrayValue, bitIndex, newValue);
-        #ifdef DBMS_ENABLE_ASYNC_UPDATE
-        if (async)
-        {
-            queueData(startAddress+arrayIndex, arrayValue, BIT_PARAMETER);
-            return true;
-        }
-        else
-        {
-            eeprom_update_byte((uint8_t*)startAddress+arrayIndex, arrayValue);
-            return (arrayValue == eeprom_read_byte((uint8_t*)startAddress+arrayIndex));
-        }
-        #else
-        eeprom_update_byte((uint8_t*)startAddress+arrayIndex, arrayValue);
-        return (arrayValue == eeprom_read_byte((uint8_t*)startAddress+arrayIndex));
-        #endif
+        memoryWrite(startAddress+arrayIndex, arrayValue, BIT_PARAMETER);
+        return (arrayValue == memoryRead(startAddress+arrayIndex, BIT_PARAMETER));
         break;
 
         case BYTE_PARAMETER:
-        #ifdef DBMS_ENABLE_ASYNC_UPDATE
-        if (async)
-        {
-            queueData(startAddress+parameterIndex, newValue, BYTE_PARAMETER);
-            return true;
-        }
-        else
-        {
-            eeprom_update_byte((uint8_t*)startAddress+parameterIndex, newValue);
-            return (newValue == eeprom_read_byte((uint8_t*)startAddress+parameterIndex));
-        }
-        #else
-        eeprom_update_byte((uint8_t*)startAddress+parameterIndex, newValue);
-        return (newValue == eeprom_read_byte((uint8_t*)startAddress+parameterIndex));
-        #endif
+        memoryWrite(startAddress+parameterIndex, newValue, BYTE_PARAMETER);
+        return (newValue == memoryRead(startAddress+parameterIndex, BYTE_PARAMETER));
         break;
 
         case HALFBYTE_PARAMETER:
         //sanitize input
         newValue &= 0x0F;
-        #ifdef DBMS_ENABLE_ASYNC_UPDATE
-        if (async)
-        {
-            queueData(startAddress+parameterIndex, newValue, HALFBYTE_PARAMETER);
-            return true;
-        }
-        else
-        {
-            //read old value first
-            arrayValue = eeprom_read_byte((uint8_t*)startAddress+(parameterIndex/2));
-
-            if (parameterIndex%2)
-            {
-                //clear content in bits 4-7 and update the value
-                arrayValue &= 0x0F;
-                arrayValue |= (newValue << 4);
-            }
-            else
-            {
-                //clear content in bits 0-3 and update the value
-                arrayValue &= 0xF0;
-                arrayValue |= newValue;
-            }
-
-            eeprom_update_byte((uint8_t*)startAddress+(parameterIndex/2), arrayValue);
-            return (arrayValue == eeprom_read_byte((uint8_t*)startAddress+(parameterIndex/2)));
-        }
-        #else
         //read old value first
-        arrayValue = eeprom_read_byte((uint8_t*)startAddress+(parameterIndex/2));
+        arrayValue = memoryRead(startAddress+(parameterIndex/2), HALFBYTE_PARAMETER);
 
         if (parameterIndex % 2)
         {
@@ -242,45 +161,18 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
             arrayValue |= newValue;
         }
 
-        eeprom_update_byte((uint8_t*)startAddress+(parameterIndex/2), arrayValue);
-        return (arrayValue == eeprom_read_byte((uint8_t*)startAddress+(parameterIndex/2)));
-        #endif
+        memoryWrite(startAddress+(parameterIndex/2), arrayValue, HALFBYTE_PARAMETER);
+        return (arrayValue == memoryRead(startAddress+(parameterIndex/2), HALFBYTE_PARAMETER));
         break;
 
         case WORD_PARAMETER:
-        #ifdef DBMS_ENABLE_ASYNC_UPDATE
-        if (async)
-        {
-            queueData(startAddress+parameterIndex, newValue, WORD_PARAMETER);
-            return true;
-        }
-        else
-        {
-            eeprom_update_word((uint16_t*)startAddress+parameterIndex, newValue);
-            return (newValue == read(blockID, sectionID, parameterIndex));
-        }
-        #else
-        eeprom_update_word((uint16_t*)startAddress+parameterIndex, newValue);
-        return (newValue == read(blockID, sectionID, parameterIndex));
-        #endif
+        memoryWrite(startAddress+(parameterIndex*2), newValue, WORD_PARAMETER);
+        return (newValue == memoryRead(startAddress+parameterIndex, WORD_PARAMETER));
         break;
 
         case DWORD_PARAMETER:
-        #ifdef DBMS_ENABLE_ASYNC_UPDATE
-        if (async)
-        {
-            queueData(startAddress+parameterIndex, newValue, DWORD_PARAMETER);
-            return true;
-        }
-        else
-        {
-            eeprom_update_dword((uint32_t*)startAddress+parameterIndex, newValue);
-            return (newValue == read(blockID, sectionID, parameterIndex));
-        }
-        #else
-        eeprom_update_dword((uint32_t*)startAddress+parameterIndex, newValue);
-        return (newValue == read(blockID, sectionID, parameterIndex));
-        #endif
+        memoryWrite(startAddress+(parameterIndex*4), newValue, DWORD_PARAMETER);
+        return (newValue == memoryRead(startAddress+parameterIndex, DWORD_PARAMETER));
         break;
     }
 
@@ -293,21 +185,7 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
 void DBMS::clear()
 {
     for (int i=0; i<EEPROM_SIZE; i++)
-        eeprom_update_byte((uint8_t*)i, 0xFF);
-}
-
-///
-/// \brief Adds single block to current layout.
-/// \returns True on success, false otherwise.
-///
-bool DBMS::addBlock()
-{
-    if (blockCounter >= DBMS_MAX_BLOCKS)
-        return false;
-
-    blockCounter++;
-
-    return true;
+        memoryWrite(i, 0xFF, BYTE_PARAMETER);
 }
 
 ///
@@ -468,76 +346,6 @@ void DBMS::initData(initType_t type)
         }
     }
 }
-
-#if defined(DBMS_ENABLE_ASYNC_UPDATE) || defined(__DOXYGEN__)
-///
-/// \brief Writes data to internal queue instead of directly to EEPROM.
-/// @param [in] eepromAddress   Address at which to write data.
-/// @param [in] data            Data to write.
-/// @param [in] parameterType   Type of parameter.
-///
-void DBMS::queueData(uint16_t eepromAddress, uint16_t data, uint8_t parameterType)
-{
-    uint8_t index = eeprom_update_buffer_head + 1;
-
-    if (index >= DBMS_UPDATE_BUFFER_SIZE)
-        index = 0;
-
-    //if buffer is full, wait until there is some space
-    if (eeprom_update_buffer_tail == index)
-    {
-        while (!checkQueue());
-    }
-
-    eeprom_update_bufer_param_type[index] = parameterType;
-    eeprom_update_bufer_value[index] = data;
-    eeprom_update_bufer_address[index] = eepromAddress;
-    eeprom_update_buffer_head = index;
-}
-
-///
-/// \brief Checks if there is any data in queue.
-/// If there is data, a single write command will be executed, removing one queued event from queue.
-/// \return True if there is data in queue, false otherwise.
-///
-bool DBMS::checkQueue()
-{
-    //write queued data to eeprom
-
-    if (eeprom_update_buffer_head == eeprom_update_buffer_tail)
-    {
-        //buffer is empty
-        return false;
-    }
-
-    //there is something in buffer
-    uint8_t index = eeprom_update_buffer_tail + 1;
-
-    if (index >= DBMS_UPDATE_BUFFER_SIZE)
-        index = 0;
-
-    //write
-    switch(eeprom_update_bufer_param_type[index])
-    {
-        case BIT_PARAMETER:
-        case BYTE_PARAMETER:
-        eeprom_update_byte((uint8_t*)eeprom_update_bufer_address[index], eeprom_update_bufer_value[index]);
-        break;
-
-        case WORD_PARAMETER:
-        eeprom_update_word((uint16_t*)eeprom_update_bufer_address[index], eeprom_update_bufer_value[index]);
-        break;
-
-        case DWORD_PARAMETER:
-        eeprom_update_dword((uint32_t*)eeprom_update_bufer_address[index], eeprom_update_bufer_value[index]);
-        break;
-    }
-
-    eeprom_update_buffer_tail = index;
-
-    return true;
-}
-#endif
 
 ///
 /// \brief Checks for total memory usage of database.
