@@ -54,7 +54,8 @@ int32_t memoryRead(uint32_t address, sectionParameterType_t type)
         }
         break;
 
-        case DWORD_PARAMETER:
+        default:
+        // case DWORD_PARAMETER:
         if (address >= (EEPROM_SIZE-4))
         {
             return -1;
