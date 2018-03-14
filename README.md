@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/paradajz/AVR-DB.svg?branch=master)](https://travis-ci.org/paradajz/AVR-DB)
-[![Coverage Status](https://coveralls.io/repos/github/paradajz/AVR-DB/badge.svg?branch=master&service=github)](https://coveralls.io/repos/github/paradajz/AVR-DB/badge.svg?branch=master&service=github)
+[![Coverage Status](https://img.shields.io/coveralls/github/paradajz/AVR-DB/master.svg)](https://img.shields.io/coveralls/github/paradajz/AVR-DB/master.svg)
 
 # Simple database-like management system for AVR
 
