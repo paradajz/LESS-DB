@@ -2,15 +2,38 @@
 #include "../src/DBMS.h"
 
 #define NUMBER_OF_BLOCKS                    1
-
+#define NUMBER_OF_SECTIONS                  6
 #define TEST_BLOCK_INDEX                    0
 
-#define SECTION_0_PARAMETERS                5
-#define SECTION_1_PARAMETERS                10
-#define SECTION_2_PARAMETERS                15
-#define SECTION_3_PARAMETERS                20
-#define SECTION_4_PARAMETERS                25
-#define SECTION_5_PARAMETERS                30
+const uint16_t sectionParams[NUMBER_OF_SECTIONS] =
+{
+    5,
+    10,
+    15,
+    20,
+    25,
+    30
+};
+
+const sectionParameterType_t sectionTypes[NUMBER_OF_SECTIONS] =
+{
+    BIT_PARAMETER,
+    BYTE_PARAMETER,
+    HALFBYTE_PARAMETER,
+    WORD_PARAMETER,
+    DWORD_PARAMETER,
+    BYTE_PARAMETER
+};
+
+const uint16_t defaultValues[NUMBER_OF_SECTIONS] =
+{
+    1,
+    10,
+    15,
+    20,
+    25,
+    30
+};
 
 DBMS db;
 
@@ -25,40 +48,40 @@ class DBMStest : public ::testing::Test
         dbSection_t section;
 
         {
-            section.numberOfParameters = SECTION_0_PARAMETERS;
-            section.parameterType = BIT_PARAMETER;
+            section.numberOfParameters = sectionParams[0];
+            section.parameterType = sectionTypes[0];
             section.preserveOnPartialReset = false;
-            section.defaultValue = 1;
+            section.defaultValue = defaultValues[0];
             db.addSection(0, section);
 
-            section.numberOfParameters = SECTION_1_PARAMETERS;
-            section.parameterType = BYTE_PARAMETER;
+            section.numberOfParameters = sectionParams[1];
+            section.parameterType = sectionTypes[1];
             section.preserveOnPartialReset = false;
-            section.defaultValue = 10;
+            section.defaultValue = defaultValues[1];
             db.addSection(0, section);
 
-            section.numberOfParameters = SECTION_2_PARAMETERS;
-            section.parameterType = HALFBYTE_PARAMETER;
+            section.numberOfParameters = sectionParams[2];
+            section.parameterType = sectionTypes[2];
             section.preserveOnPartialReset = false;
-            section.defaultValue = 15;
+            section.defaultValue = defaultValues[2];
             db.addSection(0, section);
 
-            section.numberOfParameters = SECTION_3_PARAMETERS;
-            section.parameterType = WORD_PARAMETER;
+            section.numberOfParameters = sectionParams[3];
+            section.parameterType = sectionTypes[3];
             section.preserveOnPartialReset = false;
-            section.defaultValue = 20;
+            section.defaultValue = defaultValues[3];
             db.addSection(0, section);
 
-            section.numberOfParameters = SECTION_4_PARAMETERS;
-            section.parameterType = DWORD_PARAMETER;
+            section.numberOfParameters = sectionParams[4];
+            section.parameterType = sectionTypes[4];
             section.preserveOnPartialReset = false;
-            section.defaultValue = 25;
+            section.defaultValue = defaultValues[4];
             db.addSection(0, section);
 
-            section.numberOfParameters = SECTION_5_PARAMETERS;
-            section.parameterType = BYTE_PARAMETER;
+            section.numberOfParameters = sectionParams[5];
+            section.parameterType = sectionTypes[5];
             section.preserveOnPartialReset = false;
-            section.defaultValue = 25;
+            section.defaultValue = defaultValues[5];
             db.addSection(0, section);
         }
 
@@ -79,47 +102,47 @@ TEST_F(DBMStest, Read)
 
     //bit section
     returnValue = db.read(TEST_BLOCK_INDEX, 0, 0, value);
-    EXPECT_EQ(value, 1);
+    EXPECT_EQ(value, defaultValues[0]);
     EXPECT_EQ(returnValue, true);
 
     returnValue = db.read(TEST_BLOCK_INDEX, 0, 1, value);
-    EXPECT_EQ(value, 1);
+    EXPECT_EQ(value, defaultValues[0]);
     EXPECT_EQ(returnValue, true);
 
     //byte section
     returnValue = db.read(TEST_BLOCK_INDEX, 1, 0, value);
-    EXPECT_EQ(value, 10);
+    EXPECT_EQ(value, defaultValues[1]);
     EXPECT_EQ(returnValue, true);
 
     returnValue = db.read(TEST_BLOCK_INDEX, 1, 1, value);
-    EXPECT_EQ(value, 10);
+    EXPECT_EQ(value, defaultValues[1]);
     EXPECT_EQ(returnValue, true);
 
     //half-byte section
     returnValue = db.read(TEST_BLOCK_INDEX, 2, 0, value);
-    EXPECT_EQ(value, 15);
+    EXPECT_EQ(value, defaultValues[2]);
     EXPECT_EQ(returnValue, true);
 
     returnValue = db.read(TEST_BLOCK_INDEX, 2, 1, value);
-    EXPECT_EQ(value, 15);
+    EXPECT_EQ(value, defaultValues[2]);
     EXPECT_EQ(returnValue, true);
 
     //word section
     returnValue = db.read(TEST_BLOCK_INDEX, 3, 0, value);
-    EXPECT_EQ(value, 20);
+    EXPECT_EQ(value, defaultValues[3]);
     EXPECT_EQ(returnValue, true);
 
     returnValue = db.read(TEST_BLOCK_INDEX, 3, 1, value);
-    EXPECT_EQ(value, 20);
+    EXPECT_EQ(value, defaultValues[3]);
     EXPECT_EQ(returnValue, true);
 
     //dword section
     returnValue = db.read(TEST_BLOCK_INDEX, 4, 0, value);
-    EXPECT_EQ(value, 25);
+    EXPECT_EQ(value, defaultValues[4]);
     EXPECT_EQ(returnValue, true);
 
     returnValue = db.read(TEST_BLOCK_INDEX, 4, 1, value);
-    EXPECT_EQ(value, 25);
+    EXPECT_EQ(value, defaultValues[4]);
     EXPECT_EQ(returnValue, true);
 }
 
@@ -153,6 +176,16 @@ TEST_F(DBMStest, Update)
     EXPECT_EQ(returnValue, true);
     returnValue = db.read(TEST_BLOCK_INDEX, 4, 0, value);
     EXPECT_EQ(value, 32000);
+
+    returnValue = db.update(TEST_BLOCK_INDEX, 4, 0, 16000);
+    EXPECT_EQ(returnValue, true);
+    returnValue = db.read(TEST_BLOCK_INDEX, 4, 0, value);
+    EXPECT_EQ(value, 16000);
+
+    returnValue = db.update(TEST_BLOCK_INDEX, 4, 1, 16000);
+    EXPECT_EQ(returnValue, true);
+    returnValue = db.read(TEST_BLOCK_INDEX, 4, 1, value);
+    EXPECT_EQ(value, 16000);
 }
 
 TEST_F(DBMStest, OutOfBounds)
@@ -161,23 +194,23 @@ TEST_F(DBMStest, OutOfBounds)
     bool returnValue;
 
     //read
-    returnValue = db.read(TEST_BLOCK_INDEX, 0, SECTION_0_PARAMETERS, value);
+    returnValue = db.read(TEST_BLOCK_INDEX, 0, sectionParams[0], value);
     EXPECT_EQ(returnValue, false);
 
-    returnValue = db.read(TEST_BLOCK_INDEX, 1, SECTION_1_PARAMETERS, value);
+    returnValue = db.read(TEST_BLOCK_INDEX, 1, sectionParams[1], value);
     EXPECT_EQ(returnValue, false);
 
-    returnValue = db.read(TEST_BLOCK_INDEX, 2, SECTION_2_PARAMETERS, value);
+    returnValue = db.read(TEST_BLOCK_INDEX, 2, sectionParams[2], value);
     EXPECT_EQ(returnValue, false);
 
     //update
-    returnValue = db.update(TEST_BLOCK_INDEX, 0, SECTION_0_PARAMETERS, 1);
+    returnValue = db.update(TEST_BLOCK_INDEX, 0, sectionParams[0], 1);
     EXPECT_EQ(returnValue, false);
 
-    returnValue = db.update(TEST_BLOCK_INDEX, 1, SECTION_1_PARAMETERS, 1);
+    returnValue = db.update(TEST_BLOCK_INDEX, 1, sectionParams[1], 1);
     EXPECT_EQ(returnValue, false);
 
-    returnValue = db.update(TEST_BLOCK_INDEX, 2, SECTION_2_PARAMETERS, 1);
+    returnValue = db.update(TEST_BLOCK_INDEX, 2, sectionParams[2], 1);
     EXPECT_EQ(returnValue, false);
 }
 
@@ -233,4 +266,44 @@ TEST_F(DBMStest, ClearDB)
     returnValue = db.read(TEST_BLOCK_INDEX, 4, 1, value);
     EXPECT_EQ(value, 0);
     EXPECT_EQ(returnValue, true);
+}
+
+TEST_F(DBMStest, DBsize)
+{
+    //test if calculated database size matches the one returned from object
+    int expectedSize = 0;
+    int dbSize = db.getDBsize();
+
+    for (int i=0; i<NUMBER_OF_SECTIONS; i++)
+    {
+        switch(sectionTypes[i])
+        {
+            case BIT_PARAMETER:
+            expectedSize += ((sectionParams[i] % 8 != 0) + sectionParams[i]/8);
+            break;
+
+            case BYTE_PARAMETER:
+            expectedSize += sectionParams[i];
+            break;
+
+            case HALFBYTE_PARAMETER:
+            expectedSize += (sectionParams[i] / 2);
+            break;
+
+            case WORD_PARAMETER:
+            expectedSize += (sectionParams[i] * 2);
+            break;
+
+            case DWORD_PARAMETER:
+            expectedSize += (sectionParams[i] * 4);
+            break;
+        }
+    }
+
+    EXPECT_EQ(dbSize, expectedSize);
+}
+
+TEST_F(DBMStest, FactoryReset)
+{
+
 }
