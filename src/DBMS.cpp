@@ -275,7 +275,7 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
 void DBMS::clear()
 {
     for (int i=0; i<EEPROM_SIZE; i++)
-        memoryWrite(i, 0xFF, BYTE_PARAMETER);
+        memoryWrite(i, 0x00, BYTE_PARAMETER);
 }
 
 ///
