@@ -38,10 +38,6 @@ This symbol must be set to wanted value in order to define maximum amount of dat
 
 This symbol must be set to wanted value in order to define maximum amount of database sections.
 
-## Async update
-
-If `DBMS_ENABLE_ASYNC_UPDATE` symbol is specified, asynchronous data writing can be enabled. By default, calling `update` function results in immediate write to calculated memory address. If your application requires writing of large amount of data at certain points, async writing can be used by appending `true` as additional parameter to `update` function. If async write is requested, data is stored into internal buffer first, and then it's written to EEPROM by calling `checkQueue` function which writes single data value at the time, thus avoiding blocking your application due to slow EEPROM write access. In order to use async write, `DBMS_UPDATE_BUFFER_SIZE` symbol must also be specified and set to certain value which defines size of internal buffer.
-
 ## Example
 
 An example database can be found in example directory.
