@@ -24,5 +24,5 @@
 #include <inttypes.h>
 #include "../DataTypes.h"
 
-int32_t memoryRead(uint32_t address, sectionParameterType_t type);
+bool memoryRead(uint32_t address, sectionParameterType_t type, int32_t &value);
 bool memoryWrite(uint32_t address, int32_t value, sectionParameterType_t type);

@@ -58,6 +58,26 @@ DBMS::DBMS()
 
 }
 
+void DBMS::init()
+{
+    for (int i=0; i<DBMS_MAX_BLOCKS; i++)
+    {
+        block[i].numberOfSections = 0;
+        block[i].blockStartAddress = 0;
+
+        for (int j=0; j<DBMS_MAX_SECTIONS; j++)
+        {
+            block[i].sectionAddress[j] = 0;
+            block[i].section[j].numberOfParameters = -1;
+            block[i].section[j].parameterType = INVALID_PARAMETER;
+            block[i].section[j].defaultValue = 0;
+        }
+    }
+
+    blockCounter = 0;
+    memoryUsage = 0;
+}
+
 ///
 /// \brief Reads a value from database.
 /// @param [in] blockID         Block index.
@@ -65,48 +85,57 @@ DBMS::DBMS()
 /// @param [in] parameterIndex  Parameter index.
 /// \returns Retrieved value.
 ///
-int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
+bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t &value)
 {
+    //sanity check
+    if (!checkParameters(blockID, sectionID, parameterIndex))
+        return false;
+
     uint16_t startAddress = getSectionAddress(blockID, sectionID);
-    uint8_t parameterType = block[blockID].section[sectionID].parameterType;
 
     uint8_t arrayIndex;
     uint8_t bitIndex;
 
-    switch(parameterType)
+    switch(block[blockID].section[sectionID].parameterType)
     {
         case BIT_PARAMETER:
         arrayIndex = parameterIndex/8;
         bitIndex = parameterIndex - 8*arrayIndex;
         startAddress += arrayIndex;
-        return BIT_READ(memoryRead(startAddress, BIT_PARAMETER), bitIndex);
+        if (memoryRead(startAddress, BIT_PARAMETER, value))
+        {
+            value = BIT_READ(value, bitIndex);
+            return true;
+        }
         break;
 
         case BYTE_PARAMETER:
         startAddress += parameterIndex;
-        return memoryRead(startAddress, BYTE_PARAMETER);
+        return memoryRead(startAddress, BYTE_PARAMETER, value);
         break;
 
         case HALFBYTE_PARAMETER:
         startAddress += (parameterIndex/2);
-        arrayIndex = memoryRead(startAddress, HALFBYTE_PARAMETER);
-        return (parameterIndex%2) ? (arrayIndex >> 4) : (arrayIndex & 0x0F);
+        if (memoryRead(startAddress, HALFBYTE_PARAMETER, value))
+        {
+            value = (parameterIndex%2) ? (arrayIndex >> 4) : (arrayIndex & 0x0F);
+            return true;
+        }
         break;
 
         case WORD_PARAMETER:
         startAddress += ((uint16_t)parameterIndex*2);
-        return memoryRead(startAddress, WORD_PARAMETER);
-        break;
-
-        case DWORD_PARAMETER:
-        startAddress += ((uint16_t)parameterIndex*4);
-        return memoryRead(startAddress, DWORD_PARAMETER);
+        return memoryRead(startAddress, WORD_PARAMETER, value);
         break;
 
         default:
-        return 0;
+        // case DWORD_PARAMETER:
+        startAddress += ((uint16_t)parameterIndex*4);
+        return memoryRead(startAddress, DWORD_PARAMETER, value);
         break;
     }
+
+    return false;
 }
 
 ///
@@ -119,64 +148,99 @@ int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
 ///
 bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue)
 {
+    //sanity check
+    if (!checkParameters(blockID, sectionID, parameterIndex))
+        return false;
+
     uint16_t startAddress = getSectionAddress(blockID, sectionID);
     uint8_t parameterType = block[blockID].section[sectionID].parameterType;
 
     uint8_t arrayIndex;
-    uint8_t arrayValue;
+    int32_t arrayValue;
     uint8_t bitIndex;
+    int32_t checkValue;
 
     switch(parameterType)
     {
         case BIT_PARAMETER:
         arrayIndex = parameterIndex/8;
         bitIndex = parameterIndex - 8*arrayIndex;
-        arrayValue = memoryRead(startAddress+arrayIndex, BIT_PARAMETER);
-        BIT_WRITE(arrayValue, bitIndex, newValue);
-        memoryWrite(startAddress+arrayIndex, arrayValue, BIT_PARAMETER);
-        return (arrayValue == memoryRead(startAddress+arrayIndex, BIT_PARAMETER));
+
+        if (memoryRead(startAddress+arrayIndex, BIT_PARAMETER, arrayValue))
+        {
+            BIT_WRITE(arrayValue, bitIndex, newValue);
+
+            if (memoryWrite(startAddress+arrayIndex, arrayValue, BIT_PARAMETER))
+            {
+                if (memoryRead(startAddress+arrayIndex, BIT_PARAMETER, checkValue))
+                {
+                    return (arrayValue == checkValue);
+                }
+            }
+        }
         break;
 
         case BYTE_PARAMETER:
-        memoryWrite(startAddress+parameterIndex, newValue, BYTE_PARAMETER);
-        return (newValue == memoryRead(startAddress+parameterIndex, BYTE_PARAMETER));
+        if (memoryWrite(startAddress+parameterIndex, newValue, BYTE_PARAMETER))
+        {
+            if (memoryRead(startAddress+parameterIndex, BYTE_PARAMETER, checkValue))
+            {
+                return (newValue == checkValue);
+            }
+        }
         break;
 
         case HALFBYTE_PARAMETER:
         //sanitize input
         newValue &= 0x0F;
         //read old value first
-        arrayValue = memoryRead(startAddress+(parameterIndex/2), HALFBYTE_PARAMETER);
-
-        if (parameterIndex % 2)
+        if (memoryRead(startAddress+(parameterIndex/2), HALFBYTE_PARAMETER, arrayValue))
         {
-            //clear content in bits 4-7 and update the value
-            arrayValue &= 0x0F;
-            arrayValue |= (newValue << 4);
-        }
-        else
-        {
-            //clear content in bits 0-3 and update the value
-            arrayValue &= 0xF0;
-            arrayValue |= newValue;
-        }
+            if (parameterIndex % 2)
+            {
+                //clear content in bits 4-7 and update the value
+                arrayValue &= 0x0F;
+                arrayValue |= (newValue << 4);
+            }
+            else
+            {
+                //clear content in bits 0-3 and update the value
+                arrayValue &= 0xF0;
+                arrayValue |= newValue;
+            }
 
-        memoryWrite(startAddress+(parameterIndex/2), arrayValue, HALFBYTE_PARAMETER);
-        return (arrayValue == memoryRead(startAddress+(parameterIndex/2), HALFBYTE_PARAMETER));
+            if (memoryWrite(startAddress+(parameterIndex/2), arrayValue, HALFBYTE_PARAMETER))
+            {
+                if (memoryRead(startAddress+(parameterIndex/2), HALFBYTE_PARAMETER, checkValue))
+                {
+                    return (arrayValue == checkValue);
+                }
+            }
+        }
         break;
 
         case WORD_PARAMETER:
-        memoryWrite(startAddress+(parameterIndex*2), newValue, WORD_PARAMETER);
-        return (newValue == memoryRead(startAddress+parameterIndex, WORD_PARAMETER));
+        if (memoryWrite(startAddress+(parameterIndex*2), newValue, WORD_PARAMETER))
+        {
+            if (memoryRead(startAddress+parameterIndex, WORD_PARAMETER, checkValue))
+            {
+                return (newValue == checkValue);
+            }
+        }
         break;
 
         case DWORD_PARAMETER:
-        memoryWrite(startAddress+(parameterIndex*4), newValue, DWORD_PARAMETER);
-        return (newValue == memoryRead(startAddress+parameterIndex, DWORD_PARAMETER));
+        if (memoryWrite(startAddress+(parameterIndex*4), newValue, DWORD_PARAMETER))
+        {
+            if (memoryRead(startAddress+parameterIndex, DWORD_PARAMETER, checkValue))
+            {
+                return (newValue == checkValue);
+            }
+        }
         break;
     }
 
-    return 0;
+    return false;
 }
 
 ///
@@ -354,4 +418,25 @@ void DBMS::initData(initType_t type)
 uint32_t DBMS::getDBsize()
 {
     return memoryUsage;
+}
+
+bool DBMS::checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
+{
+    //sanity check
+    if (blockID >= blockCounter)
+    {
+        return false;
+    }
+
+    if (sectionID >= block[blockID].numberOfSections)
+    {
+        return false;
+    }
+
+    if (parameterIndex >= block[blockID].section[sectionID].numberOfParameters)
+    {
+        return false;
+    }
+
+    return true;
 }

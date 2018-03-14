@@ -23,7 +23,7 @@
 
 uint8_t memoryArray[EEPROM_SIZE];
 
-int32_t memoryRead(uint32_t address, sectionParameterType_t type)
+bool memoryRead(uint32_t address, sectionParameterType_t type, int32_t &value)
 {
     switch(type)
     {
@@ -32,25 +32,24 @@ int32_t memoryRead(uint32_t address, sectionParameterType_t type)
         case HALFBYTE_PARAMETER:
         if (address >= EEPROM_SIZE)
         {
-            return -1;
+            return false;
         }
         else
         {
-            return memoryArray[address];
+            value = memoryArray[address];
         }
         break;
 
         case WORD_PARAMETER:
         if (address >= (EEPROM_SIZE-2))
         {
-            return -1;
+            return false;
         }
         else
         {
-            uint16_t value = memoryArray[address+1];
+            value = memoryArray[address+1];
             value <<= 8;
             value |= memoryArray[address+0];
-            return value;
         }
         break;
 
@@ -58,21 +57,22 @@ int32_t memoryRead(uint32_t address, sectionParameterType_t type)
         // case DWORD_PARAMETER:
         if (address >= (EEPROM_SIZE-4))
         {
-            return -1;
+            return false;
         }
         else
         {
-            uint32_t value = memoryArray[address+3];
+            value = memoryArray[address+3];
             value <<= 8;
             value |= memoryArray[address+2];
             value <<= 8;
             value |= memoryArray[address+1];
             value <<= 8;
             value |= memoryArray[address+0];
-            return value;
         }
         break;
     }
+
+    return true;
 }
 
 bool memoryWrite(uint32_t address, int32_t value, sectionParameterType_t type)

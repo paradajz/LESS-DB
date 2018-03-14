@@ -36,7 +36,8 @@ typedef enum
     BYTE_PARAMETER,
     HALFBYTE_PARAMETER,
     WORD_PARAMETER,
-    DWORD_PARAMETER
+    DWORD_PARAMETER,
+    INVALID_PARAMETER
 } sectionParameterType_t;
 
 ///
@@ -44,7 +45,7 @@ typedef enum
 ///
 typedef struct
 {
-    uint16_t numberOfParameters;
+    int16_t numberOfParameters;
     sectionParameterType_t parameterType;
     bool preserveOnPartialReset;
     uint16_t defaultValue;
@@ -56,9 +57,9 @@ typedef struct
 ///
 typedef struct
 {
-    uint8_t numberOfSections;
-    uint16_t blockStartAddress;
-    uint16_t sectionAddress[DBMS_MAX_SECTIONS];
+    int8_t numberOfSections;
+    int16_t blockStartAddress;
+    int16_t sectionAddress[DBMS_MAX_SECTIONS];
     dbSection_t section[DBMS_MAX_SECTIONS];
 } dbBlock_t;
 

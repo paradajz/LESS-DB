@@ -22,7 +22,7 @@
 #include "MemRead.h"
 #include <avr/eeprom.h>
 
-int32_t memoryRead(uint32_t address, sectionParameterType_t type)
+bool memoryRead(uint32_t address, sectionParameterType_t type, int32_t &value)
 {
     switch(type)
     {
@@ -31,22 +31,22 @@ int32_t memoryRead(uint32_t address, sectionParameterType_t type)
         case HALFBYTE_PARAMETER:
         if (address >= EEPROM_SIZE)
         {
-            return -1;
+            return false;
         }
         else
         {
-            return eeprom_read_byte((uint8_t*)address);
+            value = eeprom_read_byte((uint8_t*)address);
         }
         break;
 
         case WORD_PARAMETER:
         if (address >= (EEPROM_SIZE-2))
         {
-            return -1;
+            return false;
         }
         else
         {
-            return eeprom_read_word((uint16_t*)address);
+            value = eeprom_read_word((uint16_t*)address);
         }
         break;
 
@@ -54,14 +54,16 @@ int32_t memoryRead(uint32_t address, sectionParameterType_t type)
         // case DWORD_PARAMETER:
         if (address >= (EEPROM_SIZE-4))
         {
-            return -1;
+            return false;
         }
         else
         {
-            return eeprom_read_dword((uint32_t*)address);
+            value = eeprom_read_dword((uint32_t*)address);
         }
         break;
     }
+
+    return true;
 }
 
 bool memoryWrite(uint32_t address, int32_t value, sectionParameterType_t type)
