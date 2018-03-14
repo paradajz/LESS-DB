@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/paradajz/sysex-conf.svg?branch=master)](https://travis-ci.org/paradajz/sysex-conf)
-[![Coverage Status](https://coveralls.io/repos/github/paradajz/sysex-conf/badge.svg?branch=master&service=github)](https://coveralls.io/github/paradajz/sysex-conf?branch=master)
+[![Build Status](https://travis-ci.org/paradajz/AVR-DB.svg?branch=master)](https://travis-ci.org/paradajz/AVR-DB)
+[![Coverage Status](https://coveralls.io/repos/github/paradajz/AVR-DB/badge.svg?branch=master&service=github)](https://coveralls.io/github/paradajz/AVR-DB?branch=master)
 
 # Simple database-like management system for AVR
 
