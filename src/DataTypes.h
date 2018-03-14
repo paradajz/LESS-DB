@@ -69,7 +69,7 @@ typedef struct
 typedef enum
 {
     initPartial,
-    initWipe
+    initFull
 } initType_t;
 
 /// @}

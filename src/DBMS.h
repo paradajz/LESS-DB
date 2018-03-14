@@ -70,7 +70,7 @@ class DBMS
     static bool addBlocks(uint8_t numberOfBlocks);
     static bool addSection(uint8_t blockID, dbSection_t section);
     static void commitLayout();
-    static void initData(initType_t type = initWipe);
+    static void initData(initType_t type = initFull);
 
     private:
     static bool checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);

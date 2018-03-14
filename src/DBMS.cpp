@@ -248,7 +248,7 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
         newValue &= (int32_t)0xFFFF;
         if (memoryWrite(startAddress+(parameterIndex*2), newValue, WORD_PARAMETER))
         {
-            if (memoryRead(startAddress+parameterIndex, WORD_PARAMETER, checkValue))
+            if (memoryRead(startAddress+(parameterIndex*2), WORD_PARAMETER, checkValue))
             {
                 return (newValue == checkValue);
             }
@@ -258,7 +258,7 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
         case DWORD_PARAMETER:
         if (memoryWrite(startAddress+(parameterIndex*4), newValue, DWORD_PARAMETER))
         {
-            if (memoryRead(startAddress+parameterIndex, DWORD_PARAMETER, checkValue))
+            if (memoryRead(startAddress+(parameterIndex*4), DWORD_PARAMETER, checkValue))
             {
                 return (newValue == checkValue);
             }
