@@ -83,7 +83,8 @@ void DBMS::init()
 /// @param [in] blockID         Block index.
 /// @param [in] sectionID       Section index.
 /// @param [in] parameterIndex  Parameter index.
-/// \returns Retrieved value.
+/// @param [in, out] value      Pointer to variable in which read value will be stored.
+/// \returns True on success.
 ///
 bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t &value)
 {
@@ -111,26 +112,42 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
 
         case BYTE_PARAMETER:
         startAddress += parameterIndex;
-        return memoryRead(startAddress, BYTE_PARAMETER, value);
+        if (memoryRead(startAddress, BYTE_PARAMETER, value))
+        {
+            //sanitize
+            value &= (int32_t)0xFF;
+            return true;
+        }
         break;
 
         case HALFBYTE_PARAMETER:
-        startAddress += (parameterIndex/2);
+        startAddress += parameterIndex/2;
         if (memoryRead(startAddress, HALFBYTE_PARAMETER, value))
         {
-            value = (parameterIndex%2) ? (arrayIndex >> 4) : (arrayIndex & 0x0F);
+            if (parameterIndex%2)
+            {
+                value >>= 4;
+            }
+
+            //sanitize
+            value &= (int32_t)0x0F;
             return true;
         }
         break;
 
         case WORD_PARAMETER:
-        startAddress += ((uint16_t)parameterIndex*2);
-        return memoryRead(startAddress, WORD_PARAMETER, value);
+        startAddress += parameterIndex*2;
+        if (memoryRead(startAddress, WORD_PARAMETER, value))
+        {
+            //sanitize
+            value &= (int32_t)0xFFFF;
+            return true;
+        }
         break;
 
         default:
         // case DWORD_PARAMETER:
-        startAddress += ((uint16_t)parameterIndex*4);
+        startAddress += parameterIndex*4;
         return memoryRead(startAddress, DWORD_PARAMETER, value);
         break;
     }
@@ -163,13 +180,18 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
     switch(parameterType)
     {
         case BIT_PARAMETER:
+        //sanitize input
+        newValue &= (int32_t)0x01;
         arrayIndex = parameterIndex/8;
         bitIndex = parameterIndex - 8*arrayIndex;
 
+        //read existing value first
         if (memoryRead(startAddress+arrayIndex, BIT_PARAMETER, arrayValue))
         {
+            //update value with new bit
             BIT_WRITE(arrayValue, bitIndex, newValue);
 
+            //write to memory
             if (memoryWrite(startAddress+arrayIndex, arrayValue, BIT_PARAMETER))
             {
                 if (memoryRead(startAddress+arrayIndex, BIT_PARAMETER, checkValue))
@@ -181,6 +203,8 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
         break;
 
         case BYTE_PARAMETER:
+        //sanitize input
+        newValue &= (int32_t)0xFF;
         if (memoryWrite(startAddress+parameterIndex, newValue, BYTE_PARAMETER))
         {
             if (memoryRead(startAddress+parameterIndex, BYTE_PARAMETER, checkValue))
@@ -192,7 +216,7 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
 
         case HALFBYTE_PARAMETER:
         //sanitize input
-        newValue &= 0x0F;
+        newValue &= (int32_t)0x0F;
         //read old value first
         if (memoryRead(startAddress+(parameterIndex/2), HALFBYTE_PARAMETER, arrayValue))
         {
@@ -220,6 +244,8 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
         break;
 
         case WORD_PARAMETER:
+        //sanitize input
+        newValue &= (int32_t)0xFFFF;
         if (memoryWrite(startAddress+(parameterIndex*2), newValue, WORD_PARAMETER))
         {
             if (memoryRead(startAddress+parameterIndex, WORD_PARAMETER, checkValue))
