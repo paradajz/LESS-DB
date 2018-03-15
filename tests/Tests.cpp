@@ -52,36 +52,42 @@ class DBMStest : public ::testing::Test
             section.parameterType = sectionTypes[0];
             section.preserveOnPartialReset = false;
             section.defaultValue = defaultValues[0];
+            section.autoIncrement = false;
             db.addSection(0, section);
 
             section.numberOfParameters = sectionParams[1];
             section.parameterType = sectionTypes[1];
-            section.preserveOnPartialReset = false;
+            section.preserveOnPartialReset = true;
             section.defaultValue = defaultValues[1];
+            section.autoIncrement = true;
             db.addSection(0, section);
 
             section.numberOfParameters = sectionParams[2];
             section.parameterType = sectionTypes[2];
             section.preserveOnPartialReset = false;
             section.defaultValue = defaultValues[2];
+            section.autoIncrement = false;
             db.addSection(0, section);
 
             section.numberOfParameters = sectionParams[3];
             section.parameterType = sectionTypes[3];
             section.preserveOnPartialReset = false;
             section.defaultValue = defaultValues[3];
+            section.autoIncrement = false;
             db.addSection(0, section);
 
             section.numberOfParameters = sectionParams[4];
             section.parameterType = sectionTypes[4];
             section.preserveOnPartialReset = false;
             section.defaultValue = defaultValues[4];
+            section.autoIncrement = false;
             db.addSection(0, section);
 
             section.numberOfParameters = sectionParams[5];
             section.parameterType = sectionTypes[5];
             section.preserveOnPartialReset = false;
             section.defaultValue = defaultValues[5];
+            section.autoIncrement = false;
             db.addSection(0, section);
         }
 
@@ -115,7 +121,8 @@ TEST_F(DBMStest, Read)
     EXPECT_EQ(returnValue, true);
 
     returnValue = db.read(TEST_BLOCK_INDEX, 1, 1, value);
-    EXPECT_EQ(value, defaultValues[1]);
+    //autoincrement is enabled for this section
+    EXPECT_EQ(value, defaultValues[1]+1);
     EXPECT_EQ(returnValue, true);
 
     //half-byte section
@@ -343,5 +350,60 @@ TEST_F(DBMStest, DBsize)
 
 TEST_F(DBMStest, FactoryReset)
 {
+    //block 0, section 1 is configured to preserve values after partial reset
+    //write some values first
+    bool returnValue;
+    int32_t value;
 
+    returnValue = db.update(0, 1, 0, 16);
+    EXPECT_EQ(returnValue, true);
+    returnValue = db.read(0, 1, 0, value);
+    EXPECT_EQ(returnValue, true);
+    EXPECT_EQ(value, 16);
+
+    returnValue = db.update(0, 1, 1, 75);
+    EXPECT_EQ(returnValue, true);
+    returnValue = db.read(0, 1, 1, value);
+    EXPECT_EQ(returnValue, true);
+    EXPECT_EQ(value, 75);
+
+    returnValue = db.update(0, 1, 2, 100);
+    EXPECT_EQ(returnValue, true);
+    returnValue = db.read(0, 1, 2, value);
+    EXPECT_EQ(returnValue, true);
+    EXPECT_EQ(value, 100);
+
+    //now perform partial reset
+    db.initData(initPartial);
+
+    //verify that updated values are unchanged
+    returnValue = db.read(0, 1, 0, value);
+    EXPECT_EQ(returnValue, true);
+    EXPECT_EQ(value, 16);
+
+    returnValue = db.read(0, 1, 1, value);
+    EXPECT_EQ(returnValue, true);
+    EXPECT_EQ(value, 75);
+
+    returnValue = db.read(0, 1, 2, value);
+    EXPECT_EQ(returnValue, true);
+    EXPECT_EQ(value, 100);
+}
+
+TEST_F(DBMStest, AutoIncrement)
+{
+    //block 0, section 1 has autoincrement configure
+    //verify
+
+    bool returnValue;
+    int32_t value;
+    int32_t testValue;
+
+    for (int i=0; i<sectionParams[1]; i++)
+    {
+        testValue = i+defaultValues[1];
+        returnValue = db.read(0, 1, i, value);
+        EXPECT_EQ(returnValue, true);
+        EXPECT_EQ(value, testValue);
+    }
 }
