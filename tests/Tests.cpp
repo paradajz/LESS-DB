@@ -698,6 +698,9 @@ TEST_F(DBMStest, TooManySections)
 
     dbSection_t section;
 
+    section.numberOfParameters = 1;
+    section.parameterType = BYTE_PARAMETER;
+
     for (int i=0; i<=DBMS_MAX_SECTIONS; i++)
     {
         returnValue = db.addSection(0, section);
