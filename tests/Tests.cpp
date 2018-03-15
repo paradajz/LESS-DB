@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "../src/DBMS.h"
 
-#define NUMBER_OF_BLOCKS                    1
+#define NUMBER_OF_BLOCKS                    6
 #define NUMBER_OF_SECTIONS                  6
 #define TEST_BLOCK_INDEX                    0
 
@@ -47,6 +47,7 @@ class DBMStest : public ::testing::Test
 
         dbSection_t section;
 
+        //block 0
         {
             section.numberOfParameters = sectionParams[0];
             section.parameterType = sectionTypes[0];
@@ -89,6 +90,231 @@ class DBMStest : public ::testing::Test
             section.defaultValue = defaultValues[5];
             section.autoIncrement = false;
             db.addSection(0, section);
+        }
+
+        //block 1
+        {
+            section.numberOfParameters = sectionParams[1];
+            section.parameterType = sectionTypes[1];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[1];
+            section.autoIncrement = false;
+            db.addSection(1, section);
+
+            section.numberOfParameters = sectionParams[2];
+            section.parameterType = sectionTypes[2];
+            section.preserveOnPartialReset = true;
+            section.defaultValue = defaultValues[2];
+            section.autoIncrement = true;
+            db.addSection(1, section);
+
+            section.numberOfParameters = sectionParams[3];
+            section.parameterType = sectionTypes[3];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[3];
+            section.autoIncrement = false;
+            db.addSection(1, section);
+
+            section.numberOfParameters = sectionParams[4];
+            section.parameterType = sectionTypes[4];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[4];
+            section.autoIncrement = false;
+            db.addSection(1, section);
+
+            section.numberOfParameters = sectionParams[5];
+            section.parameterType = sectionTypes[5];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[5];
+            section.autoIncrement = false;
+            db.addSection(1, section);
+
+            section.numberOfParameters = sectionParams[0];
+            section.parameterType = sectionTypes[0];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[0];
+            section.autoIncrement = false;
+            db.addSection(1, section);
+        }
+
+        //block 2
+        {
+            section.numberOfParameters = sectionParams[2];
+            section.parameterType = sectionTypes[2];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[2];
+            section.autoIncrement = false;
+            db.addSection(2, section);
+
+            section.numberOfParameters = sectionParams[3];
+            section.parameterType = sectionTypes[3];
+            section.preserveOnPartialReset = true;
+            section.defaultValue = defaultValues[3];
+            section.autoIncrement = true;
+            db.addSection(2, section);
+
+            section.numberOfParameters = sectionParams[4];
+            section.parameterType = sectionTypes[4];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[4];
+            section.autoIncrement = false;
+            db.addSection(2, section);
+
+            section.numberOfParameters = sectionParams[5];
+            section.parameterType = sectionTypes[5];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[5];
+            section.autoIncrement = false;
+            db.addSection(2, section);
+
+            section.numberOfParameters = sectionParams[0];
+            section.parameterType = sectionTypes[0];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[0];
+            section.autoIncrement = false;
+            db.addSection(2, section);
+
+            section.numberOfParameters = sectionParams[1];
+            section.parameterType = sectionTypes[1];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[1];
+            section.autoIncrement = false;
+            db.addSection(2, section);
+        }
+
+        //block 3
+        {
+            section.numberOfParameters = sectionParams[3];
+            section.parameterType = sectionTypes[3];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[3];
+            section.autoIncrement = false;
+            db.addSection(3, section);
+
+            section.numberOfParameters = sectionParams[4];
+            section.parameterType = sectionTypes[4];
+            section.preserveOnPartialReset = true;
+            section.defaultValue = defaultValues[4];
+            section.autoIncrement = true;
+            db.addSection(3, section);
+
+            section.numberOfParameters = sectionParams[5];
+            section.parameterType = sectionTypes[5];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[5];
+            section.autoIncrement = false;
+            db.addSection(3, section);
+
+            section.numberOfParameters = sectionParams[0];
+            section.parameterType = sectionTypes[0];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[0];
+            section.autoIncrement = false;
+            db.addSection(3, section);
+
+            section.numberOfParameters = sectionParams[1];
+            section.parameterType = sectionTypes[1];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[1];
+            section.autoIncrement = false;
+            db.addSection(3, section);
+
+            section.numberOfParameters = sectionParams[2];
+            section.parameterType = sectionTypes[2];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[2];
+            section.autoIncrement = false;
+            db.addSection(3, section);
+        }
+
+        //block 4
+        {
+            section.numberOfParameters = sectionParams[4];
+            section.parameterType = sectionTypes[4];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[4];
+            section.autoIncrement = false;
+            db.addSection(4, section);
+
+            section.numberOfParameters = sectionParams[5];
+            section.parameterType = sectionTypes[5];
+            section.preserveOnPartialReset = true;
+            section.defaultValue = defaultValues[5];
+            section.autoIncrement = true;
+            db.addSection(4, section);
+
+            section.numberOfParameters = sectionParams[0];
+            section.parameterType = sectionTypes[0];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[0];
+            section.autoIncrement = false;
+            db.addSection(4, section);
+
+            section.numberOfParameters = sectionParams[1];
+            section.parameterType = sectionTypes[1];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[1];
+            section.autoIncrement = false;
+            db.addSection(4, section);
+
+            section.numberOfParameters = sectionParams[2];
+            section.parameterType = sectionTypes[2];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[2];
+            section.autoIncrement = false;
+            db.addSection(4, section);
+
+            section.numberOfParameters = sectionParams[3];
+            section.parameterType = sectionTypes[3];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[3];
+            section.autoIncrement = false;
+            db.addSection(4, section);
+        }
+
+        //block 5
+        {
+            section.numberOfParameters = sectionParams[5];
+            section.parameterType = sectionTypes[5];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[5];
+            section.autoIncrement = false;
+            db.addSection(5, section);
+
+            section.numberOfParameters = sectionParams[0];
+            section.parameterType = sectionTypes[0];
+            section.preserveOnPartialReset = true;
+            section.defaultValue = defaultValues[0];
+            section.autoIncrement = true;
+            db.addSection(5, section);
+
+            section.numberOfParameters = sectionParams[1];
+            section.parameterType = sectionTypes[1];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[1];
+            section.autoIncrement = false;
+            db.addSection(5, section);
+
+            section.numberOfParameters = sectionParams[2];
+            section.parameterType = sectionTypes[2];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[2];
+            section.autoIncrement = false;
+            db.addSection(5, section);
+
+            section.numberOfParameters = sectionParams[3];
+            section.parameterType = sectionTypes[3];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[3];
+            section.autoIncrement = false;
+            db.addSection(5, section);
+
+            section.numberOfParameters = sectionParams[4];
+            section.parameterType = sectionTypes[4];
+            section.preserveOnPartialReset = false;
+            section.defaultValue = defaultValues[4];
+            section.autoIncrement = false;
+            db.addSection(5, section);
         }
 
         db.commitLayout();
@@ -239,6 +465,7 @@ TEST_F(DBMStest, OutOfBounds)
     bool returnValue;
 
     //read
+    //try calling read with invalid parameter index
     returnValue = db.read(TEST_BLOCK_INDEX, 0, sectionParams[0], value);
     EXPECT_EQ(returnValue, false);
 
@@ -246,6 +473,14 @@ TEST_F(DBMStest, OutOfBounds)
     EXPECT_EQ(returnValue, false);
 
     returnValue = db.read(TEST_BLOCK_INDEX, 2, sectionParams[2], value);
+    EXPECT_EQ(returnValue, false);
+
+    //try calling read with invalid section
+    returnValue = db.read(TEST_BLOCK_INDEX, NUMBER_OF_SECTIONS, 0, value);
+    EXPECT_EQ(returnValue, false);
+
+    //try calling read with invalid block
+    returnValue = db.read(NUMBER_OF_BLOCKS, 0, 0, value);
     EXPECT_EQ(returnValue, false);
 
     //update
@@ -345,7 +580,8 @@ TEST_F(DBMStest, DBsize)
         }
     }
 
-    EXPECT_EQ(dbSize, expectedSize);
+    //test uses two blocks with same sections
+    EXPECT_EQ(dbSize, expectedSize*NUMBER_OF_BLOCKS);
 }
 
 TEST_F(DBMStest, FactoryReset)
@@ -406,4 +642,32 @@ TEST_F(DBMStest, AutoIncrement)
         EXPECT_EQ(returnValue, true);
         EXPECT_EQ(value, testValue);
     }
+}
+
+TEST_F(DBMStest, TooManyBlocks)
+{
+    db.init();
+    bool returnValue = db.addBlocks(DBMS_MAX_BLOCKS+1);
+
+    EXPECT_EQ(returnValue, false);
+}
+
+TEST_F(DBMStest, TooManySections)
+{
+    bool returnValue;
+
+    db.init();
+    returnValue = db.addBlocks(1);
+    EXPECT_EQ(returnValue, true);
+
+    dbSection_t section;
+
+    for (int i=0; i<=DBMS_MAX_SECTIONS; i++)
+    {
+        returnValue = db.addSection(0, section);
+        EXPECT_EQ(returnValue, true);
+    }
+
+    returnValue = db.addSection(0, section);
+    EXPECT_EQ(returnValue, false);
 }
