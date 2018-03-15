@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/paradajz/AVR-DB.svg?branch=master)](https://travis-ci.org/paradajz/AVR-DB)
 [![Coverage Status](https://img.shields.io/coveralls/github/paradajz/AVR-DB/master.svg)](https://img.shields.io/coveralls/github/paradajz/AVR-DB/master.svg)
 
-# Simple, static, database-like management system
+# Simple management system for static databases
 
 This module simulates database using user-provided memory source. DBMS takes care of accessing, writing and organizing data, so no knowledge of memory addressing is required for the user.
 
