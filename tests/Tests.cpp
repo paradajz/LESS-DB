@@ -402,6 +402,10 @@ TEST_F(DBMStest, Read)
     returnValue = db.read(TEST_BLOCK_INDEX, 4, 1, value);
     EXPECT_EQ(value, defaultValues[4]);
     EXPECT_EQ(returnValue, true);
+
+    //try reading directly
+    value = db.read(TEST_BLOCK_INDEX, 1, 0);
+    EXPECT_EQ(value, defaultValues[1]);
 }
 
 TEST_F(DBMStest, Update)

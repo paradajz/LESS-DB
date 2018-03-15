@@ -64,6 +64,7 @@ class DBMS
     static void init();
     static void clear();
     static bool read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t &value);
+    static int32_t read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);
     static bool update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue);
     static uint32_t getDBsize();
     static bool addBlocks(uint8_t numberOfBlocks);

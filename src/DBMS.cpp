@@ -169,6 +169,22 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
 }
 
 ///
+/// \brief Reads a value from database.
+/// @param [in] blockID         Block index.
+/// @param [in] sectionID       Section index.
+/// @param [in] parameterIndex  Parameter index.
+/// \returns Value from database.
+///
+int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
+{
+    int32_t value = -1;
+
+    read(blockID, sectionID, parameterIndex, value);
+
+    return value;
+}
+
+///
 /// \brief Updates value for specified block and section in database.
 /// @param [in] blockID         Block index.
 /// @param [in] sectionID       Section index.
