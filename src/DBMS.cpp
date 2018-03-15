@@ -379,7 +379,8 @@ void DBMS::commitLayout()
                     block[i].sectionAddress[j] = 2*block[i].section[j-1].numberOfParameters + block[i].sectionAddress[j-1];
                     break;
 
-                    case DWORD_PARAMETER:
+                    default:
+                    // case DWORD_PARAMETER:
                     block[i].sectionAddress[j] = 4*block[i].section[j-1].numberOfParameters + block[i].sectionAddress[j-1];
                     break;
                 }
@@ -406,7 +407,8 @@ void DBMS::commitLayout()
             blockUsage = block[i].sectionAddress[lastSection] + 2*block[i].section[lastSection].numberOfParameters;
             break;
 
-            case DWORD_PARAMETER:
+            default:
+            // case DWORD_PARAMETER:
             blockUsage = block[i].sectionAddress[lastSection] + 4*block[i].section[lastSection].numberOfParameters;
             break;
         }
@@ -485,7 +487,7 @@ bool DBMS::checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t paramete
         return false;
     }
 
-    if (parameterIndex >= block[blockID].section[sectionID].numberOfParameters)
+    if (parameterIndex >= (uint16_t)block[blockID].section[sectionID].numberOfParameters)
     {
         return false;
     }
