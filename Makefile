@@ -20,7 +20,7 @@ DBMS_MAX_BLOCKS=10 \
 DBMS_MAX_SECTIONS=10
 
 # library source
-LIB_SOURCES := src/DBMS.cpp src/memsrc/Array.cpp
+LIB_SOURCES := src/DBMS.cpp
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -42,7 +42,7 @@ clean:
 GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
 
 # needed by all tests
-COMMON_REQS := DBMS.o Array.o gtest_main.a
+COMMON_REQS := DBMS.o gtest_main.a
 
 # For simplicity and to avoid depending on Google Test's
 # implementation details, the dependencies specified below are

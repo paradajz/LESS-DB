@@ -20,23 +20,33 @@
 */
 
 #include "DBMS.h"
-#include "memsrc/MemRead.h"
+#include <stdlib.h>
 
 ///
 /// \brief Array of DBMS blocks.
 /// \ingroup avrDBMS
 ///
-static dbBlock_t block[DBMS_MAX_BLOCKS];
+dbBlock_t block[DBMS_MAX_BLOCKS];
 
 ///
 /// \brief Holds amount of blocks.
 ///
-static uint8_t blockCounter;
+uint8_t blockCounter;
 
 ///
 /// \brief Holds total memory usage in EEPROM for current database layout.
 ///
-static uint32_t memoryUsage;
+uint32_t memoryUsage;
+
+///
+/// \brief Function pointer used to read the memory contents.
+///
+bool (*readCallback)(uint32_t address, sectionParameterType_t type, int32_t &value);
+
+///
+/// \brief Function pointer used to update the memory contents.
+///
+bool (*writeCallback)(uint32_t address, int32_t value, sectionParameterType_t type);
 
 ///
 /// \brief Returns section address for specified section within block.
@@ -76,6 +86,9 @@ void DBMS::init()
 
     blockCounter = 0;
     memoryUsage = 0;
+
+    readCallback = NULL;
+    writeCallback = NULL;
 }
 
 ///
@@ -103,7 +116,7 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
         arrayIndex = parameterIndex/8;
         bitIndex = parameterIndex - 8*arrayIndex;
         startAddress += arrayIndex;
-        if (memoryRead(startAddress, BIT_PARAMETER, value))
+        if (readCallback(startAddress, BIT_PARAMETER, value))
         {
             value = BIT_READ(value, bitIndex);
             return true;
@@ -112,7 +125,7 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
 
         case BYTE_PARAMETER:
         startAddress += parameterIndex;
-        if (memoryRead(startAddress, BYTE_PARAMETER, value))
+        if (readCallback(startAddress, BYTE_PARAMETER, value))
         {
             //sanitize
             value &= (int32_t)0xFF;
@@ -122,7 +135,7 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
 
         case HALFBYTE_PARAMETER:
         startAddress += parameterIndex/2;
-        if (memoryRead(startAddress, HALFBYTE_PARAMETER, value))
+        if (readCallback(startAddress, HALFBYTE_PARAMETER, value))
         {
             if (parameterIndex%2)
             {
@@ -137,7 +150,7 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
 
         case WORD_PARAMETER:
         startAddress += parameterIndex*2;
-        if (memoryRead(startAddress, WORD_PARAMETER, value))
+        if (readCallback(startAddress, WORD_PARAMETER, value))
         {
             //sanitize
             value &= (int32_t)0xFFFF;
@@ -148,7 +161,7 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
         default:
         // case DWORD_PARAMETER:
         startAddress += parameterIndex*4;
-        return memoryRead(startAddress, DWORD_PARAMETER, value);
+        return readCallback(startAddress, DWORD_PARAMETER, value);
         break;
     }
 
@@ -184,17 +197,18 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
         newValue &= (int32_t)0x01;
         arrayIndex = parameterIndex/8;
         bitIndex = parameterIndex - 8*arrayIndex;
+        startAddress += arrayIndex;
 
         //read existing value first
-        if (memoryRead(startAddress+arrayIndex, BIT_PARAMETER, arrayValue))
+        if (readCallback(startAddress, BIT_PARAMETER, arrayValue))
         {
             //update value with new bit
             BIT_WRITE(arrayValue, bitIndex, newValue);
 
             //write to memory
-            if (memoryWrite(startAddress+arrayIndex, arrayValue, BIT_PARAMETER))
+            if (writeCallback(startAddress, arrayValue, BIT_PARAMETER))
             {
-                if (memoryRead(startAddress+arrayIndex, BIT_PARAMETER, checkValue))
+                if (readCallback(startAddress, BIT_PARAMETER, checkValue))
                 {
                     return (arrayValue == checkValue);
                 }
@@ -205,9 +219,10 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
         case BYTE_PARAMETER:
         //sanitize input
         newValue &= (int32_t)0xFF;
-        if (memoryWrite(startAddress+parameterIndex, newValue, BYTE_PARAMETER))
+        startAddress += parameterIndex;
+        if (writeCallback(startAddress, newValue, BYTE_PARAMETER))
         {
-            if (memoryRead(startAddress+parameterIndex, BYTE_PARAMETER, checkValue))
+            if (readCallback(startAddress, BYTE_PARAMETER, checkValue))
             {
                 return (newValue == checkValue);
             }
@@ -217,8 +232,9 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
         case HALFBYTE_PARAMETER:
         //sanitize input
         newValue &= (int32_t)0x0F;
+        startAddress += (parameterIndex/2);
         //read old value first
-        if (memoryRead(startAddress+(parameterIndex/2), HALFBYTE_PARAMETER, arrayValue))
+        if (readCallback(startAddress, HALFBYTE_PARAMETER, arrayValue))
         {
             if (parameterIndex % 2)
             {
@@ -233,9 +249,9 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
                 arrayValue |= newValue;
             }
 
-            if (memoryWrite(startAddress+(parameterIndex/2), arrayValue, HALFBYTE_PARAMETER))
+            if (writeCallback(startAddress, arrayValue, HALFBYTE_PARAMETER))
             {
-                if (memoryRead(startAddress+(parameterIndex/2), HALFBYTE_PARAMETER, checkValue))
+                if (readCallback(startAddress, HALFBYTE_PARAMETER, checkValue))
                 {
                     return (arrayValue == checkValue);
                 }
@@ -246,9 +262,10 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
         case WORD_PARAMETER:
         //sanitize input
         newValue &= (int32_t)0xFFFF;
-        if (memoryWrite(startAddress+(parameterIndex*2), newValue, WORD_PARAMETER))
+        startAddress += (parameterIndex*2);
+        if (writeCallback(startAddress, newValue, WORD_PARAMETER))
         {
-            if (memoryRead(startAddress+(parameterIndex*2), WORD_PARAMETER, checkValue))
+            if (readCallback(startAddress, WORD_PARAMETER, checkValue))
             {
                 return (newValue == checkValue);
             }
@@ -256,9 +273,10 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
         break;
 
         case DWORD_PARAMETER:
-        if (memoryWrite(startAddress+(parameterIndex*4), newValue, DWORD_PARAMETER))
+        startAddress += (parameterIndex*4);
+        if (writeCallback(startAddress, newValue, DWORD_PARAMETER))
         {
-            if (memoryRead(startAddress+(parameterIndex*4), DWORD_PARAMETER, checkValue))
+            if (readCallback(startAddress, DWORD_PARAMETER, checkValue))
             {
                 return (newValue == checkValue);
             }
@@ -275,7 +293,7 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
 void DBMS::clear()
 {
     for (int i=0; i<EEPROM_SIZE; i++)
-        memoryWrite(i, 0x00, BYTE_PARAMETER);
+        writeCallback(i, 0x00, BYTE_PARAMETER);
 }
 
 ///
@@ -309,8 +327,16 @@ bool DBMS::addSection(uint8_t blockID, dbSection_t section)
     block[blockID].section[block[blockID].numberOfSections].defaultValue = section.defaultValue;
     block[blockID].section[block[blockID].numberOfSections].numberOfParameters = section.numberOfParameters;
     block[blockID].section[block[blockID].numberOfSections].autoIncrement = section.autoIncrement;
-
     block[blockID].numberOfSections++;
+
+    commitLayout();
+
+    if (memoryUsage >= EEPROM_SIZE)
+    {
+        //revert
+        block[blockID].numberOfSections--;
+        return false;
+    }
 
     return true;
 }
@@ -465,4 +491,20 @@ bool DBMS::checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t paramete
     }
 
     return true;
+}
+
+///
+/// \brief Handler used to define callback function for memory read requests.
+///
+void DBMS::setHandleRead(bool(*fptr)(uint32_t address, sectionParameterType_t type, int32_t &value))
+{
+    readCallback = fptr;
+}
+
+///
+/// \brief Handler used to define callback function for memory write requests.
+///
+void DBMS::setHandleWrite(bool(*fptr)(uint32_t address, int32_t value, sectionParameterType_t type))
+{
+    writeCallback = fptr;
 }

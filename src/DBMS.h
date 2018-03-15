@@ -53,7 +53,6 @@
 #define BIT_WRITE(value, bit, bitvalue)  (bitvalue ? BIT_SET(value, bit) : BIT_CLEAR(value, bit))
 #endif
 
-
 ///
 /// \ingroup avrDBMS
 /// @{
@@ -62,18 +61,20 @@ class DBMS
 {
     public:
     DBMS();
-    void init();
+    static void init();
     static void clear();
     static bool read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t &value);
     static bool update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue);
     static uint32_t getDBsize();
     static bool addBlocks(uint8_t numberOfBlocks);
     static bool addSection(uint8_t blockID, dbSection_t section);
-    static void commitLayout();
     static void initData(initType_t type = initFull);
+    static void setHandleRead(bool(*fptr)(uint32_t address, sectionParameterType_t type, int32_t &value));
+    static void setHandleWrite(bool(*fptr)(uint32_t address, int32_t value, sectionParameterType_t type));
 
     private:
     static bool checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);
+    static void commitLayout();
 };
 
 /// @}

@@ -1,9 +1,78 @@
 #include <gtest/gtest.h>
 #include "../src/DBMS.h"
 
-#define NUMBER_OF_BLOCKS                    6
+#define NUMBER_OF_BLOCKS                    5
 #define NUMBER_OF_SECTIONS                  6
 #define TEST_BLOCK_INDEX                    0
+
+uint8_t memoryArray[EEPROM_SIZE];
+
+bool memoryReadFail(uint32_t address, sectionParameterType_t type, int32_t &value)
+{
+    return false;
+}
+
+bool memoryWriteFail(uint32_t address, int32_t value, sectionParameterType_t type)
+{
+    return false;
+}
+
+bool memoryRead(uint32_t address, sectionParameterType_t type, int32_t &value)
+{
+    switch(type)
+    {
+        case BIT_PARAMETER:
+        case BYTE_PARAMETER:
+        case HALFBYTE_PARAMETER:
+        value = memoryArray[address];
+        break;
+
+        case WORD_PARAMETER:
+        value = memoryArray[address+1];
+        value <<= 8;
+        value |= memoryArray[address+0];
+        break;
+
+        default:
+        // case DWORD_PARAMETER:
+        value = memoryArray[address+3];
+        value <<= 8;
+        value |= memoryArray[address+2];
+        value <<= 8;
+        value |= memoryArray[address+1];
+        value <<= 8;
+        value |= memoryArray[address+0];
+        break;
+    }
+
+    return true;
+}
+
+bool memoryWrite(uint32_t address, int32_t value, sectionParameterType_t type)
+{
+    switch(type)
+    {
+        case BIT_PARAMETER:
+        case BYTE_PARAMETER:
+        case HALFBYTE_PARAMETER:
+        memoryArray[address] = value;
+        break;
+
+        case WORD_PARAMETER:
+        memoryArray[address+0] = (value >> 0) & (uint16_t)0xFF;
+        memoryArray[address+1] = (value >> 8) & (uint16_t)0xFF;
+        break;
+
+        case DWORD_PARAMETER:
+        memoryArray[address+0] = (value >> 0) & (uint32_t)0xFF;
+        memoryArray[address+1] = (value >> 8) & (uint32_t)0xFF;
+        memoryArray[address+2] = (value >> 16) & (uint32_t)0xFF;
+        memoryArray[address+3] = (value >> 24) & (uint32_t)0xFF;
+        break;
+    }
+
+    return true;
+}
 
 const uint16_t sectionParams[NUMBER_OF_SECTIONS] =
 {
@@ -44,6 +113,8 @@ class DBMStest : public ::testing::Test
     {
         db.init();
         db.addBlocks(NUMBER_OF_BLOCKS);
+        db.setHandleRead(memoryRead);
+        db.setHandleWrite(memoryWrite);
 
         dbSection_t section;
 
@@ -272,52 +343,6 @@ class DBMStest : public ::testing::Test
             db.addSection(4, section);
         }
 
-        //block 5
-        {
-            section.numberOfParameters = sectionParams[5];
-            section.parameterType = sectionTypes[5];
-            section.preserveOnPartialReset = false;
-            section.defaultValue = defaultValues[5];
-            section.autoIncrement = false;
-            db.addSection(5, section);
-
-            section.numberOfParameters = sectionParams[0];
-            section.parameterType = sectionTypes[0];
-            section.preserveOnPartialReset = true;
-            section.defaultValue = defaultValues[0];
-            section.autoIncrement = true;
-            db.addSection(5, section);
-
-            section.numberOfParameters = sectionParams[1];
-            section.parameterType = sectionTypes[1];
-            section.preserveOnPartialReset = false;
-            section.defaultValue = defaultValues[1];
-            section.autoIncrement = false;
-            db.addSection(5, section);
-
-            section.numberOfParameters = sectionParams[2];
-            section.parameterType = sectionTypes[2];
-            section.preserveOnPartialReset = false;
-            section.defaultValue = defaultValues[2];
-            section.autoIncrement = false;
-            db.addSection(5, section);
-
-            section.numberOfParameters = sectionParams[3];
-            section.parameterType = sectionTypes[3];
-            section.preserveOnPartialReset = false;
-            section.defaultValue = defaultValues[3];
-            section.autoIncrement = false;
-            db.addSection(5, section);
-
-            section.numberOfParameters = sectionParams[4];
-            section.parameterType = sectionTypes[4];
-            section.preserveOnPartialReset = false;
-            section.defaultValue = defaultValues[4];
-            section.autoIncrement = false;
-            db.addSection(5, section);
-        }
-
-        db.commitLayout();
         db.initData();
     }
 
@@ -491,6 +516,17 @@ TEST_F(DBMStest, OutOfBounds)
     EXPECT_EQ(returnValue, false);
 
     returnValue = db.update(TEST_BLOCK_INDEX, 2, sectionParams[2], 1);
+    EXPECT_EQ(returnValue, false);
+
+    //try adding another block
+    returnValue = db.addBlocks(1);
+    EXPECT_EQ(returnValue, true);
+
+    //add another section configured to cause eeprom size overload
+    dbSection_t section;
+    section.numberOfParameters = (EEPROM_SIZE - db.getDBsize()) + 1;
+    section.parameterType = BYTE_PARAMETER;
+    returnValue = db.addSection(NUMBER_OF_BLOCKS, section);
     EXPECT_EQ(returnValue, false);
 }
 
@@ -670,4 +706,37 @@ TEST_F(DBMStest, TooManySections)
 
     returnValue = db.addSection(0, section);
     EXPECT_EQ(returnValue, false);
+}
+
+TEST_F(DBMStest, FailedRead)
+{
+    bool returnValue;
+    int32_t value;
+
+    //configure memory read callback to always return false
+    db.setHandleRead(memoryReadFail);
+
+    //check if reading now returns an error for all sections
+    //block 0
+    for (int i=0; i<NUMBER_OF_SECTIONS; i++)
+    {
+        returnValue = db.read(0, i, 0, value);
+        EXPECT_EQ(returnValue, false);
+    }
+}
+
+TEST_F(DBMStest, FailedWrite)
+{
+    bool returnValue;
+
+    //configure memory write callback to always return false
+    db.setHandleWrite(memoryWriteFail);
+
+    //check if writing now returns an error for all sections
+    //block 0
+    for (int i=0; i<NUMBER_OF_SECTIONS; i++)
+    {
+        returnValue = db.update(0, i, 0, 0);
+        EXPECT_EQ(returnValue, false);
+    }
 }

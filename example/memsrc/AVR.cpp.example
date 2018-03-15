@@ -20,8 +20,7 @@
 */
 
 #include "MemRead.h"
-
-uint8_t memoryArray[EEPROM_SIZE];
+#include <avr/eeprom.h>
 
 bool memoryRead(uint32_t address, sectionParameterType_t type, int32_t &value)
 {
@@ -30,45 +29,16 @@ bool memoryRead(uint32_t address, sectionParameterType_t type, int32_t &value)
         case BIT_PARAMETER:
         case BYTE_PARAMETER:
         case HALFBYTE_PARAMETER:
-        if (address >= EEPROM_SIZE)
-        {
-            return false;
-        }
-        else
-        {
-            value = memoryArray[address];
-        }
+        value = eeprom_read_byte((uint8_t*)address);
         break;
 
         case WORD_PARAMETER:
-        if (address >= (EEPROM_SIZE-2))
-        {
-            return false;
-        }
-        else
-        {
-            value = memoryArray[address+1];
-            value <<= 8;
-            value |= memoryArray[address+0];
-        }
+        value = eeprom_read_word((uint16_t*)address);
         break;
 
         default:
         // case DWORD_PARAMETER:
-        if (address >= (EEPROM_SIZE-4))
-        {
-            return false;
-        }
-        else
-        {
-            value = memoryArray[address+3];
-            value <<= 8;
-            value |= memoryArray[address+2];
-            value <<= 8;
-            value |= memoryArray[address+1];
-            value <<= 8;
-            value |= memoryArray[address+0];
-        }
+        value = eeprom_read_dword((uint32_t*)address);
         break;
     }
 
@@ -82,40 +52,16 @@ bool memoryWrite(uint32_t address, int32_t value, sectionParameterType_t type)
         case BIT_PARAMETER:
         case BYTE_PARAMETER:
         case HALFBYTE_PARAMETER:
-        if (address >= EEPROM_SIZE)
-        {
-            return false;
-        }
-        else
-        {
-            memoryArray[address] = value;
-        }
+        eeprom_update_byte((uint8_t*)address, value);
         break;
 
         case WORD_PARAMETER:
         if (address >= (EEPROM_SIZE-2))
-        {
-            return false;
-        }
-        else
-        {
-            memoryArray[address+0] = (value >> 0) & (uint16_t)0xFF;
-            memoryArray[address+1] = (value >> 8) & (uint16_t)0xFF;
-        }
+        eeprom_update_word((uint16_t*)address, value);
         break;
 
         case DWORD_PARAMETER:
-        if (address >= (EEPROM_SIZE-4))
-        {
-            return false;
-        }
-        else
-        {
-            memoryArray[address+0] = (value >> 0) & (uint32_t)0xFF;
-            memoryArray[address+1] = (value >> 8) & (uint32_t)0xFF;
-            memoryArray[address+2] = (value >> 16) & (uint32_t)0xFF;
-            memoryArray[address+3] = (value >> 24) & (uint32_t)0xFF;
-        }
+        eeprom_update_dword((uint32_t*)address, value);
         break;
     }
 
