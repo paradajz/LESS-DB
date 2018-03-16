@@ -27,14 +27,6 @@
 #error EEPROM size not defined
 #endif
 
-#ifndef DBMS_MAX_BLOCKS
-#error Number of DBMS blocks undefined
-#endif
-
-#ifndef DBMS_MAX_SECTIONS
-#error Number of DBMS sections undefined
-#endif
-
 #ifndef LOW_BYTE
 #define LOW_BYTE(value)                  ((value) & 0xFF)
 #endif
@@ -53,10 +45,6 @@
 #define BIT_WRITE(value, bit, bitvalue)  (bitvalue ? BIT_SET(value, bit) : BIT_CLEAR(value, bit))
 #endif
 
-///
-/// \ingroup avrDBMS
-/// @{
-
 class DBMS
 {
     public:
@@ -67,15 +55,12 @@ class DBMS
     static int32_t read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);
     static bool update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue);
     static uint32_t getDBsize();
-    static bool addBlocks(uint8_t numberOfBlocks);
-    static bool addSection(uint8_t blockID, dbSection_t section);
     static void initData(initType_t type = initFull);
     static void setHandleRead(bool(*fptr)(uint32_t address, sectionParameterType_t type, int32_t &value));
     static void setHandleWrite(bool(*fptr)(uint32_t address, int32_t value, sectionParameterType_t type));
 
+    static void commitLayout(dbBlock_t *pointer, uint8_t numberOfBlocks);
+
     private:
     static bool checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);
-    static void commitLayout();
 };
-
-/// @}

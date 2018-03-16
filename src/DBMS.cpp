@@ -23,12 +23,6 @@
 #include <stdlib.h>
 
 ///
-/// \brief Array of DBMS blocks.
-/// \ingroup avrDBMS
-///
-dbBlock_t block[DBMS_MAX_BLOCKS];
-
-///
 /// \brief Holds amount of blocks.
 ///
 uint8_t blockCounter;
@@ -37,6 +31,11 @@ uint8_t blockCounter;
 /// \brief Holds total memory usage in EEPROM for current database layout.
 ///
 uint32_t memoryUsage;
+
+///
+/// \brief Pointer to array of DBMS blocks.
+///
+dbBlock_t *block;
 
 ///
 /// \brief Function pointer used to read the memory contents.
@@ -57,7 +56,7 @@ bool (*writeCallback)(uint32_t address, int32_t value, sectionParameterType_t ty
 ///
 inline uint16_t getSectionAddress(uint8_t blockID, uint8_t sectionID)
 {
-    return block[blockID].blockStartAddress+block[blockID].sectionAddress[sectionID];
+    return block[blockID].address+block[blockID].section[sectionID].address;
 };
 
 ///
@@ -68,22 +67,11 @@ DBMS::DBMS()
 
 }
 
+///
+/// \brief Sets all variables to their default state.
+///
 void DBMS::init()
 {
-    for (int i=0; i<DBMS_MAX_BLOCKS; i++)
-    {
-        block[i].numberOfSections = 0;
-        block[i].blockStartAddress = 0;
-
-        for (int j=0; j<DBMS_MAX_SECTIONS; j++)
-        {
-            block[i].sectionAddress[j] = 0;
-            block[i].section[j].numberOfParameters = -1;
-            block[i].section[j].parameterType = INVALID_PARAMETER;
-            block[i].section[j].defaultValue = 0;
-        }
-    }
-
     blockCounter = 0;
     memoryUsage = 0;
 
@@ -169,7 +157,7 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
 }
 
 ///
-/// \brief Reads a value from database.
+/// \brief Reads a value from database without error checking.
 /// @param [in] blockID         Block index.
 /// @param [in] sectionID       Section index.
 /// @param [in] parameterIndex  Parameter index.
@@ -313,59 +301,14 @@ void DBMS::clear()
 }
 
 ///
-/// \brief Adds specified number of blocks to current layout.
-/// @param [in] numberOfBlocks  Number of blocks to add.
-/// \returns True on success, false otherwise.
-///
-bool DBMS::addBlocks(uint8_t numberOfBlocks)
-{
-    if (blockCounter+numberOfBlocks > DBMS_MAX_BLOCKS)
-        return false;
-
-    blockCounter += numberOfBlocks;
-
-    return true;
-}
-
-///
-/// \brief Adds section to specified block.
-/// @param [in] blockID     Block on which to add section.
-/// @param [in] section     Structure holding description of section.
-/// \returns True on success, false otherwise.
-///
-bool DBMS::addSection(uint8_t blockID, dbSection_t section)
-{
-    if (block[blockID].numberOfSections > DBMS_MAX_SECTIONS)
-        return false;
-
-    if (section.parameterType >= INVALID_PARAMETER)
-        return false;
-
-    block[blockID].section[block[blockID].numberOfSections].parameterType = section.parameterType;
-    block[blockID].section[block[blockID].numberOfSections].preserveOnPartialReset = section.preserveOnPartialReset;
-    block[blockID].section[block[blockID].numberOfSections].defaultValue = section.defaultValue;
-    block[blockID].section[block[blockID].numberOfSections].numberOfParameters = section.numberOfParameters;
-    block[blockID].section[block[blockID].numberOfSections].autoIncrement = section.autoIncrement;
-    block[blockID].numberOfSections++;
-
-    commitLayout();
-
-    if (memoryUsage >= EEPROM_SIZE)
-    {
-        //revert
-        block[blockID].numberOfSections--;
-        return false;
-    }
-
-    return true;
-}
-
-///
 /// \brief Calculates all addresses for specified blocks and sections.
 ///
-void DBMS::commitLayout()
+void DBMS::commitLayout(dbBlock_t *pointer, uint8_t numberOfBlocks)
 {
     memoryUsage = 0;
+
+    block = pointer;
+    blockCounter = numberOfBlocks;
 
     for (int i=0; i<blockCounter; i++)
     {
@@ -376,31 +319,31 @@ void DBMS::commitLayout()
             if (!j)
             {
                 //first section address is always 0
-                block[i].sectionAddress[0] = 0;
+                block[i].section[0].address = 0;
             }
             else
             {
                 switch(block[i].section[j-1].parameterType)
                 {
                     case BIT_PARAMETER:
-                    block[i].sectionAddress[j] = ((block[i].section[j].numberOfParameters % 8 != 0) + block[i].section[j-1].numberOfParameters/8) + block[i].sectionAddress[j-1];
+                    block[i].section[j].address = ((block[i].section[j].numberOfParameters % 8 != 0) + block[i].section[j-1].numberOfParameters/8) + block[i].section[j-1].address;
                     break;
 
                     case BYTE_PARAMETER:
-                    block[i].sectionAddress[j] = block[i].section[j-1].numberOfParameters + block[i].sectionAddress[j-1];
+                    block[i].section[j].address  = block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
                     break;
 
                     case HALFBYTE_PARAMETER:
-                    block[i].sectionAddress[j] = block[i].section[j-1].numberOfParameters/2 + block[i].sectionAddress[j-1];
+                    block[i].section[j].address  = block[i].section[j-1].numberOfParameters/2 + block[i].section[j-1].address;
                     break;
 
                     case WORD_PARAMETER:
-                    block[i].sectionAddress[j] = 2*block[i].section[j-1].numberOfParameters + block[i].sectionAddress[j-1];
+                    block[i].section[j].address  = 2*block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
                     break;
 
                     default:
                     // case DWORD_PARAMETER:
-                    block[i].sectionAddress[j] = 4*block[i].section[j-1].numberOfParameters + block[i].sectionAddress[j-1];
+                    block[i].section[j].address  = 4*block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
                     break;
                 }
             }
@@ -411,29 +354,29 @@ void DBMS::commitLayout()
         switch(block[i].section[lastSection].parameterType)
         {
             case BIT_PARAMETER:
-            blockUsage = block[i].sectionAddress[lastSection]+((block[i].section[lastSection].numberOfParameters%8 != 0) + block[i].section[lastSection].numberOfParameters/8);
+            blockUsage = block[i].section[lastSection].address+((block[i].section[lastSection].numberOfParameters%8 != 0) + block[i].section[lastSection].numberOfParameters/8);
             break;
 
             case BYTE_PARAMETER:
-            blockUsage = block[i].sectionAddress[lastSection] + block[i].section[lastSection].numberOfParameters;
+            blockUsage = block[i].section[lastSection].address + block[i].section[lastSection].numberOfParameters;
             break;
 
             case HALFBYTE_PARAMETER:
-            blockUsage = block[i].sectionAddress[lastSection] + block[i].section[lastSection].numberOfParameters/2;
+            blockUsage = block[i].section[lastSection].address + block[i].section[lastSection].numberOfParameters/2;
             break;
 
             case WORD_PARAMETER:
-            blockUsage = block[i].sectionAddress[lastSection] + 2*block[i].section[lastSection].numberOfParameters;
+            blockUsage = block[i].section[lastSection].address + 2*block[i].section[lastSection].numberOfParameters;
             break;
 
             default:
             // case DWORD_PARAMETER:
-            blockUsage = block[i].sectionAddress[lastSection] + 4*block[i].section[lastSection].numberOfParameters;
+            blockUsage = block[i].section[lastSection].address + 4*block[i].section[lastSection].numberOfParameters;
             break;
         }
 
         if (i < blockCounter-1)
-            block[i+1].blockStartAddress = block[i].blockStartAddress + blockUsage;
+            block[i+1].address = block[i].address + blockUsage;
 
         memoryUsage += blockUsage;
     }
@@ -493,6 +436,13 @@ uint32_t DBMS::getDBsize()
     return memoryUsage;
 }
 
+///
+/// \brief Validates input parameters before attempting to read or write data.
+/// @param [in] blockID         Block index.
+/// @param [in] sectionID       Section index.
+/// @param [in] parameterID     Parameter index.
+/// \returns True if parameters are valid, false otherwise.
+///
 bool DBMS::checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
 {
     //sanity check
