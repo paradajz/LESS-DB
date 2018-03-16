@@ -23,6 +23,7 @@ A block of data is specified using the following parameters:
 
 - Number of sections
 - Section
+- Address (Calculated internally)
 
 ### Sections
 
@@ -33,18 +34,7 @@ Block section is specified using the following parameters:
 - Preserve on partial reset (if set to true, data in section won't be cleared when performing reset of data)
 - Default value (value which will be assigned to all parameters inside section)
 - Auto increment (if set to true, default value will be used as starting value for first parameter, and all consecutive parameters will be incremented by 1)
-
-## Symbols
-
-In order to use this module, several symbols must be specified.
-
-### `DBMS_MAX_SECTIONS`
-
-This symbol must be set to wanted value in order to define maximum amount of database sections.
-
-### `DBMS_MAX_BLOCKS`
-
-This symbol must be set to wanted value in order to define maximum amount of database sections.
+- Address (Calculated internally)
 
 ## Examples
 
