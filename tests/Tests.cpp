@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "../src/DBMS.h"
 
-#define NUMBER_OF_BLOCKS                    5
+#define NUMBER_OF_BLOCKS                    6
 #define NUMBER_OF_SECTIONS                  6
 #define TEST_BLOCK_INDEX                    0
 
@@ -322,6 +322,63 @@ static dbSection_t block4sections[NUMBER_OF_SECTIONS] =
     }
 };
 
+static dbSection_t block5sections[NUMBER_OF_SECTIONS] =
+{
+    {
+        .numberOfParameters = sectionParams[5],
+        .parameterType = sectionTypes[5],
+        .preserveOnPartialReset = false,
+        .defaultValue = defaultValues[5],
+        .autoIncrement = false,
+        .address = 0
+    },
+
+    {
+        .numberOfParameters = sectionParams[0],
+        .parameterType = sectionTypes[0],
+        .preserveOnPartialReset = true,
+        .defaultValue = defaultValues[0],
+        .autoIncrement = false,
+        .address = 0
+    },
+
+    {
+        .numberOfParameters = sectionParams[1],
+        .parameterType = sectionTypes[1],
+        .preserveOnPartialReset = true,
+        .defaultValue = defaultValues[1],
+        .autoIncrement = false,
+        .address = 0
+    },
+
+    {
+        .numberOfParameters = sectionParams[2],
+        .parameterType = sectionTypes[2],
+        .preserveOnPartialReset = true,
+        .defaultValue = defaultValues[2],
+        .autoIncrement = false,
+        .address = 0
+    },
+
+    {
+        .numberOfParameters = sectionParams[3],
+        .parameterType = sectionTypes[3],
+        .preserveOnPartialReset = true,
+        .defaultValue = defaultValues[3],
+        .autoIncrement = false,
+        .address = 0
+    },
+
+    {
+        .numberOfParameters = sectionParams[4],
+        .parameterType = sectionTypes[4],
+        .preserveOnPartialReset = true,
+        .defaultValue = defaultValues[4],
+        .autoIncrement = false,
+        .address = 0
+    }
+};
+
 dbBlock_t dbLayout[NUMBER_OF_BLOCKS] =
 {
     //block 0
@@ -357,6 +414,13 @@ dbBlock_t dbLayout[NUMBER_OF_BLOCKS] =
         .address = 0,
         .numberOfSections = NUMBER_OF_SECTIONS,
         .section = block4sections,
+    },
+
+    //block 5
+    {
+        .address = 0,
+        .numberOfSections = NUMBER_OF_SECTIONS,
+        .section = block5sections,
     }
 };
 
