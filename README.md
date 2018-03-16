@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/paradajz/AVR-DB.svg?branch=master)](https://travis-ci.org/paradajz/AVR-DB)
+[![Build Status](https://travis-ci.org/paradajz/LESS-DB.svg?branch=master)](https://travis-ci.org/paradajz/LESS-DB)
 [![Coverage Status](https://img.shields.io/coveralls/github/paradajz/LESS-DB/master.svg)](https://coveralls.io/github/paradajz/LESS-DB?branch=master)
 
 # LESS DB
