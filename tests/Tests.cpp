@@ -5,16 +5,16 @@
 #define NUMBER_OF_SECTIONS                  6
 #define TEST_BLOCK_INDEX                    0
 
-uint8_t memoryArray[EEPROM_SIZE];
+uint8_t memoryArray[LESSDB_SIZE];
 
 const int16_t sectionParams[NUMBER_OF_SECTIONS] =
 {
     5,
     10,
     15,
-    20,
-    25,
-    30
+    10,
+    15,
+    10
 };
 
 const sectionParameterType_t sectionTypes[NUMBER_OF_SECTIONS] =
@@ -501,7 +501,7 @@ class DBMStest : public ::testing::Test
         db.init();
         db.setHandleRead(memoryRead);
         db.setHandleWrite(memoryWrite);
-        db.commitLayout(dbLayout, NUMBER_OF_BLOCKS);
+        EXPECT_EQ(db.commitLayout(dbLayout, NUMBER_OF_BLOCKS), true);
         db.initData(initFull);
     }
 
@@ -680,6 +680,33 @@ TEST_F(DBMStest, OutOfBounds)
 
     returnValue = db.update(TEST_BLOCK_INDEX, 2, sectionParams[2], 1);
     EXPECT_EQ(returnValue, false);
+
+    //try to init database with too many parameters
+    dbSection_t outOfBoundsSection[1] =
+    {
+        {
+            .numberOfParameters = LESSDB_SIZE+1,
+            .parameterType = BYTE_PARAMETER,
+            .preserveOnPartialReset = false,
+            .defaultValue = 1,
+            .autoIncrement = false,
+            .address = 0
+        }
+    };
+
+    dbBlock_t outOfBoundsLayout[1] =
+    {
+        //block 0
+        {
+            .address = 0,
+            .numberOfSections = 1,
+            .section = outOfBoundsSection,
+        },
+    };
+
+    returnValue = db.commitLayout(outOfBoundsLayout, 1);
+    EXPECT_EQ(returnValue, false);
+
 }
 
 TEST_F(DBMStest, ClearDB)

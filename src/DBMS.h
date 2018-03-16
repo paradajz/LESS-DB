@@ -23,8 +23,8 @@
 
 #include "DataTypes.h"
 
-#ifndef EEPROM_SIZE
-#error EEPROM size not defined
+#ifndef LESSDB_SIZE
+#error Database size not defined
 #endif
 
 #ifndef LOW_BYTE
@@ -59,7 +59,7 @@ class DBMS
     static void setHandleRead(bool(*fptr)(uint32_t address, sectionParameterType_t type, int32_t &value));
     static void setHandleWrite(bool(*fptr)(uint32_t address, int32_t value, sectionParameterType_t type));
 
-    static void commitLayout(dbBlock_t *pointer, uint8_t numberOfBlocks);
+    static bool commitLayout(dbBlock_t *pointer, uint8_t numberOfBlocks);
 
     private:
     static bool checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);

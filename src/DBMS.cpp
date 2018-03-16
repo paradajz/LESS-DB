@@ -28,7 +28,7 @@
 uint8_t blockCounter;
 
 ///
-/// \brief Holds total memory usage in EEPROM for current database layout.
+/// \brief Holds total memory usage for current database layout.
 ///
 uint32_t memoryUsage;
 
@@ -292,18 +292,21 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
 }
 
 ///
-/// \brief Clears entire EEPROM memory by writing 0xFF to each location.
+/// \brief Clears entire memory by writing 0xFF to each location.
 ///
 void DBMS::clear()
 {
-    for (int i=0; i<EEPROM_SIZE; i++)
+    for (int i=0; i<LESSDB_SIZE; i++)
         writeCallback(i, 0x00, BYTE_PARAMETER);
 }
 
 ///
 /// \brief Calculates all addresses for specified blocks and sections.
+/// @param [in] pointer         Pointer to database structure.
+/// @param [in] numberOfBlocks  Total number of blocks in database structure.
+/// \returns True on success, false otherwise (if calculated memory usage is higher than LESSDB_SIZE define).
 ///
-void DBMS::commitLayout(dbBlock_t *pointer, uint8_t numberOfBlocks)
+bool DBMS::commitLayout(dbBlock_t *pointer, uint8_t numberOfBlocks)
 {
     memoryUsage = 0;
 
@@ -379,11 +382,16 @@ void DBMS::commitLayout(dbBlock_t *pointer, uint8_t numberOfBlocks)
             block[i+1].address = block[i].address + blockUsage;
 
         memoryUsage += blockUsage;
+
+        if (memoryUsage >= LESSDB_SIZE)
+            return false;
     }
+
+    return true;
 }
 
 ///
-/// \brief Writes default values to EEPROM from defaultValue parameter.
+/// \brief Writes default values to memory from defaultValue parameter.
 /// @param [in] type    Type of initialization (initPartial or initWipe). initWipe will simply overwrite currently existing
 ///                     data. initPartial will leave data as is, but only if preserveOnPartialReset parameter is set to true.
 ///

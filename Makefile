@@ -15,9 +15,7 @@ TESTS := Tests
 
 # needed to build sysex library
 DEFINES := \
-EEPROM_SIZE=1024 \
-DBMS_MAX_BLOCKS=10 \
-DBMS_MAX_SECTIONS=10
+LESSDB_SIZE=1021 \
 
 # library source
 LIB_SOURCES := src/DBMS.cpp
