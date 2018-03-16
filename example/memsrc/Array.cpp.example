@@ -69,7 +69,8 @@ bool memoryWrite(uint32_t address, int32_t value, sectionParameterType_t type)
         memoryArray[address+1] = (value >> 8) & (uint16_t)0xFF;
         break;
 
-        case DWORD_PARAMETER:
+        default:
+        // case DWORD_PARAMETER:
         memoryArray[address+0] = (value >> 0) & (uint32_t)0xFF;
         memoryArray[address+1] = (value >> 8) & (uint32_t)0xFF;
         memoryArray[address+2] = (value >> 16) & (uint32_t)0xFF;

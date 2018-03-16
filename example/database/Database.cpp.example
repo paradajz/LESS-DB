@@ -1,26 +1,74 @@
 /*
-    Copyright 2017-2018 Igor Petrovic
+    OpenDeck MIDI platform firmware
+    Copyright (C) 2015-2018 Igor Petrovic
 
-    Permission is hereby granted, free of charge, to any person obtaining
-    a copy of this software and associated documentation files (the "Software"),
-    to deal in the Software without restriction, including without limitation
-    the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-    sell copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Database.h"
-#include "../board/Board.h"
+#include "../interface/display/Config.h"
+#include <avr/eeprom.h>
+#include "blocks/LEDs.h"
+#include "../interface/digital/output/leds/DataTypes.h"
+#include "../interface/digital/output/leds/Constants.h"
+#include "Layout.h"
+
+bool memoryRead(uint32_t address, sectionParameterType_t type, int32_t &value)
+{
+    switch(type)
+    {
+        case BIT_PARAMETER:
+        case BYTE_PARAMETER:
+        case HALFBYTE_PARAMETER:
+        value = eeprom_read_byte((uint8_t*)address);
+        break;
+
+        case WORD_PARAMETER:
+        value = eeprom_read_word((uint16_t*)address);
+        break;
+
+        default:
+        // case DWORD_PARAMETER:
+        value = eeprom_read_dword((uint32_t*)address);
+        break;
+    }
+
+    return true;
+}
+
+bool memoryWrite(uint32_t address, int32_t value, sectionParameterType_t type)
+{
+    switch(type)
+    {
+        case BIT_PARAMETER:
+        case BYTE_PARAMETER:
+        case HALFBYTE_PARAMETER:
+        eeprom_update_byte((uint8_t*)address, value);
+        break;
+
+        case WORD_PARAMETER:
+        eeprom_update_word((uint16_t*)address, value);
+        break;
+
+        default:
+        // case DWORD_PARAMETER:
+        eeprom_update_dword((uint32_t*)address, value);
+        break;
+    }
+
+    return true;
+}
 
 ///
 /// \brief Default constructor.
@@ -35,12 +83,14 @@ Database::Database()
 ///
 void Database::init()
 {
-    createLayout();
-    DBMS::commitLayout();
+    DBMS::init();
+    setHandleRead(memoryRead);
+    setHandleWrite(memoryWrite);
+    commitLayout(dbLayout, DB_BLOCKS);
 
     if (!signatureValid())
     {
-        DBMS::initData(initWipe);
+        factoryReset(initFull);
     }
 }
 
@@ -50,7 +100,11 @@ void Database::init()
 ///
 void Database::factoryReset(initType_t type)
 {
-    DBMS::initData(type);
+    if (type == initFull)
+        DBMS::clear();
+
+    initData(type);
+    writeCustomValues();
 }
 
 ///
@@ -63,11 +117,20 @@ bool Database::signatureValid()
 
     for (int i=0; i<ID_BYTES; i++)
     {
-        if (DBMS::read(DB_BLOCK_ID, 0, i) != UNIQUE_ID)
+        if (read(DB_BLOCK_ID, 0, i) != UNIQUE_ID)
             return false;
     }
 
     return true;
+}
+
+///
+/// \brief Writes custom values to specific indexes which can't be generalized within database section.
+///
+void Database::writeCustomValues()
+{
+    update(DB_BLOCK_DISPLAY, dbSection_display_features, displayFeatureMIDIeventTime, MIN_MESSAGE_RETENTION_TIME);
+    update(DB_BLOCK_LEDS, dbSection_leds_hw, ledHwParameterBlinkTime, BLINK_TIME_MIN);
 }
 
 Database database;
