@@ -338,6 +338,9 @@ bool DBMS::addSection(uint8_t blockID, dbSection_t section)
     if (block[blockID].numberOfSections > DBMS_MAX_SECTIONS)
         return false;
 
+    if (section.parameterType >= INVALID_PARAMETER)
+        return false;
+
     block[blockID].section[block[blockID].numberOfSections].parameterType = section.parameterType;
     block[blockID].section[block[blockID].numberOfSections].preserveOnPartialReset = section.preserveOnPartialReset;
     block[blockID].section[block[blockID].numberOfSections].defaultValue = section.defaultValue;

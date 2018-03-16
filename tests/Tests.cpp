@@ -747,3 +747,14 @@ TEST_F(DBMStest, FailedWrite)
         EXPECT_EQ(returnValue, false);
     }
 }
+
+TEST_F(DBMStest, InvalidSection)
+{
+    //try to assign invalid section
+    bool returnValue;
+    dbSection_t section;
+    section.parameterType = (sectionParameterType_t)65;
+    returnValue = db.addSection(0, section);
+
+    EXPECT_EQ(returnValue, false);
+}
