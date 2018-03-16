@@ -62,7 +62,7 @@ static dbSection_t block0sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[2],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[2],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -71,7 +71,7 @@ static dbSection_t block0sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[3],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[3],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -80,7 +80,7 @@ static dbSection_t block0sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[4],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[4],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -89,7 +89,7 @@ static dbSection_t block0sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[5],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[5],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     }
 };
@@ -110,7 +110,7 @@ static dbSection_t block1sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[2],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[2],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -119,7 +119,7 @@ static dbSection_t block1sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[3],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[3],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -128,7 +128,7 @@ static dbSection_t block1sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[4],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[4],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -137,7 +137,7 @@ static dbSection_t block1sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[5],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[5],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -146,7 +146,7 @@ static dbSection_t block1sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[0],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[0],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     }
 };
@@ -167,7 +167,7 @@ static dbSection_t block2sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[3],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[3],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -176,7 +176,7 @@ static dbSection_t block2sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[4],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[4],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -185,7 +185,7 @@ static dbSection_t block2sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[5],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[5],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -194,7 +194,7 @@ static dbSection_t block2sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[0],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[0],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -203,7 +203,7 @@ static dbSection_t block2sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[1],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[1],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     }
 };
@@ -224,7 +224,7 @@ static dbSection_t block3sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[4],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[4],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -233,7 +233,7 @@ static dbSection_t block3sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[5],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[5],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -242,7 +242,7 @@ static dbSection_t block3sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[0],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[0],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -251,7 +251,7 @@ static dbSection_t block3sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[1],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[1],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -260,7 +260,7 @@ static dbSection_t block3sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[2],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[2],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     }
 };
@@ -281,7 +281,7 @@ static dbSection_t block4sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[5],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[5],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -290,7 +290,7 @@ static dbSection_t block4sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[0],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[0],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -299,7 +299,7 @@ static dbSection_t block4sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[1],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[1],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -308,7 +308,7 @@ static dbSection_t block4sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[2],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[2],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     },
 
@@ -317,7 +317,7 @@ static dbSection_t block4sections[NUMBER_OF_SECTIONS] =
         .parameterType = sectionTypes[3],
         .preserveOnPartialReset = true,
         .defaultValue = defaultValues[3],
-        .autoIncrement = true,
+        .autoIncrement = false,
         .address = 0
     }
 };
@@ -438,6 +438,7 @@ class DBMStest : public ::testing::Test
         db.setHandleRead(memoryRead);
         db.setHandleWrite(memoryWrite);
         db.commitLayout(dbLayout, NUMBER_OF_BLOCKS);
+        db.initData(initFull);
     }
 
     virtual void TearDown()
@@ -751,7 +752,7 @@ TEST_F(DBMStest, FactoryReset)
 
 TEST_F(DBMStest, AutoIncrement)
 {
-    //block 0, section 1 has autoincrement configure
+    //block 0, section 1 has autoincrement configured
     //verify
 
     bool returnValue;
