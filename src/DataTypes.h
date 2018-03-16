@@ -24,10 +24,6 @@
 #include <inttypes.h>
 
 ///
-/// \ingroup avrDBMS
-/// @{
-
-///
 /// \brief List of possible parameter types in section.
 ///
 typedef enum
@@ -50,6 +46,7 @@ typedef struct
     bool preserveOnPartialReset;
     uint16_t defaultValue;
     bool autoIncrement;
+    int16_t address;
 } dbSection_t;
 
 ///
@@ -57,10 +54,9 @@ typedef struct
 ///
 typedef struct
 {
+    int16_t address;
     int8_t numberOfSections;
-    int16_t blockStartAddress;
-    int16_t sectionAddress[DBMS_MAX_SECTIONS];
-    dbSection_t section[DBMS_MAX_SECTIONS];
+    dbSection_t *section;
 } dbBlock_t;
 
 ///
@@ -71,5 +67,3 @@ typedef enum
     initPartial,
     initFull
 } initType_t;
-
-/// @}
