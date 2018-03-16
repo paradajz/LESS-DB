@@ -64,7 +64,7 @@ gtest_main.a: gtest-all.o gtest_main.o
 # gtest_main.a, depending on whether it defines its own main()
 # function.
 
-Tests.o: $(TEST_DIR)/$(@:.o=.cpp) $(LIB_SOURCES) $(GTEST_HEADERS)
+Tests.o: $(TEST_DIR)/Tests.cpp $(LIB_SOURCES) $(GTEST_HEADERS)
 	@$(CXX) $(CPPFLAGS) -std=c++11 $(addprefix -D,$(DEFINES)) $(CXXFLAGS) -c $(TEST_DIR)/$(@:.o=.cpp) $(LIB_SOURCES)
 
 $(TESTS): %:%.o $(COMMON_REQS)
