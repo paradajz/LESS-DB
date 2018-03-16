@@ -52,7 +52,6 @@ bool (*writeCallback)(uint32_t address, int32_t value, sectionParameterType_t ty
 /// @param [in] blockID     Block index.
 /// @param [in] sectionID   Section index.
 /// \returns Section address.
-/// \ingroup avrDBMS
 ///
 inline uint16_t getSectionAddress(uint8_t blockID, uint8_t sectionID)
 {
