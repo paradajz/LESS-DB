@@ -158,9 +158,11 @@ bool DBMS::init(dbBlock_t *pointer, uint8_t numberOfBlocks)
             if (memoryUsage >= LESSDB_SIZE)
                 return false;
         }
+
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 ///
