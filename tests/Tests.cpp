@@ -498,10 +498,9 @@ class DBMStest : public ::testing::Test
     protected:
     virtual void SetUp()
     {
-        db.init();
         db.setHandleRead(memoryRead);
         db.setHandleWrite(memoryWrite);
-        EXPECT_EQ(db.commitLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+        EXPECT_EQ(db.init(dbLayout, NUMBER_OF_BLOCKS), true);
         db.initData(initFull);
     }
 
@@ -704,7 +703,7 @@ TEST_F(DBMStest, OutOfBounds)
         },
     };
 
-    returnValue = db.commitLayout(outOfBoundsLayout, 1);
+    returnValue = db.init(outOfBoundsLayout, 1);
     EXPECT_EQ(returnValue, false);
 
 }

@@ -63,19 +63,104 @@ inline uint16_t getSectionAddress(uint8_t blockID, uint8_t sectionID)
 ///
 DBMS::DBMS()
 {
-
+    blockCounter = 0;
+    memoryUsage = 0;
+    block = NULL;
+    readCallback = NULL;
+    writeCallback = NULL;
 }
 
 ///
-/// \brief Sets all variables to their default state.
+/// \brief Calculates all addresses for specified blocks and sections.
+/// @param [in] pointer         Pointer to database structure.
+/// @param [in] numberOfBlocks  Total number of blocks in database structure.
+/// \returns True on success, false otherwise.
 ///
-void DBMS::init()
+bool DBMS::init(dbBlock_t *pointer, uint8_t numberOfBlocks)
 {
-    blockCounter = 0;
     memoryUsage = 0;
 
-    readCallback = NULL;
-    writeCallback = NULL;
+    if ((pointer != NULL) && numberOfBlocks)
+    {
+        block = pointer;
+        blockCounter = numberOfBlocks;
+
+        for (int i=0; i<blockCounter; i++)
+        {
+            uint32_t blockUsage = 0;
+
+            for (int j=0; j<block[i].numberOfSections; j++)
+            {
+                if (!j)
+                {
+                    //first section address is always 0
+                    block[i].section[0].address = 0;
+                }
+                else
+                {
+                    switch(block[i].section[j-1].parameterType)
+                    {
+                        case BIT_PARAMETER:
+                        block[i].section[j].address = ((block[i].section[j].numberOfParameters % 8 != 0) + block[i].section[j-1].numberOfParameters/8) + block[i].section[j-1].address;
+                        break;
+
+                        case BYTE_PARAMETER:
+                        block[i].section[j].address  = block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
+                        break;
+
+                        case HALFBYTE_PARAMETER:
+                        block[i].section[j].address  = block[i].section[j-1].numberOfParameters/2 + block[i].section[j-1].address;
+                        break;
+
+                        case WORD_PARAMETER:
+                        block[i].section[j].address  = 2*block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
+                        break;
+
+                        default:
+                        // case DWORD_PARAMETER:
+                        block[i].section[j].address  = 4*block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
+                        break;
+                    }
+                }
+            }
+
+            uint8_t lastSection = block[i].numberOfSections-1;
+
+            switch(block[i].section[lastSection].parameterType)
+            {
+                case BIT_PARAMETER:
+                blockUsage = block[i].section[lastSection].address+((block[i].section[lastSection].numberOfParameters%8 != 0) + block[i].section[lastSection].numberOfParameters/8);
+                break;
+
+                case BYTE_PARAMETER:
+                blockUsage = block[i].section[lastSection].address + block[i].section[lastSection].numberOfParameters;
+                break;
+
+                case HALFBYTE_PARAMETER:
+                blockUsage = block[i].section[lastSection].address + block[i].section[lastSection].numberOfParameters/2;
+                break;
+
+                case WORD_PARAMETER:
+                blockUsage = block[i].section[lastSection].address + 2*block[i].section[lastSection].numberOfParameters;
+                break;
+
+                default:
+                // case DWORD_PARAMETER:
+                blockUsage = block[i].section[lastSection].address + 4*block[i].section[lastSection].numberOfParameters;
+                break;
+            }
+
+            if (i < blockCounter-1)
+                block[i+1].address = block[i].address + blockUsage;
+
+            memoryUsage += blockUsage;
+
+            if (memoryUsage >= LESSDB_SIZE)
+                return false;
+        }
+    }
+
+    return true;
 }
 
 ///
@@ -88,68 +173,71 @@ void DBMS::init()
 ///
 bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t &value)
 {
-    //sanity check
-    if (!checkParameters(blockID, sectionID, parameterIndex))
-        return false;
-
-    uint16_t startAddress = getSectionAddress(blockID, sectionID);
-
-    uint8_t arrayIndex;
-    uint8_t bitIndex;
-
-    switch(block[blockID].section[sectionID].parameterType)
+    if ((readCallback != NULL) && (block != NULL))
     {
-        case BIT_PARAMETER:
-        arrayIndex = parameterIndex/8;
-        bitIndex = parameterIndex - 8*arrayIndex;
-        startAddress += arrayIndex;
-        if (readCallback(startAddress, BIT_PARAMETER, value))
-        {
-            value = BIT_READ(value, bitIndex);
-            return true;
-        }
-        break;
+        //sanity check
+        if (!checkParameters(blockID, sectionID, parameterIndex))
+            return false;
 
-        case BYTE_PARAMETER:
-        startAddress += parameterIndex;
-        if (readCallback(startAddress, BYTE_PARAMETER, value))
-        {
-            //sanitize
-            value &= (int32_t)0xFF;
-            return true;
-        }
-        break;
+        uint16_t startAddress = getSectionAddress(blockID, sectionID);
 
-        case HALFBYTE_PARAMETER:
-        startAddress += parameterIndex/2;
-        if (readCallback(startAddress, HALFBYTE_PARAMETER, value))
+        uint8_t arrayIndex;
+        uint8_t bitIndex;
+
+        switch(block[blockID].section[sectionID].parameterType)
         {
-            if (parameterIndex%2)
+            case BIT_PARAMETER:
+            arrayIndex = parameterIndex/8;
+            bitIndex = parameterIndex - 8*arrayIndex;
+            startAddress += arrayIndex;
+            if (readCallback(startAddress, BIT_PARAMETER, value))
             {
-                value >>= 4;
+                value = BIT_READ(value, bitIndex);
+                return true;
             }
+            break;
 
-            //sanitize
-            value &= (int32_t)0x0F;
-            return true;
+            case BYTE_PARAMETER:
+            startAddress += parameterIndex;
+            if (readCallback(startAddress, BYTE_PARAMETER, value))
+            {
+                //sanitize
+                value &= (int32_t)0xFF;
+                return true;
+            }
+            break;
+
+            case HALFBYTE_PARAMETER:
+            startAddress += parameterIndex/2;
+            if (readCallback(startAddress, HALFBYTE_PARAMETER, value))
+            {
+                if (parameterIndex%2)
+                {
+                    value >>= 4;
+                }
+
+                //sanitize
+                value &= (int32_t)0x0F;
+                return true;
+            }
+            break;
+
+            case WORD_PARAMETER:
+            startAddress += parameterIndex*2;
+            if (readCallback(startAddress, WORD_PARAMETER, value))
+            {
+                //sanitize
+                value &= (int32_t)0xFFFF;
+                return true;
+            }
+            break;
+
+            default:
+            // case DWORD_PARAMETER:
+            startAddress += parameterIndex*4;
+            return readCallback(startAddress, DWORD_PARAMETER, value);
+            break;
         }
-        break;
-
-        case WORD_PARAMETER:
-        startAddress += parameterIndex*2;
-        if (readCallback(startAddress, WORD_PARAMETER, value))
-        {
-            //sanitize
-            value &= (int32_t)0xFFFF;
-            return true;
-        }
-        break;
-
-        default:
-        // case DWORD_PARAMETER:
-        startAddress += parameterIndex*4;
-        return readCallback(startAddress, DWORD_PARAMETER, value);
-        break;
     }
 
     return false;
@@ -166,7 +254,8 @@ int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
 {
     int32_t value = -1;
 
-    read(blockID, sectionID, parameterIndex, value);
+    if ((readCallback != NULL) && (block != NULL))
+        read(blockID, sectionID, parameterIndex, value);
 
     return value;
 }
@@ -181,110 +270,113 @@ int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
 ///
 bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue)
 {
-    //sanity check
-    if (!checkParameters(blockID, sectionID, parameterIndex))
-        return false;
-
-    uint16_t startAddress = getSectionAddress(blockID, sectionID);
-    uint8_t parameterType = block[blockID].section[sectionID].parameterType;
-
-    uint8_t arrayIndex;
-    int32_t arrayValue;
-    uint8_t bitIndex;
-    int32_t checkValue;
-
-    switch(parameterType)
+    if ((writeCallback != NULL) && (readCallback != NULL) && (block != NULL))
     {
-        case BIT_PARAMETER:
-        //sanitize input
-        newValue &= (int32_t)0x01;
-        arrayIndex = parameterIndex/8;
-        bitIndex = parameterIndex - 8*arrayIndex;
-        startAddress += arrayIndex;
+        //sanity check
+        if (!checkParameters(blockID, sectionID, parameterIndex))
+            return false;
 
-        //read existing value first
-        if (readCallback(startAddress, BIT_PARAMETER, arrayValue))
+        uint16_t startAddress = getSectionAddress(blockID, sectionID);
+        uint8_t parameterType = block[blockID].section[sectionID].parameterType;
+
+        uint8_t arrayIndex;
+        int32_t arrayValue;
+        uint8_t bitIndex;
+        int32_t checkValue;
+
+        switch(parameterType)
         {
-            //update value with new bit
-            BIT_WRITE(arrayValue, bitIndex, newValue);
+            case BIT_PARAMETER:
+            //sanitize input
+            newValue &= (int32_t)0x01;
+            arrayIndex = parameterIndex/8;
+            bitIndex = parameterIndex - 8*arrayIndex;
+            startAddress += arrayIndex;
 
-            //write to memory
-            if (writeCallback(startAddress, arrayValue, BIT_PARAMETER))
+            //read existing value first
+            if (readCallback(startAddress, BIT_PARAMETER, arrayValue))
             {
-                if (readCallback(startAddress, BIT_PARAMETER, checkValue))
+                //update value with new bit
+                BIT_WRITE(arrayValue, bitIndex, newValue);
+
+                //write to memory
+                if (writeCallback(startAddress, arrayValue, BIT_PARAMETER))
                 {
-                    return (arrayValue == checkValue);
+                    if (readCallback(startAddress, BIT_PARAMETER, checkValue))
+                    {
+                        return (arrayValue == checkValue);
+                    }
                 }
             }
-        }
-        break;
+            break;
 
-        case BYTE_PARAMETER:
-        //sanitize input
-        newValue &= (int32_t)0xFF;
-        startAddress += parameterIndex;
-        if (writeCallback(startAddress, newValue, BYTE_PARAMETER))
-        {
-            if (readCallback(startAddress, BYTE_PARAMETER, checkValue))
+            case BYTE_PARAMETER:
+            //sanitize input
+            newValue &= (int32_t)0xFF;
+            startAddress += parameterIndex;
+            if (writeCallback(startAddress, newValue, BYTE_PARAMETER))
             {
-                return (newValue == checkValue);
-            }
-        }
-        break;
-
-        case HALFBYTE_PARAMETER:
-        //sanitize input
-        newValue &= (int32_t)0x0F;
-        startAddress += (parameterIndex/2);
-        //read old value first
-        if (readCallback(startAddress, HALFBYTE_PARAMETER, arrayValue))
-        {
-            if (parameterIndex % 2)
-            {
-                //clear content in bits 4-7 and update the value
-                arrayValue &= 0x0F;
-                arrayValue |= (newValue << 4);
-            }
-            else
-            {
-                //clear content in bits 0-3 and update the value
-                arrayValue &= 0xF0;
-                arrayValue |= newValue;
-            }
-
-            if (writeCallback(startAddress, arrayValue, HALFBYTE_PARAMETER))
-            {
-                if (readCallback(startAddress, HALFBYTE_PARAMETER, checkValue))
+                if (readCallback(startAddress, BYTE_PARAMETER, checkValue))
                 {
-                    return (arrayValue == checkValue);
+                    return (newValue == checkValue);
                 }
             }
-        }
-        break;
+            break;
 
-        case WORD_PARAMETER:
-        //sanitize input
-        newValue &= (int32_t)0xFFFF;
-        startAddress += (parameterIndex*2);
-        if (writeCallback(startAddress, newValue, WORD_PARAMETER))
-        {
-            if (readCallback(startAddress, WORD_PARAMETER, checkValue))
+            case HALFBYTE_PARAMETER:
+            //sanitize input
+            newValue &= (int32_t)0x0F;
+            startAddress += (parameterIndex/2);
+            //read old value first
+            if (readCallback(startAddress, HALFBYTE_PARAMETER, arrayValue))
             {
-                return (newValue == checkValue);
-            }
-        }
-        break;
+                if (parameterIndex % 2)
+                {
+                    //clear content in bits 4-7 and update the value
+                    arrayValue &= 0x0F;
+                    arrayValue |= (newValue << 4);
+                }
+                else
+                {
+                    //clear content in bits 0-3 and update the value
+                    arrayValue &= 0xF0;
+                    arrayValue |= newValue;
+                }
 
-        case DWORD_PARAMETER:
-        startAddress += (parameterIndex*4);
-        if (writeCallback(startAddress, newValue, DWORD_PARAMETER))
-        {
-            if (readCallback(startAddress, DWORD_PARAMETER, checkValue))
-            {
-                return (newValue == checkValue);
+                if (writeCallback(startAddress, arrayValue, HALFBYTE_PARAMETER))
+                {
+                    if (readCallback(startAddress, HALFBYTE_PARAMETER, checkValue))
+                    {
+                        return (arrayValue == checkValue);
+                    }
+                }
             }
+            break;
+
+            case WORD_PARAMETER:
+            //sanitize input
+            newValue &= (int32_t)0xFFFF;
+            startAddress += (parameterIndex*2);
+            if (writeCallback(startAddress, newValue, WORD_PARAMETER))
+            {
+                if (readCallback(startAddress, WORD_PARAMETER, checkValue))
+                {
+                    return (newValue == checkValue);
+                }
+            }
+            break;
+
+            case DWORD_PARAMETER:
+            startAddress += (parameterIndex*4);
+            if (writeCallback(startAddress, newValue, DWORD_PARAMETER))
+            {
+                if (readCallback(startAddress, DWORD_PARAMETER, checkValue))
+                {
+                    return (newValue == checkValue);
+                }
+            }
+            break;
         }
-        break;
     }
 
     return false;
@@ -295,98 +387,11 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
 ///
 void DBMS::clear()
 {
-    for (int i=0; i<LESSDB_SIZE; i++)
-        writeCallback(i, 0x00, BYTE_PARAMETER);
-}
-
-///
-/// \brief Calculates all addresses for specified blocks and sections.
-/// @param [in] pointer         Pointer to database structure.
-/// @param [in] numberOfBlocks  Total number of blocks in database structure.
-/// \returns True on success, false otherwise (if calculated memory usage is higher than LESSDB_SIZE define).
-///
-bool DBMS::commitLayout(dbBlock_t *pointer, uint8_t numberOfBlocks)
-{
-    memoryUsage = 0;
-
-    block = pointer;
-    blockCounter = numberOfBlocks;
-
-    for (int i=0; i<blockCounter; i++)
+    if (writeCallback != NULL)
     {
-        uint32_t blockUsage = 0;
-
-        for (int j=0; j<block[i].numberOfSections; j++)
-        {
-            if (!j)
-            {
-                //first section address is always 0
-                block[i].section[0].address = 0;
-            }
-            else
-            {
-                switch(block[i].section[j-1].parameterType)
-                {
-                    case BIT_PARAMETER:
-                    block[i].section[j].address = ((block[i].section[j].numberOfParameters % 8 != 0) + block[i].section[j-1].numberOfParameters/8) + block[i].section[j-1].address;
-                    break;
-
-                    case BYTE_PARAMETER:
-                    block[i].section[j].address  = block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
-                    break;
-
-                    case HALFBYTE_PARAMETER:
-                    block[i].section[j].address  = block[i].section[j-1].numberOfParameters/2 + block[i].section[j-1].address;
-                    break;
-
-                    case WORD_PARAMETER:
-                    block[i].section[j].address  = 2*block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
-                    break;
-
-                    default:
-                    // case DWORD_PARAMETER:
-                    block[i].section[j].address  = 4*block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
-                    break;
-                }
-            }
-        }
-
-        uint8_t lastSection = block[i].numberOfSections-1;
-
-        switch(block[i].section[lastSection].parameterType)
-        {
-            case BIT_PARAMETER:
-            blockUsage = block[i].section[lastSection].address+((block[i].section[lastSection].numberOfParameters%8 != 0) + block[i].section[lastSection].numberOfParameters/8);
-            break;
-
-            case BYTE_PARAMETER:
-            blockUsage = block[i].section[lastSection].address + block[i].section[lastSection].numberOfParameters;
-            break;
-
-            case HALFBYTE_PARAMETER:
-            blockUsage = block[i].section[lastSection].address + block[i].section[lastSection].numberOfParameters/2;
-            break;
-
-            case WORD_PARAMETER:
-            blockUsage = block[i].section[lastSection].address + 2*block[i].section[lastSection].numberOfParameters;
-            break;
-
-            default:
-            // case DWORD_PARAMETER:
-            blockUsage = block[i].section[lastSection].address + 4*block[i].section[lastSection].numberOfParameters;
-            break;
-        }
-
-        if (i < blockCounter-1)
-            block[i+1].address = block[i].address + blockUsage;
-
-        memoryUsage += blockUsage;
-
-        if (memoryUsage >= LESSDB_SIZE)
-            return false;
+        for (int i=0; i<LESSDB_SIZE; i++)
+            writeCallback(i, 0x00, BYTE_PARAMETER);
     }
-
-    return true;
 }
 
 ///

@@ -49,7 +49,7 @@ class DBMS
 {
     public:
     DBMS();
-    static void init();
+    static bool init(dbBlock_t *pointer, uint8_t numberOfBlocks);
     static void clear();
     static bool read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t &value);
     static int32_t read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);
@@ -58,8 +58,6 @@ class DBMS
     static void initData(initType_t type = initFull);
     static void setHandleRead(bool(*fptr)(uint32_t address, sectionParameterType_t type, int32_t &value));
     static void setHandleWrite(bool(*fptr)(uint32_t address, int32_t value, sectionParameterType_t type));
-
-    static bool commitLayout(dbBlock_t *pointer, uint8_t numberOfBlocks);
 
     private:
     static bool checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);
