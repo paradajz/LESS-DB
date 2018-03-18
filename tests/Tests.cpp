@@ -646,7 +646,7 @@ TEST_F(DBMStest, Update)
     EXPECT_EQ(value, 10);
 }
 
-TEST_F(DBMStest, OutOfBounds)
+TEST_F(DBMStest, ErrorCheck)
 {
     int32_t value;
     bool returnValue;
@@ -706,6 +706,13 @@ TEST_F(DBMStest, OutOfBounds)
     returnValue = db.init(outOfBoundsLayout, 1);
     EXPECT_EQ(returnValue, false);
 
+    //try to init database with null pointer
+    returnValue = db.init(NULL, 1);
+    EXPECT_EQ(returnValue, false);
+
+    //try to init database with zero blocks
+    returnValue = db.init(dbLayout, 0);
+    EXPECT_EQ(returnValue, false);
 }
 
 TEST_F(DBMStest, ClearDB)
