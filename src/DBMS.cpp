@@ -256,8 +256,7 @@ int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
 {
     int32_t value = -1;
 
-    if ((readCallback != NULL) && (block != NULL))
-        read(blockID, sectionID, parameterIndex, value);
+    read(blockID, sectionID, parameterIndex, value);
 
     return value;
 }
