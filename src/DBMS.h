@@ -27,24 +27,6 @@
 #error Database size not defined
 #endif
 
-#ifndef LOW_BYTE
-#define LOW_BYTE(value)                  ((value) & 0xFF)
-#endif
-
-#ifndef HIGH_BYTE
-#define HIGH_BYTE(value)                 (((value) >> 8) & 0xFF)
-#endif
-
-#ifndef BIT_READ
-#define BIT_READ(value, bit)             (((value) >> (bit)) & 0x01)
-#endif
-
-#ifndef BIT_WRITE
-#define BIT_SET(value, bit)              ((value) |= (1UL << (bit)))
-#define BIT_CLEAR(value, bit)            ((value) &= ~(1UL << (bit)))
-#define BIT_WRITE(value, bit, bitvalue)  (bitvalue ? BIT_SET(value, bit) : BIT_CLEAR(value, bit))
-#endif
-
 class DBMS
 {
     public:

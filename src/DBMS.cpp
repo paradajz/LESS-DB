@@ -23,6 +23,33 @@
 #include <stdlib.h>
 
 ///
+/// \brief Bit masks used to read/write specific bits in byte.
+///
+#define BIT_0_MASK  0b00000001
+#define BIT_1_MASK  0b00000010
+#define BIT_2_MASK  0b00000100
+#define BIT_3_MASK  0b00001000
+#define BIT_4_MASK  0b00010000
+#define BIT_5_MASK  0b00100000
+#define BIT_6_MASK  0b01000000
+#define BIT_7_MASK  0b10000000
+
+///
+/// \brief Array holding all bit masks for easier access.
+///
+const uint8_t bitMask[8] =
+{
+    BIT_0_MASK,
+    BIT_1_MASK,
+    BIT_2_MASK,
+    BIT_3_MASK,
+    BIT_4_MASK,
+    BIT_5_MASK,
+    BIT_6_MASK,
+    BIT_7_MASK
+};
+
+///
 /// \brief Holds amount of blocks.
 ///
 uint8_t blockCounter;
@@ -182,25 +209,40 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
             return false;
 
         uint16_t startAddress = getSectionAddress(blockID, sectionID);
-
         uint8_t arrayIndex;
-        uint8_t bitIndex;
+
+        //cache for bit and half-byte parameters
+        //used if current requested address is the same as previous one
+        //in that case use previously read value from eeprom
+        static uint16_t lastAddress = LESSDB_SIZE;
+        static uint8_t lastValue = 0;
 
         switch(block[blockID].section[sectionID].parameterType)
         {
             case BIT_PARAMETER:
-            arrayIndex = parameterIndex/8;
-            bitIndex = parameterIndex - 8*arrayIndex;
+            arrayIndex = parameterIndex >> 3;
             startAddress += arrayIndex;
-            if (readCallback(startAddress, BIT_PARAMETER, value))
+
+            if (startAddress == lastAddress)
             {
-                value = BIT_READ(value, bitIndex);
-                return true;
+                value = (bool)(lastValue & bitMask[parameterIndex - (arrayIndex << 3)]);
             }
+            else if (readCallback(startAddress, BIT_PARAMETER, value))
+            {
+                value = (bool)(value & bitMask[parameterIndex - (arrayIndex << 3)]);
+                lastValue = value;
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
             break;
 
             case BYTE_PARAMETER:
             startAddress += parameterIndex;
+
             if (readCallback(startAddress, BYTE_PARAMETER, value))
             {
                 //sanitize
@@ -211,21 +253,32 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
 
             case HALFBYTE_PARAMETER:
             startAddress += parameterIndex/2;
-            if (readCallback(startAddress, HALFBYTE_PARAMETER, value))
+
+            if (startAddress == lastAddress)
+            {
+                value = lastValue;
+
+                if (parameterIndex%2)
+                    value >>= 4;
+            }
+            else if (readCallback(startAddress, HALFBYTE_PARAMETER, value))
             {
                 if (parameterIndex%2)
-                {
                     value >>= 4;
-                }
-
-                //sanitize
-                value &= (int32_t)0x0F;
-                return true;
             }
+            else
+            {
+                return false;
+            }
+
+            //sanitize
+            value &= (int32_t)0x0F;
+            return true;
             break;
 
             case WORD_PARAMETER:
             startAddress += parameterIndex*2;
+
             if (readCallback(startAddress, WORD_PARAMETER, value))
             {
                 //sanitize
@@ -298,7 +351,10 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
             if (readCallback(startAddress, BIT_PARAMETER, arrayValue))
             {
                 //update value with new bit
-                BIT_WRITE(arrayValue, bitIndex, newValue);
+                if (newValue)
+                    arrayValue |= bitMask[bitIndex];
+                else
+                    arrayValue &= ~bitMask[bitIndex];
 
                 //write to memory
                 if (writeCallback(startAddress, arrayValue, BIT_PARAMETER))
