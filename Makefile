@@ -12,6 +12,7 @@ CXXFLAGS += -g -pthread
 # needed to build less-db
 DEFINES := \
 LESSDB_SIZE=1021 \
+LESSDB_SAFETY_CHECKS
 
 GTEST_DIR := ../googletest/googletest
 GTEST_HEADERS := $(GTEST_DIR)/include/gtest/*.h \
