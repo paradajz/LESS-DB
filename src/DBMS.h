@@ -56,7 +56,7 @@ class DBMS
     ///
     /// \brief Pointer to array of DBMS blocks.
     ///
-    dbBlock_t *block;
+    dbBlock_t *block = nullptr;
 
     ///
     /// \brief Function pointer used to read the memory contents.
