@@ -491,17 +491,11 @@ bool memoryWrite(uint32_t address, int32_t value, sectionParameterType_t type)
     return true;
 }
 
-DBMS db;
-
 class DBMStest : public ::testing::Test
 {
     protected:
     virtual void SetUp()
     {
-        db.setHandleRead(memoryRead);
-        db.setHandleWrite(memoryWrite);
-        EXPECT_EQ(db.init(dbLayout, NUMBER_OF_BLOCKS), true);
-        db.initData(initFull);
     }
 
     virtual void TearDown()
@@ -512,6 +506,10 @@ class DBMStest : public ::testing::Test
 
 TEST_F(DBMStest, Read)
 {
+    DBMS db(memoryRead, memoryWrite);
+    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    db.initData(initFull);
+
     int32_t value;
     bool returnValue;
 
@@ -568,6 +566,10 @@ TEST_F(DBMStest, Read)
 
 TEST_F(DBMStest, Update)
 {
+    DBMS db(memoryRead, memoryWrite);
+    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    db.initData(initFull);
+
     int32_t value;
     bool returnValue;
 
@@ -648,6 +650,10 @@ TEST_F(DBMStest, Update)
 
 TEST_F(DBMStest, ErrorCheck)
 {
+    DBMS db(memoryRead, memoryWrite);
+    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    db.initData(initFull);
+
     int32_t value;
     bool returnValue;
 
@@ -705,24 +711,27 @@ TEST_F(DBMStest, ErrorCheck)
         },
     };
 
-    returnValue = db.init(outOfBoundsLayout, 1);
+    returnValue = db.setLayout(outOfBoundsLayout, 1);
     EXPECT_EQ(returnValue, false);
 
     //try to init database with null pointer
-    returnValue = db.init(NULL, 1);
+    returnValue = db.setLayout(NULL, 1);
     EXPECT_EQ(returnValue, false);
 
     //try to init database with zero blocks
-    returnValue = db.init(dbLayout, 0);
+    returnValue = db.setLayout(dbLayout, 0);
     EXPECT_EQ(returnValue, false);
 }
 
 TEST_F(DBMStest, ClearDB)
 {
+    DBMS db(memoryRead, memoryWrite);
+    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    db.initData(initFull);
+    db.clear();
+
     bool returnValue;
     int32_t value;
-
-    db.clear();
 
     //verify that any read value equals 0
     //bit section
@@ -773,6 +782,10 @@ TEST_F(DBMStest, ClearDB)
 
 TEST_F(DBMStest, DBsize)
 {
+    DBMS db(memoryRead, memoryWrite);
+    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    db.initData(initFull);
+
     //test if calculated database size matches the one returned from object
     int expectedSize = 0;
     int dbSize = db.getDBsize();
@@ -809,6 +822,10 @@ TEST_F(DBMStest, DBsize)
 
 TEST_F(DBMStest, FactoryReset)
 {
+    DBMS db(memoryRead, memoryWrite);
+    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    db.initData(initFull);
+
     //block 0, section 1 is configured to preserve values after partial reset
     //write some values first
     bool returnValue;
@@ -851,6 +868,10 @@ TEST_F(DBMStest, FactoryReset)
 
 TEST_F(DBMStest, AutoIncrement)
 {
+    DBMS db(memoryRead, memoryWrite);
+    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    db.initData(initFull);
+
     //block 0, section 1 has autoincrement configured
     //verify
 
@@ -869,11 +890,13 @@ TEST_F(DBMStest, AutoIncrement)
 
 TEST_F(DBMStest, FailedRead)
 {
+    //configure memory read callback to always return false
+    DBMS db(memoryReadFail, memoryWrite);
+    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    db.initData(initFull);
+
     bool returnValue;
     int32_t value;
-
-    //configure memory read callback to always return false
-    db.setHandleRead(memoryReadFail);
 
     //check if reading now returns an error for all sections
     //block 0
@@ -886,10 +909,12 @@ TEST_F(DBMStest, FailedRead)
 
 TEST_F(DBMStest, FailedWrite)
 {
-    bool returnValue;
-
     //configure memory write callback to always return false
-    db.setHandleWrite(memoryWriteFail);
+    DBMS db(memoryReadFail, memoryWriteFail);
+    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    db.initData(initFull);
+
+    bool returnValue;
 
     //check if writing now returns an error for all sections
     //block 0

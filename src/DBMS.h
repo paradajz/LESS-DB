@@ -30,17 +30,41 @@
 class DBMS
 {
     public:
-    DBMS();
-    static bool init(dbBlock_t *pointer, uint8_t numberOfBlocks);
-    static void clear();
-    static bool read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t &value);
-    static int32_t read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);
-    static bool update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue);
-    static uint32_t getDBsize();
-    static void initData(initType_t type = initFull);
-    static void setHandleRead(bool(*fptr)(uint32_t address, sectionParameterType_t type, int32_t &value));
-    static void setHandleWrite(bool(*fptr)(uint32_t address, int32_t value, sectionParameterType_t type));
+    DBMS(bool (*readCallback)(uint32_t address, sectionParameterType_t type, int32_t &value), bool (*writeCallback)(uint32_t address, int32_t value, sectionParameterType_t type));
+    bool setLayout(dbBlock_t *pointer, uint8_t numberOfBlocks);
+    void clear();
+    bool read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t &value);
+    int32_t read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);
+    bool update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue);
+    uint32_t getDBsize();
+    void initData(initType_t type = initFull);
 
     private:
-    static bool checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);
+    bool checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);
+    uint16_t getSectionAddress(uint8_t blockID, uint8_t sectionID);
+
+    ///
+    /// \brief Holds amount of blocks.
+    ///
+    uint8_t blockCounter;
+
+    ///
+    /// \brief Holds total memory usage for current database layout.
+    ///
+    uint32_t memoryUsage;
+
+    ///
+    /// \brief Pointer to array of DBMS blocks.
+    ///
+    dbBlock_t *block;
+
+    ///
+    /// \brief Function pointer used to read the memory contents.
+    ///
+    bool (*readCallback)(uint32_t address, sectionParameterType_t type, int32_t &value);
+
+    ///
+    /// \brief Function pointer used to update the memory contents.
+    ///
+    bool (*writeCallback)(uint32_t address, int32_t value, sectionParameterType_t type);
 };

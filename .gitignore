@@ -1,2 +1,5 @@
 Documentation/*
-avr-db.tag
+*.gcda
+*.gcno
+*.o*
+*.a

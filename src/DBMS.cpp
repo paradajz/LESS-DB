@@ -50,51 +50,15 @@ const uint8_t bitMask[8] =
 };
 
 ///
-/// \brief Holds amount of blocks.
-///
-uint8_t blockCounter;
-
-///
-/// \brief Holds total memory usage for current database layout.
-///
-uint32_t memoryUsage;
-
-///
-/// \brief Pointer to array of DBMS blocks.
-///
-dbBlock_t *block;
-
-///
-/// \brief Function pointer used to read the memory contents.
-///
-bool (*readCallback)(uint32_t address, sectionParameterType_t type, int32_t &value);
-
-///
-/// \brief Function pointer used to update the memory contents.
-///
-bool (*writeCallback)(uint32_t address, int32_t value, sectionParameterType_t type);
-
-///
-/// \brief Returns section address for specified section within block.
-/// @param [in] blockID     Block index.
-/// @param [in] sectionID   Section index.
-/// \returns Section address.
-///
-inline uint16_t getSectionAddress(uint8_t blockID, uint8_t sectionID)
-{
-    return block[blockID].address+block[blockID].section[sectionID].address;
-};
-
-///
 /// \brief Default constructor
 ///
-DBMS::DBMS()
+DBMS::DBMS(bool (*read)(uint32_t address, sectionParameterType_t type, int32_t &value), bool (*write)(uint32_t address, int32_t value, sectionParameterType_t type))
 {
     blockCounter = 0;
     memoryUsage = 0;
-    block = NULL;
-    readCallback = NULL;
-    writeCallback = NULL;
+    block = nullptr;
+    readCallback = read;
+    writeCallback = write;
 }
 
 ///
@@ -103,11 +67,11 @@ DBMS::DBMS()
 /// @param [in] numberOfBlocks  Total number of blocks in database structure.
 /// \returns True on success, false otherwise.
 ///
-bool DBMS::init(dbBlock_t *pointer, uint8_t numberOfBlocks)
+bool DBMS::setLayout(dbBlock_t *pointer, uint8_t numberOfBlocks)
 {
     memoryUsage = 0;
 
-    if ((pointer != NULL) && numberOfBlocks)
+    if ((pointer != nullptr) && numberOfBlocks)
     {
         block = pointer;
         blockCounter = numberOfBlocks;
@@ -203,7 +167,7 @@ bool DBMS::init(dbBlock_t *pointer, uint8_t numberOfBlocks)
 bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t &value)
 {
     #ifdef LESSDB_SAFETY_CHECKS
-    if ((readCallback == NULL) || (block == NULL))
+    if ((readCallback == nullptr) || (block == nullptr))
         return false;
 
     //sanity check
@@ -327,7 +291,7 @@ int32_t DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
 bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue)
 {
     #ifdef LESSDB_SAFETY_CHECKS
-    if ((writeCallback == NULL) || (readCallback == NULL) || (block == NULL))
+    if ((writeCallback == nullptr) || (readCallback == nullptr) || (block == nullptr))
         return false;
 
     //sanity check
@@ -448,7 +412,7 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
 ///
 void DBMS::clear()
 {
-    if (writeCallback != NULL)
+    if (writeCallback != nullptr)
     {
         for (int i=0; i<LESSDB_SIZE; i++)
             writeCallback(i, 0x00, BYTE_PARAMETER);
@@ -538,17 +502,12 @@ bool DBMS::checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t paramete
 }
 
 ///
-/// \brief Handler used to define callback function for memory read requests.
+/// \brief Returns section address for specified section within block.
+/// @param [in] blockID     Block index.
+/// @param [in] sectionID   Section index.
+/// \returns Section address.
 ///
-void DBMS::setHandleRead(bool(*fptr)(uint32_t address, sectionParameterType_t type, int32_t &value))
+uint16_t DBMS::getSectionAddress(uint8_t blockID, uint8_t sectionID)
 {
-    readCallback = fptr;
-}
-
-///
-/// \brief Handler used to define callback function for memory write requests.
-///
-void DBMS::setHandleWrite(bool(*fptr)(uint32_t address, int32_t value, sectionParameterType_t type))
-{
-    writeCallback = fptr;
+    return block[blockID].address+block[blockID].section[sectionID].address;
 }
