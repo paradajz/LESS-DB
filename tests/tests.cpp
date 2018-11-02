@@ -803,7 +803,7 @@ TEST_F(DBMStest, DBsize)
             break;
 
             case HALFBYTE_PARAMETER:
-            expectedSize += (sectionParams[i] / 2);
+            expectedSize += ((sectionParams[i] % 2 != 0) + sectionParams[i]/2);
             break;
 
             case WORD_PARAMETER:
@@ -816,7 +816,7 @@ TEST_F(DBMStest, DBsize)
         }
     }
 
-    //test uses two blocks with same sections
+    //test uses blocks with same sections
     EXPECT_EQ(dbSize, expectedSize*NUMBER_OF_BLOCKS);
 }
 
@@ -903,6 +903,19 @@ TEST_F(DBMStest, FailedRead)
     for (int i=0; i<NUMBER_OF_SECTIONS; i++)
     {
         returnValue = db.read(0, i, 0, value);
+        EXPECT_EQ(returnValue, false);
+    }
+
+    //do the same with nullptr as read callback
+    DBMS db2(nullptr, memoryWrite);
+    EXPECT_EQ(db2.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    db2.initData(initFull);
+
+    //check if reading now returns an error for all sections
+    //block 0
+    for (int i=0; i<NUMBER_OF_SECTIONS; i++)
+    {
+        returnValue = db2.read(0, i, 0, value);
         EXPECT_EQ(returnValue, false);
     }
 }

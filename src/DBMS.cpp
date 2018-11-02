@@ -96,20 +96,20 @@ bool DBMS::setLayout(dbBlock_t *pointer, uint8_t numberOfBlocks)
                         break;
 
                         case BYTE_PARAMETER:
-                        block[i].section[j].address  = block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
+                        block[i].section[j].address = block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
                         break;
 
                         case HALFBYTE_PARAMETER:
-                        block[i].section[j].address  = block[i].section[j-1].numberOfParameters/2 + block[i].section[j-1].address;
+                        block[i].section[j].address = ((block[i].section[j-1].numberOfParameters % 2 != 0) + block[i].section[j-1].numberOfParameters/2) + block[i].section[j-1].address;
                         break;
 
                         case WORD_PARAMETER:
-                        block[i].section[j].address  = 2*block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
+                        block[i].section[j].address = 2*block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
                         break;
 
                         default:
                         // case DWORD_PARAMETER:
-                        block[i].section[j].address  = 4*block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
+                        block[i].section[j].address = 4*block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
                         break;
                     }
                 }
@@ -120,7 +120,7 @@ bool DBMS::setLayout(dbBlock_t *pointer, uint8_t numberOfBlocks)
             switch(block[i].section[lastSection].parameterType)
             {
                 case BIT_PARAMETER:
-                blockUsage = block[i].section[lastSection].address+((block[i].section[lastSection].numberOfParameters%8 != 0) + block[i].section[lastSection].numberOfParameters/8);
+                blockUsage = block[i].section[lastSection].address + ((block[i].section[lastSection].numberOfParameters%8 != 0) + block[i].section[lastSection].numberOfParameters/8);
                 break;
 
                 case BYTE_PARAMETER:
@@ -128,7 +128,7 @@ bool DBMS::setLayout(dbBlock_t *pointer, uint8_t numberOfBlocks)
                 break;
 
                 case HALFBYTE_PARAMETER:
-                blockUsage = block[i].section[lastSection].address + block[i].section[lastSection].numberOfParameters/2;
+                blockUsage = block[i].section[lastSection].address + ((block[i].section[lastSection].numberOfParameters%2 != 0) + block[i].section[lastSection].numberOfParameters/2);
                 break;
 
                 case WORD_PARAMETER:
@@ -175,14 +175,9 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
         return false;
     #endif
 
+    bool returnValue = true;
     uint16_t startAddress = getSectionAddress(blockID, sectionID);
     uint8_t arrayIndex;
-
-    //cache for bit and half-byte parameters
-    //used if current requested address is the same as previous one
-    //in that case use previously read value from eeprom
-    static uint16_t lastAddress = LESSDB_SIZE;
-    static uint8_t lastValue = 0;
 
     switch(block[blockID].section[sectionID].parameterType)
     {
@@ -196,15 +191,13 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
         }
         else if (readCallback(startAddress, BIT_PARAMETER, value))
         {
-            value = (bool)(value & bitMask[parameterIndex - (arrayIndex << 3)]);
             lastValue = value;
+            value = (bool)(value & bitMask[parameterIndex - (arrayIndex << 3)]);
         }
         else
         {
-            return false;
+            returnValue = false;
         }
-
-        return true;
         break;
 
         case BYTE_PARAMETER:
@@ -214,7 +207,10 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
         {
             //sanitize
             value &= (int32_t)0xFF;
-            return true;
+        }
+        else
+        {
+            returnValue = false;
         }
         break;
 
@@ -232,15 +228,19 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
         {
             if (parameterIndex%2)
                 value >>= 4;
+
+            lastValue = value;
         }
         else
         {
-            return false;
+            returnValue = false;
         }
 
-        //sanitize
-        value &= (int32_t)0x0F;
-        return true;
+        if (returnValue)
+        {
+            //sanitize
+            value &= (int32_t)0x0F;
+        }
         break;
 
         case WORD_PARAMETER:
@@ -250,7 +250,10 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
         {
             //sanitize
             value &= (int32_t)0xFFFF;
-            return true;
+        }
+        else
+        {
+            returnValue = false;
         }
         break;
 
@@ -261,7 +264,10 @@ bool DBMS::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int
         break;
     }
 
-    return false;
+    if (returnValue)
+        lastAddress = startAddress;
+
+    return returnValue;
 }
 
 ///
@@ -310,6 +316,8 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
     switch(parameterType)
     {
         case BIT_PARAMETER:
+        //reset cached address to initiate new read
+        lastAddress = LESSDB_SIZE;
         //sanitize input
         newValue &= (int32_t)0x01;
         arrayIndex = parameterIndex/8;
@@ -350,6 +358,8 @@ bool DBMS::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
         break;
 
         case HALFBYTE_PARAMETER:
+        //reset cached address to initiate new read
+        lastAddress = LESSDB_SIZE;
         //sanitize input
         newValue &= (int32_t)0x0F;
         startAddress += (parameterIndex/2);

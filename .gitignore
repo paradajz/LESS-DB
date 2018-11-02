@@ -1,5 +1,2 @@
 Documentation/*
-*.gcda
-*.gcno
-*.o*
-*.a
+*build*

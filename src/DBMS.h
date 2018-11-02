@@ -54,6 +54,16 @@ class DBMS
     uint32_t memoryUsage;
 
     ///
+    /// \brief Cached values for bit and half-byte parameters.
+    /// Used if current requested address is the same as previous one.
+    /// @{
+
+    uint8_t lastValue = 0;
+    uint16_t lastAddress = LESSDB_SIZE;
+
+    /// @}
+
+    ///
     /// \brief Pointer to array of DBMS blocks.
     ///
     dbBlock_t *block = nullptr;
