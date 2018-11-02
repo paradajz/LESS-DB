@@ -7,7 +7,7 @@ include Sources.mk
 CPPFLAGS += -isystem $(GTEST_DIR)/include -isystem $(GTEST_DIR) --coverage
 
 # Flags passed to the C++ compiler.
-CXXFLAGS += -g -pthread
+CXXFLAGS += -g -pthread -std=c++11
 
 TESTS := dbms
 
@@ -30,7 +30,7 @@ clean:
 build/%.o: %.cpp $(GTEST_HEADERS)
 	@mkdir -p $(@D)
 	@echo Building $<
-	@$(CXX) $(CPPFLAGS) -std=c++11 $(addprefix -D,$(DEFINES)) $(CXXFLAGS) $(INCLUDE_DIRS) $(INCLUDE_FILES) -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)" -c "$<" -o "$@"
+	@$(CXX) $(CPPFLAGS) $(addprefix -D,$(DEFINES)) $(CXXFLAGS) $(INCLUDE_DIRS) $(INCLUDE_FILES) -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)" -c "$<" -o "$@"
 
 build/dbms.out: $(OBJECTS_dbms) build/gtest_main.a
 	@echo Linking.
