@@ -514,50 +514,40 @@ TEST_F(DBMStest, Read)
     bool returnValue;
 
     //bit section
-    returnValue = db.read(TEST_BLOCK_INDEX, 0, 0, value);
-    EXPECT_EQ(value, defaultValues[0]);
-    EXPECT_EQ(returnValue, true);
-
-    returnValue = db.read(TEST_BLOCK_INDEX, 0, 1, value);
-    EXPECT_EQ(value, defaultValues[0]);
-    EXPECT_EQ(returnValue, true);
+    for (int i=0; i<sectionParams[0]; i++)
+    {
+        EXPECT_EQ(db.read(TEST_BLOCK_INDEX, 0, i, value), true);
+        EXPECT_EQ(value, defaultValues[0]);
+    }
 
     //byte section
-    returnValue = db.read(TEST_BLOCK_INDEX, 1, 0, value);
-    EXPECT_EQ(value, defaultValues[1]);
-    EXPECT_EQ(returnValue, true);
-
-    returnValue = db.read(TEST_BLOCK_INDEX, 1, 1, value);
     //autoincrement is enabled for this section
-    EXPECT_EQ(value, defaultValues[1]+1);
-    EXPECT_EQ(returnValue, true);
+    for (int i=0; i<sectionParams[1]; i++)
+    {
+        EXPECT_EQ(db.read(TEST_BLOCK_INDEX, 1, i, value), true);
+        EXPECT_EQ(value, defaultValues[1]+i);
+    }
 
     //half-byte section
-    returnValue = db.read(TEST_BLOCK_INDEX, 2, 0, value);
-    EXPECT_EQ(value, defaultValues[2]);
-    EXPECT_EQ(returnValue, true);
-
-    returnValue = db.read(TEST_BLOCK_INDEX, 2, 1, value);
-    EXPECT_EQ(value, defaultValues[2]);
-    EXPECT_EQ(returnValue, true);
+    for (int i=0; i<sectionParams[2]; i++)
+    {
+        EXPECT_EQ(db.read(TEST_BLOCK_INDEX, 2, i, value), true);
+        EXPECT_EQ(value, defaultValues[2]);
+    }
 
     //word section
-    returnValue = db.read(TEST_BLOCK_INDEX, 3, 0, value);
-    EXPECT_EQ(value, defaultValues[3]);
-    EXPECT_EQ(returnValue, true);
-
-    returnValue = db.read(TEST_BLOCK_INDEX, 3, 1, value);
-    EXPECT_EQ(value, defaultValues[3]);
-    EXPECT_EQ(returnValue, true);
+    for (int i=0; i<sectionParams[3]; i++)
+    {
+        EXPECT_EQ(db.read(TEST_BLOCK_INDEX, 3, i, value), true);
+        EXPECT_EQ(value, defaultValues[3]);
+    }
 
     //dword section
-    returnValue = db.read(TEST_BLOCK_INDEX, 4, 0, value);
-    EXPECT_EQ(value, defaultValues[4]);
-    EXPECT_EQ(returnValue, true);
-
-    returnValue = db.read(TEST_BLOCK_INDEX, 4, 1, value);
-    EXPECT_EQ(value, defaultValues[4]);
-    EXPECT_EQ(returnValue, true);
+    for (int i=0; i<sectionParams[4]; i++)
+    {
+        EXPECT_EQ(db.read(TEST_BLOCK_INDEX, 4, i, value), true);
+        EXPECT_EQ(value, defaultValues[4]);
+    }
 
     //try reading directly
     value = db.read(TEST_BLOCK_INDEX, 1, 0);
