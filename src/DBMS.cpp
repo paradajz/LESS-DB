@@ -141,6 +141,9 @@ bool DBMS::setLayout(dbBlock_t *pointer, uint8_t numberOfBlocks)
                 break;
             }
 
+            if (!i)
+                block[0].address = 0;
+
             if (i < blockCounter-1)
                 block[i+1].address = block[i].address + blockUsage;
 
@@ -519,5 +522,20 @@ bool DBMS::checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t paramete
 ///
 uint16_t DBMS::getSectionAddress(uint8_t blockID, uint8_t sectionID)
 {
-    return block[blockID].address+block[blockID].section[sectionID].address;
+    return initialAddress+block[blockID].address+block[blockID].section[sectionID].address;
+}
+
+///
+/// \brief Used to specify start address in database.
+/// By default, this address is set to 0.
+/// @param [in] startAddress    New start address.
+/// \returns True on success.
+///
+bool DBMS::setStartAddress(uint16_t startAddress)
+{
+    if (startAddress >= LESSDB_SIZE)
+        return false;
+
+    initialAddress = startAddress;
+    return true;
 }

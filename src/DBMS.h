@@ -38,6 +38,7 @@ class DBMS
     bool update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue);
     uint32_t getDBsize();
     void initData(initType_t type = initFull);
+    bool setStartAddress(uint16_t startAddress);
 
     private:
     bool checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);
@@ -46,27 +47,32 @@ class DBMS
     ///
     /// \brief Holds amount of blocks.
     ///
-    uint8_t blockCounter;
+    uint8_t     blockCounter;
 
     ///
     /// \brief Holds total memory usage for current database layout.
     ///
-    uint32_t memoryUsage;
+    uint32_t    memoryUsage;
+
+    ///
+    /// \brief Address from which database layout starts.
+    ///
+    uint16_t    initialAddress = 0;
 
     ///
     /// \brief Cached values for bit and half-byte parameters.
     /// Used if current requested address is the same as previous one.
     /// @{
 
-    uint8_t lastValue = 0;
-    uint16_t lastAddress = LESSDB_SIZE;
+    uint8_t     lastValue = 0;
+    uint16_t    lastAddress = LESSDB_SIZE;
 
     /// @}
 
     ///
     /// \brief Pointer to array of DBMS blocks.
     ///
-    dbBlock_t *block = nullptr;
+    dbBlock_t   *block = nullptr;
 
     ///
     /// \brief Function pointer used to read the memory contents.
