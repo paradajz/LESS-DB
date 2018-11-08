@@ -552,6 +552,56 @@ TEST_F(DBMStest, Read)
     //try reading directly
     value = db.read(TEST_BLOCK_INDEX, 1, 0);
     EXPECT_EQ(value, defaultValues[1]);
+
+    //perform the same round of tests with different starting point
+    db.clear();
+    db = DBMS(memoryRead, memoryWrite);
+    EXPECT_EQ(db.setStartAddress(100), true);
+    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    db.initData(initFull);
+
+    //bit section
+    for (int i=0; i<sectionParams[0]; i++)
+    {
+        EXPECT_EQ(db.read(TEST_BLOCK_INDEX, 0, i, value), true);
+        EXPECT_EQ(value, defaultValues[0]);
+    }
+
+    //byte section
+    //autoincrement is enabled for this section
+    for (int i=0; i<sectionParams[1]; i++)
+    {
+        EXPECT_EQ(db.read(TEST_BLOCK_INDEX, 1, i, value), true);
+        EXPECT_EQ(value, defaultValues[1]+i);
+    }
+
+    //half-byte section
+    for (int i=0; i<sectionParams[2]; i++)
+    {
+        EXPECT_EQ(db.read(TEST_BLOCK_INDEX, 2, i, value), true);
+        EXPECT_EQ(value, defaultValues[2]);
+    }
+
+    //word section
+    for (int i=0; i<sectionParams[3]; i++)
+    {
+        EXPECT_EQ(db.read(TEST_BLOCK_INDEX, 3, i, value), true);
+        EXPECT_EQ(value, defaultValues[3]);
+    }
+
+    //dword section
+    for (int i=0; i<sectionParams[4]; i++)
+    {
+        EXPECT_EQ(db.read(TEST_BLOCK_INDEX, 4, i, value), true);
+        EXPECT_EQ(value, defaultValues[4]);
+    }
+
+    //try reading directly
+    value = db.read(TEST_BLOCK_INDEX, 1, 0);
+    EXPECT_EQ(value, defaultValues[1]);
+
+    //try setting invalid address
+    EXPECT_EQ(db.setStartAddress(LESSDB_SIZE), false);
 }
 
 TEST_F(DBMStest, Update)
