@@ -89,27 +89,29 @@ bool DBMS::setLayout(dbBlock_t *pointer, uint8_t numberOfBlocks)
                 }
                 else
                 {
+                    uint8_t lastSection = j-1;
+
                     switch(block[i].section[j-1].parameterType)
                     {
                         case BIT_PARAMETER:
-                        block[i].section[j].address = ((block[i].section[j].numberOfParameters % 8 != 0) + block[i].section[j-1].numberOfParameters/8) + block[i].section[j-1].address;
+                        block[i].section[j].address = ((block[i].section[lastSection].numberOfParameters % 8 != 0) + block[i].section[lastSection].numberOfParameters/8) + block[i].section[lastSection].address;
                         break;
 
                         case BYTE_PARAMETER:
-                        block[i].section[j].address = block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
+                        block[i].section[j].address = block[i].section[lastSection].numberOfParameters + block[i].section[lastSection].address;
                         break;
 
                         case HALFBYTE_PARAMETER:
-                        block[i].section[j].address = ((block[i].section[j-1].numberOfParameters % 2 != 0) + block[i].section[j-1].numberOfParameters/2) + block[i].section[j-1].address;
+                        block[i].section[j].address = ((block[i].section[lastSection].numberOfParameters % 2 != 0) + block[i].section[lastSection].numberOfParameters/2) + block[i].section[lastSection].address;
                         break;
 
                         case WORD_PARAMETER:
-                        block[i].section[j].address = 2*block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
+                        block[i].section[j].address = 2*block[i].section[lastSection].numberOfParameters + block[i].section[lastSection].address;
                         break;
 
                         default:
                         // case DWORD_PARAMETER:
-                        block[i].section[j].address = 4*block[i].section[j-1].numberOfParameters + block[i].section[j-1].address;
+                        block[i].section[j].address = 4*block[i].section[lastSection].numberOfParameters + block[i].section[lastSection].address;
                         break;
                     }
                 }
