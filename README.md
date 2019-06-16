@@ -35,7 +35,3 @@ Block section is specified using the following parameters:
 - Default value (value which will be assigned to all parameters inside section)
 - Auto increment (if set to true, default value will be used as starting value for first parameter, and all consecutive parameters will be incremented by 1)
 - Address (Calculated internally)
-
-## Examples
-
-An example database can be found in example directory. Also, example memory sources can be found for AVR microcontrollers with EEPROM memory and simulated database using simple byte array.
