@@ -207,10 +207,10 @@ bool LESSDB::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
         }
         else if (readCallback(startAddress, sectionParameterType_t::halfByte, value))
         {
+            lastValue = value;
+
             if (parameterIndex % 2)
                 value >>= 4;
-
-            lastValue = value;
         }
         else
         {

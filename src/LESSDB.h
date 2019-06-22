@@ -116,16 +116,6 @@ class LESSDB
     uint16_t initialAddress = 0;
 
     ///
-    /// \brief Cached values for bit and half-byte parameters.
-    /// Used if current requested address is the same as previous one.
-    /// @{
-
-    uint8_t  lastValue = 0;
-    uint16_t lastAddress = 0;
-
-    /// @}
-
-    ///
     /// \brief Array holding all bit masks for easier access.
     ///
     const uint8_t bitMask[8] = { 0b00000001, 0b00000010, 0b00000100, 0b00001000,
@@ -150,4 +140,14 @@ class LESSDB
     /// \brief Holds the maximum size of database system in bytes.
     ///
     const size_t maxSize;
+
+    ///
+    /// \brief Cached values for bit and half-byte parameters.
+    /// Used if current requested address is the same as previous one.
+    /// @{
+
+    uint8_t  lastValue = 0;
+    uint16_t lastAddress = maxSize;
+
+    /// @}
 };

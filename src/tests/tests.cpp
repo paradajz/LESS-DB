@@ -862,3 +862,155 @@ TEST_F(LESSDBtest, FailedWrite)
         EXPECT_EQ(returnValue, false);
     }
 }
+
+TEST_F(LESSDBtest, CachingHalfByte)
+{
+    //half-byte and bit parameters use caching
+    //once half-byte value or bit value is read, both the address and values are stored internally
+    //this is used to avoid accessing the database if not needed
+    LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
+
+#define TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS 4
+#define TEST_CACHING_HALFBYTE_AMOUNT_OF_SECTIONS 3
+#define TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS 1
+#define TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE 10
+#define TEST_CACHING_HALFBYTE_SECTION_1_DEFAULT_VALUE 4
+#define TEST_CACHING_HALFBYTE_SECTION_2_DEFAULT_VALUE 0
+
+    LESSDB::section_t cachingTestBlock0Sections[TEST_CACHING_HALFBYTE_AMOUNT_OF_SECTIONS] = {
+        { .numberOfParameters = TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS,
+          .parameterType = LESSDB::sectionParameterType_t::halfByte,
+          .preserveOnPartialReset = false,
+          .defaultValue = TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE,
+          .autoIncrement = false,
+          .address = 0 },
+
+        { .numberOfParameters = TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS,
+          .parameterType = LESSDB::sectionParameterType_t::halfByte,
+          .preserveOnPartialReset = false,
+          .defaultValue = TEST_CACHING_HALFBYTE_SECTION_1_DEFAULT_VALUE,
+          .autoIncrement = false,
+          .address = 0 },
+
+        { .numberOfParameters = TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS,
+          .parameterType = LESSDB::sectionParameterType_t::halfByte,
+          .preserveOnPartialReset = false,
+          .defaultValue = TEST_CACHING_HALFBYTE_SECTION_2_DEFAULT_VALUE,
+          .autoIncrement = false,
+          .address = 0 },
+    };
+
+    LESSDB::block_t cachingLayout[1] = {
+        // block 0
+        {
+            .address = 0,
+            .numberOfSections = TEST_CACHING_HALFBYTE_AMOUNT_OF_SECTIONS,
+            .section = cachingTestBlock0Sections,
+        }
+    };
+
+    EXPECT_EQ(db.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS), true);
+    db.initData(LESSDB::factoryResetType_t::full);
+
+    //the simulated database is now initialized
+    //create new database object which won't initialize/write data (only the layout will be set)
+    //this is used so that database doesn't call ::update function which resets the cached address
+    LESSDB db2(memoryRead, memoryWrite, LESSDB_SIZE);
+    EXPECT_EQ(db2.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS), true);
+
+    //read the values back
+    //this will verify that the values are read properly and that caching doesn't influence the readout
+    int32_t readValue;
+
+    for (int i = 0; i < TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS; i++)
+    {
+        EXPECT_TRUE(db2.read(0, 0, i, readValue));
+        EXPECT_EQ(readValue, TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE);
+    }
+
+    //try reading the same value twice
+    LESSDB db3(memoryRead, memoryWrite, LESSDB_SIZE);
+    EXPECT_EQ(db3.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS), true);
+
+    EXPECT_TRUE(db3.read(0, 0, TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS - 1, readValue));
+    EXPECT_EQ(readValue, TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE);
+
+    EXPECT_TRUE(db3.read(0, 0, TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS - 1, readValue));
+    EXPECT_EQ(readValue, TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE);
+}
+
+TEST_F(LESSDBtest, CachingBit)
+{
+    //half-byte and bit parameters use caching
+    //once half-byte value or bit value is read, both the address and values are stored internally
+    //this is used to avoid accessing the database if not needed
+    LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
+
+#define TEST_CACHING_BIT_AMOUNT_OF_PARAMS 4
+#define TEST_CACHING_BIT_AMOUNT_OF_SECTIONS 3
+#define TEST_CACHING_BIT_AMOUNT_OF_BLOCKS 1
+#define TEST_CACHING_BIT_SECTION_0_DEFAULT_VALUE 0
+#define TEST_CACHING_BIT_SECTION_1_DEFAULT_VALUE 1
+#define TEST_CACHING_BIT_SECTION_2_DEFAULT_VALUE 1
+
+    LESSDB::section_t cachingTestBlock0Sections[TEST_CACHING_BIT_AMOUNT_OF_SECTIONS] = {
+        { .numberOfParameters = TEST_CACHING_BIT_AMOUNT_OF_PARAMS,
+          .parameterType = LESSDB::sectionParameterType_t::bit,
+          .preserveOnPartialReset = false,
+          .defaultValue = TEST_CACHING_BIT_SECTION_0_DEFAULT_VALUE,
+          .autoIncrement = false,
+          .address = 0 },
+
+        { .numberOfParameters = TEST_CACHING_BIT_AMOUNT_OF_PARAMS,
+          .parameterType = LESSDB::sectionParameterType_t::bit,
+          .preserveOnPartialReset = false,
+          .defaultValue = TEST_CACHING_BIT_SECTION_1_DEFAULT_VALUE,
+          .autoIncrement = false,
+          .address = 0 },
+
+        { .numberOfParameters = TEST_CACHING_BIT_AMOUNT_OF_PARAMS,
+          .parameterType = LESSDB::sectionParameterType_t::bit,
+          .preserveOnPartialReset = false,
+          .defaultValue = TEST_CACHING_BIT_SECTION_2_DEFAULT_VALUE,
+          .autoIncrement = false,
+          .address = 0 },
+    };
+
+    LESSDB::block_t cachingLayout[1] = {
+        // block 0
+        {
+            .address = 0,
+            .numberOfSections = TEST_CACHING_BIT_AMOUNT_OF_SECTIONS,
+            .section = cachingTestBlock0Sections,
+        }
+    };
+
+    EXPECT_EQ(db.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS), true);
+    db.initData(LESSDB::factoryResetType_t::full);
+
+    //the simulated database is now initialized
+    //create new database object which won't initialize/write data (only the layout will be set)
+    //this is used so that database doesn't call ::update function which resets the cached address
+    LESSDB db2(memoryRead, memoryWrite, LESSDB_SIZE);
+    EXPECT_EQ(db2.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS), true);
+
+    //read the values back
+    //this will verify that the values are read properly and that caching doesn't influence the readout
+    int32_t readValue;
+
+    for (int i = 0; i < TEST_CACHING_BIT_AMOUNT_OF_PARAMS; i++)
+    {
+        EXPECT_TRUE(db2.read(0, 0, i, readValue));
+        EXPECT_EQ(readValue, TEST_CACHING_BIT_SECTION_0_DEFAULT_VALUE);
+    }
+
+    //try reading the same value twice
+    LESSDB db3(memoryRead, memoryWrite, LESSDB_SIZE);
+    EXPECT_EQ(db3.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS), true);
+
+    EXPECT_TRUE(db3.read(0, 1, TEST_CACHING_BIT_AMOUNT_OF_PARAMS - 1, readValue));
+    EXPECT_EQ(readValue, TEST_CACHING_BIT_SECTION_1_DEFAULT_VALUE);
+
+    EXPECT_TRUE(db3.read(0, 1, TEST_CACHING_BIT_AMOUNT_OF_PARAMS - 1, readValue));
+    EXPECT_EQ(readValue, TEST_CACHING_BIT_SECTION_1_DEFAULT_VALUE);
+}
