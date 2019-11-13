@@ -150,7 +150,7 @@ bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks)
 /// @param [in, out] value      Pointer to variable in which read value will be stored.
 /// \returns True on success.
 ///
-bool LESSDB::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t& value)
+bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t& value)
 {
     // sanity check
     if (!checkParameters(blockID, sectionID, parameterIndex))
@@ -258,7 +258,7 @@ bool LESSDB::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, i
 /// @param [in] parameterIndex  Parameter index.
 /// \returns Value from database.
 ///
-int32_t LESSDB::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
+int32_t LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex)
 {
     int32_t value = -1;
 
@@ -275,7 +275,7 @@ int32_t LESSDB::read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex
 /// @param [in] newValue        New value for parameter.
 /// \returns True on success, false otherwise.
 ///
-bool LESSDB::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue)
+bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t newValue)
 {
     if (block == nullptr)
         return false;
@@ -296,7 +296,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex,
     {
     case sectionParameterType_t::bit:
         // reset cached address to initiate new read
-        lastAddress = maxSize;
+        lastAddress = 0xFFFF;
         // sanitize input
         newValue &= (int32_t)0x01;
         arrayIndex = parameterIndex / 8;
@@ -335,7 +335,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex,
 
     case sectionParameterType_t::halfByte:
         // reset cached address to initiate new read
-        lastAddress = maxSize;
+        lastAddress = 0xFFFF;
         // sanitize input
         newValue &= (int32_t)0x0F;
         startAddress += (parameterIndex / 2);
@@ -395,7 +395,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex,
 ///
 bool LESSDB::clear()
 {
-    for (size_t i = 0; i < maxSize; i++)
+    for (uint32_t i = 0; i < maxSize; i++)
     {
         if (!writeCallback(i, 0x00, sectionParameterType_t::byte))
             return false;
@@ -413,23 +413,23 @@ bool LESSDB::clear()
 ///
 bool LESSDB::initData(factoryResetType_t type)
 {
-    for (int i = 0; i < blockCounter; i++)
+    for (uint8_t i = 0; i < blockCounter; i++)
     {
-        for (int j = 0; j < block[i].numberOfSections; j++)
+        for (uint8_t j = 0; j < block[i].numberOfSections; j++)
         {
             if (block[i].section[j].preserveOnPartialReset && (type == factoryResetType_t::partial))
                 continue;
 
             sectionParameterType_t parameterType = block[i].section[j].parameterType;
-            uint32_t               defaultValue = block[i].section[j].defaultValue;
-            int16_t                numberOfParameters = block[i].section[j].numberOfParameters;
+            uint16_t               defaultValue = block[i].section[j].defaultValue;
+            size_t                 numberOfParameters = block[i].section[j].numberOfParameters;
 
             switch (parameterType)
             {
             case sectionParameterType_t::byte:
             case sectionParameterType_t::word:
             case sectionParameterType_t::dword:
-                for (int k = 0; k < numberOfParameters; k++)
+                for (size_t k = 0; k < numberOfParameters; k++)
                 {
                     if (block[i].section[j].autoIncrement)
                     {
@@ -447,7 +447,7 @@ bool LESSDB::initData(factoryResetType_t type)
             case sectionParameterType_t::bit:
             case sectionParameterType_t::halfByte:
                 // no auto-increment here
-                for (int k = 0; k < numberOfParameters; k++)
+                for (size_t k = 0; k < numberOfParameters; k++)
                 {
                     if (!update(i, j, k, defaultValue))
                         return false;
@@ -473,7 +473,7 @@ uint32_t LESSDB::currentDBusage() const
 /// \brief Retrieves maximum database size.
 /// \returns Maximum database size in bytes.
 ///
-size_t LESSDB::dbSize() const
+uint32_t LESSDB::dbSize() const
 {
     return maxSize;
 }
@@ -485,7 +485,7 @@ size_t LESSDB::dbSize() const
 /// @param [in] parameterID     Parameter index.
 /// \returns True if parameters are valid, false otherwise.
 ///
-bool LESSDB::checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex)
+bool LESSDB::checkParameters(uint8_t blockID, uint8_t sectionID, size_t parameterIndex)
 {
     // sanity check
     if (blockID >= blockCounter)
@@ -494,7 +494,7 @@ bool LESSDB::checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t parame
     if (sectionID >= block[blockID].numberOfSections)
         return false;
 
-    if (parameterIndex >= (uint16_t)block[blockID].section[sectionID].numberOfParameters)
+    if (parameterIndex >= block[blockID].section[sectionID].numberOfParameters)
         return false;
 
     return true;
@@ -517,7 +517,7 @@ uint16_t LESSDB::sectionAddress(uint8_t blockID, uint8_t sectionID)
 /// @param [in] startAddress    New start address.
 /// \returns True on success.
 ///
-bool LESSDB::setStartAddress(uint16_t startAddress)
+bool LESSDB::setStartAddress(uint32_t startAddress)
 {
     if (startAddress >= maxSize)
         return false;

@@ -10,7 +10,7 @@ namespace
 {
     uint8_t memoryArray[LESSDB_SIZE];
 
-    const int16_t sectionParams[NUMBER_OF_SECTIONS] = { 5, 10, 15, 10, 15, 10 };
+    const size_t sectionParams[NUMBER_OF_SECTIONS] = { 5, 10, 15, 10, 15, 10 };
 
     const LESSDB::sectionParameterType_t sectionTypes[NUMBER_OF_SECTIONS] = {
         LESSDB::sectionParameterType_t::bit,
@@ -290,44 +290,44 @@ namespace
     LESSDB::block_t dbLayout[NUMBER_OF_BLOCKS] = {
         // block 0
         {
-            .address = 0,
             .numberOfSections = NUMBER_OF_SECTIONS,
             .section = block0sections,
+            .address = 0,
         },
 
         // block 1
         {
-            .address = 0,
             .numberOfSections = NUMBER_OF_SECTIONS,
             .section = block1sections,
+            .address = 0,
         },
 
         // block 2
         {
-            .address = 0,
             .numberOfSections = NUMBER_OF_SECTIONS,
             .section = block2sections,
+            .address = 0,
         },
 
         // block 3
         {
-            .address = 0,
             .numberOfSections = NUMBER_OF_SECTIONS,
             .section = block3sections,
+            .address = 0,
         },
 
         // block 4
         {
-            .address = 0,
             .numberOfSections = NUMBER_OF_SECTIONS,
             .section = block4sections,
+            .address = 0,
         },
 
         // block 5
         {
-            .address = 0,
             .numberOfSections = NUMBER_OF_SECTIONS,
             .section = block5sections,
+            .address = 0,
         }
     };
 

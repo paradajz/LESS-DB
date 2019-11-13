@@ -54,12 +54,12 @@ class LESSDB
     ///
     typedef struct
     {
-        int16_t                numberOfParameters;
-        sectionParameterType_t parameterType;
-        bool                   preserveOnPartialReset;
-        uint16_t               defaultValue;
-        bool                   autoIncrement;
-        int16_t                address;
+        const size_t                 numberOfParameters;
+        const sectionParameterType_t parameterType;
+        const bool                   preserveOnPartialReset;
+        const uint16_t               defaultValue;
+        const bool                   autoIncrement;
+        uint16_t                     address;
     } section_t;
 
     ///
@@ -67,9 +67,9 @@ class LESSDB
     ///
     typedef struct
     {
-        int16_t    address;
-        int8_t     numberOfSections;
-        section_t* section;
+        const uint8_t    numberOfSections;
+        section_t* const section;
+        uint16_t         address;
     } block_t;
 
     ///
@@ -80,7 +80,7 @@ class LESSDB
     ///
     LESSDB(bool (&readCallback)(uint32_t address, sectionParameterType_t type, int32_t& value),
            bool (&writeCallback)(uint32_t address, int32_t value, sectionParameterType_t type),
-           size_t maxSize)
+           uint32_t maxSize)
         : readCallback(readCallback)
         , writeCallback(writeCallback)
         , maxSize(maxSize)
@@ -88,16 +88,16 @@ class LESSDB
 
     bool     setLayout(block_t* pointer, uint8_t numberOfBlocks);
     bool     clear();
-    bool     read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t& value);
-    int32_t  read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);
-    bool     update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue);
+    bool     read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t& value);
+    int32_t  read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex);
+    bool     update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t newValue);
     uint32_t currentDBusage() const;
-    size_t   dbSize() const;
+    uint32_t dbSize() const;
     bool     initData(factoryResetType_t type = factoryResetType_t::full);
-    bool     setStartAddress(uint16_t startAddress);
+    bool     setStartAddress(uint32_t startAddress);
 
     private:
-    bool     checkParameters(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);
+    bool     checkParameters(uint8_t blockID, uint8_t sectionID, size_t parameterIndex);
     uint16_t sectionAddress(uint8_t blockID, uint8_t sectionID);
 
     ///
@@ -113,7 +113,7 @@ class LESSDB
     ///
     /// \brief Address from which database layout starts.
     ///
-    uint16_t initialAddress = 0;
+    uint32_t initialAddress = 0;
 
     ///
     /// \brief Array holding all bit masks for easier access.
@@ -139,7 +139,7 @@ class LESSDB
     ///
     /// \brief Holds the maximum size of database system in bytes.
     ///
-    const size_t maxSize;
+    const uint32_t maxSize;
 
     ///
     /// \brief Cached values for bit and half-byte parameters.
@@ -147,7 +147,7 @@ class LESSDB
     /// @{
 
     uint8_t  lastValue = 0;
-    uint16_t lastAddress = maxSize;
+    uint16_t lastAddress = 0xFFFF;
 
     /// @}
 };
