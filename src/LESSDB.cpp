@@ -391,7 +391,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex,
 }
 
 ///
-/// \brief Clears entire memory by writing 0xFF to each location.
+/// \brief Clears entire memory by writing 0x00 to each location.
 ///
 bool LESSDB::clear()
 {
@@ -399,7 +399,7 @@ bool LESSDB::clear()
     {
         if (!writeCallback(i, 0x00, sectionParameterType_t::byte))
             return false;
-}
+    }
 
     return true;
 }
