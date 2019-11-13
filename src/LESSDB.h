@@ -87,13 +87,13 @@ class LESSDB
     {}
 
     bool     setLayout(block_t* pointer, uint8_t numberOfBlocks);
-    void     clear();
+    bool     clear();
     bool     read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t& value);
     int32_t  read(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex);
     bool     update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex, int32_t newValue);
     uint32_t currentDBusage() const;
     size_t   dbSize() const;
-    void     initData(factoryResetType_t type = factoryResetType_t::full);
+    bool     initData(factoryResetType_t type = factoryResetType_t::full);
     bool     setStartAddress(uint16_t startAddress);
 
     private:

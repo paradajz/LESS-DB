@@ -393,10 +393,15 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, uint16_t parameterIndex,
 ///
 /// \brief Clears entire memory by writing 0xFF to each location.
 ///
-void LESSDB::clear()
+bool LESSDB::clear()
 {
     for (size_t i = 0; i < maxSize; i++)
-        writeCallback(i, 0x00, sectionParameterType_t::byte);
+    {
+        if (!writeCallback(i, 0x00, sectionParameterType_t::byte))
+            return false;
+}
+
+    return true;
 }
 
 ///
@@ -406,7 +411,7 @@ void LESSDB::clear()
 ///                     Partial will leave data as is, but only if
 ///                     preserveOnPartialReset parameter is set to true.
 ///
-void LESSDB::initData(factoryResetType_t type)
+bool LESSDB::initData(factoryResetType_t type)
 {
     for (int i = 0; i < blockCounter; i++)
     {
@@ -427,9 +432,15 @@ void LESSDB::initData(factoryResetType_t type)
                 for (int k = 0; k < numberOfParameters; k++)
                 {
                     if (block[i].section[j].autoIncrement)
-                        update(i, j, k, defaultValue + k);
+                    {
+                        if (!update(i, j, k, defaultValue + k))
+                            return false;
+                    }
                     else
-                        update(i, j, k, defaultValue);
+                    {
+                        if (!update(i, j, k, defaultValue))
+                            return false;
+                    }
                 }
                 break;
 
@@ -437,11 +448,16 @@ void LESSDB::initData(factoryResetType_t type)
             case sectionParameterType_t::halfByte:
                 // no auto-increment here
                 for (int k = 0; k < numberOfParameters; k++)
-                    update(i, j, k, defaultValue);
+                {
+                    if (!update(i, j, k, defaultValue))
+                        return false;
+                }
                 break;
             }
         }
     }
+
+    return true;
 }
 
 ///
