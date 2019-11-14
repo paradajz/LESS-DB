@@ -596,12 +596,12 @@ TEST_F(LESSDBtest, ErrorCheck)
     EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
     db.initData(LESSDB::factoryResetType_t::full);
 
-    int32_t value;
-    bool    returnValue;
+    bool returnValue;
 
-// read
-// try calling read with invalid parameter index
-#ifdef LESSDB_SAFETY_CHECKS
+    // read
+    // try calling read with invalid parameter index
+    int32_t value;
+
     returnValue = db.read(TEST_BLOCK_INDEX, 0, sectionParams[0], value);
     EXPECT_EQ(returnValue, false);
 
@@ -628,7 +628,6 @@ TEST_F(LESSDBtest, ErrorCheck)
 
     returnValue = db.update(TEST_BLOCK_INDEX, 2, sectionParams[2], 1);
     EXPECT_EQ(returnValue, false);
-#endif
 
     // try to init database with too many parameters
     LESSDB::section_t outOfBoundsSection[1] = { { .numberOfParameters = LESSDB_SIZE + 1,
