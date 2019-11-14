@@ -1,5 +1,4 @@
-[![Build Status](https://travis-ci.org/paradajz/LESS-DB.svg?branch=master)](https://travis-ci.org/paradajz/LESS-DB)
-[![Coverage Status](https://img.shields.io/coveralls/github/paradajz/LESS-DB/master.svg)](https://coveralls.io/github/paradajz/LESS-DB?branch=master)
+[![Build Status](https://github.com/paradajz/LESS-DB/workflows/Build+Test/badge.svg?branch=master)](https://github.com/paradajz/LESS-DB/actions)
 
 # LESS DB
 
