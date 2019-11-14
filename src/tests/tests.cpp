@@ -415,7 +415,6 @@ TEST_F(LESSDBtest, Read)
     db.initData(LESSDB::factoryResetType_t::full);
 
     int32_t value;
-    bool    returnValue;
 
     // bit section
     for (int i = 0; i < sectionParams[0]; i++)
