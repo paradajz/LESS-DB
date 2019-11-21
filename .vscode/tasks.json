@@ -1,0 +1,44 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "[Test] Build single test",
+            "command": "cd tests && make pre-build && make TESTS=${input:testName} && cp build/lessdb/${input:testName}.out build/test.out",
+            "type": "shell",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "[Test] Build all tests",
+            "command": "cd tests && make pre-build && make",
+            "type": "shell",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "[Test] Clean",
+            "command": "cd tests && make clean",
+            "type": "shell",
+            "problemMatcher": []
+        },
+        {
+            "label": "[Tests] Run compiled",
+            "command": "cd tests && make exec",
+            "type": "shell",
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "testName",
+            "description": "Select test to compile",
+            "default": "all",
+            "type": "pickString",
+            "options": [
+                "test_all",
+            ]
+        }
+    ]
+}

@@ -1,5 +1,6 @@
-#include <gtest/gtest.h>
-#include "../LESSDB.h"
+#include "unity/src/unity.h"
+#include "unity/Helpers.h"
+#include "LESSDB.h"
 
 #define NUMBER_OF_BLOCKS 6
 #define NUMBER_OF_SECTIONS 6
@@ -399,19 +400,11 @@ namespace
     }
 }    // namespace
 
-class LESSDBtest : public ::testing::Test
-{
-    protected:
-    virtual void SetUp() {}
-
-    virtual void TearDown() {}
-};
-
-TEST_F(LESSDBtest, Read)
+TEST_CASE(Read)
 {
     LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
-    EXPECT_EQ(db.dbSize(), LESSDB_SIZE);
-    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    TEST_ASSERT(db.dbSize() == LESSDB_SIZE);
+    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     int32_t value;
@@ -419,97 +412,97 @@ TEST_F(LESSDBtest, Read)
     // bit section
     for (int i = 0; i < sectionParams[0]; i++)
     {
-        EXPECT_EQ(db.read(TEST_BLOCK_INDEX, 0, i, value), true);
-        EXPECT_EQ(value, defaultValues[0]);
+        TEST_ASSERT(db.read(TEST_BLOCK_INDEX, 0, i, value) == true);
+        TEST_ASSERT(value == defaultValues[0]);
     }
 
     // byte section
     // autoincrement is enabled for this section
     for (int i = 0; i < sectionParams[1]; i++)
     {
-        EXPECT_EQ(db.read(TEST_BLOCK_INDEX, 1, i, value), true);
-        EXPECT_EQ(value, defaultValues[1] + i);
+        TEST_ASSERT(db.read(TEST_BLOCK_INDEX, 1, i, value) == true);
+        TEST_ASSERT(value == defaultValues[1] + i);
     }
 
     // half-byte section
     for (int i = 0; i < sectionParams[2]; i++)
     {
-        EXPECT_EQ(db.read(TEST_BLOCK_INDEX, 2, i, value), true);
-        EXPECT_EQ(value, defaultValues[2]);
+        TEST_ASSERT(db.read(TEST_BLOCK_INDEX, 2, i, value) == true);
+        TEST_ASSERT(value == defaultValues[2]);
     }
 
     // word section
     for (int i = 0; i < sectionParams[3]; i++)
     {
-        EXPECT_EQ(db.read(TEST_BLOCK_INDEX, 3, i, value), true);
-        EXPECT_EQ(value, defaultValues[3]);
+        TEST_ASSERT(db.read(TEST_BLOCK_INDEX, 3, i, value) == true);
+        TEST_ASSERT(value == defaultValues[3]);
     }
 
     // dword section
     for (int i = 0; i < sectionParams[4]; i++)
     {
-        EXPECT_EQ(db.read(TEST_BLOCK_INDEX, 4, i, value), true);
-        EXPECT_EQ(value, defaultValues[4]);
+        TEST_ASSERT(db.read(TEST_BLOCK_INDEX, 4, i, value) == true);
+        TEST_ASSERT(value == defaultValues[4]);
     }
 
     // try reading directly
     value = db.read(TEST_BLOCK_INDEX, 1, 0);
-    EXPECT_EQ(value, defaultValues[1]);
+    TEST_ASSERT(value == defaultValues[1]);
 
     // perform the same round of tests with different starting point
     LESSDB db2(memoryRead, memoryWrite, LESSDB_SIZE);
-    EXPECT_EQ(db2.setStartAddress(100), true);
-    EXPECT_EQ(db2.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    TEST_ASSERT(db2.setStartAddress(100) == true);
+    TEST_ASSERT(db2.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
     db2.initData(LESSDB::factoryResetType_t::full);
 
     // bit section
     for (int i = 0; i < sectionParams[0]; i++)
     {
-        EXPECT_EQ(db2.read(TEST_BLOCK_INDEX, 0, i, value), true);
-        EXPECT_EQ(value, defaultValues[0]);
+        TEST_ASSERT(db2.read(TEST_BLOCK_INDEX, 0, i, value) == true);
+        TEST_ASSERT(value == defaultValues[0]);
     }
 
     // byte section
     // autoincrement is enabled for this section
     for (int i = 0; i < sectionParams[1]; i++)
     {
-        EXPECT_EQ(db2.read(TEST_BLOCK_INDEX, 1, i, value), true);
-        EXPECT_EQ(value, defaultValues[1] + i);
+        TEST_ASSERT(db2.read(TEST_BLOCK_INDEX, 1, i, value) == true);
+        TEST_ASSERT(value == defaultValues[1] + i);
     }
 
     // half-byte section
     for (int i = 0; i < sectionParams[2]; i++)
     {
-        EXPECT_EQ(db2.read(TEST_BLOCK_INDEX, 2, i, value), true);
-        EXPECT_EQ(value, defaultValues[2]);
+        TEST_ASSERT(db2.read(TEST_BLOCK_INDEX, 2, i, value) == true);
+        TEST_ASSERT(value == defaultValues[2]);
     }
 
     // word section
     for (int i = 0; i < sectionParams[3]; i++)
     {
-        EXPECT_EQ(db2.read(TEST_BLOCK_INDEX, 3, i, value), true);
-        EXPECT_EQ(value, defaultValues[3]);
+        TEST_ASSERT(db2.read(TEST_BLOCK_INDEX, 3, i, value) == true);
+        TEST_ASSERT(value == defaultValues[3]);
     }
 
     // dword section
     for (int i = 0; i < sectionParams[4]; i++)
     {
-        EXPECT_EQ(db2.read(TEST_BLOCK_INDEX, 4, i, value), true);
-        EXPECT_EQ(value, defaultValues[4]);
+        TEST_ASSERT(db2.read(TEST_BLOCK_INDEX, 4, i, value) == true);
+        TEST_ASSERT(value == defaultValues[4]);
     }
 
     // try reading directly
     value = db2.read(TEST_BLOCK_INDEX, 1, 0);
-    EXPECT_EQ(value, defaultValues[1]);
+    TEST_ASSERT(value == defaultValues[1]);
 
     // try setting invalid address
-    EXPECT_EQ(db2.setStartAddress(LESSDB_SIZE), false);
+    TEST_ASSERT(db2.setStartAddress(LESSDB_SIZE) == false);
 }
 
-TEST_F(LESSDBtest, Update)
+TEST_CASE(Update)
 {
     LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
-    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     int32_t value;
@@ -517,83 +510,83 @@ TEST_F(LESSDBtest, Update)
 
     // section 0, index 0
     returnValue = db.update(TEST_BLOCK_INDEX, 0, 0, 1);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(returnValue == true);
     returnValue = db.read(TEST_BLOCK_INDEX, 0, 0, value);
-    EXPECT_EQ(returnValue, true);
-    EXPECT_EQ(value, 1);
+    TEST_ASSERT(returnValue == true);
+    TEST_ASSERT(value == 1);
 
     // section 0, index 1
     returnValue = db.update(TEST_BLOCK_INDEX, 0, 1, 0);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(returnValue == true);
     returnValue = db.read(TEST_BLOCK_INDEX, 0, 1, value);
-    EXPECT_EQ(returnValue, true);
-    EXPECT_EQ(value, 0);
+    TEST_ASSERT(returnValue == true);
+    TEST_ASSERT(value == 0);
 
     // section 1, index 0
     returnValue = db.update(TEST_BLOCK_INDEX, 1, 0, 240);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(returnValue == true);
     returnValue = db.read(TEST_BLOCK_INDEX, 1, 0, value);
-    EXPECT_EQ(value, 240);
+    TEST_ASSERT(value == 240);
 
     // section 1, index 1
     returnValue = db.update(TEST_BLOCK_INDEX, 1, 1, 143);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(returnValue == true);
     returnValue = db.read(TEST_BLOCK_INDEX, 1, 1, value);
-    EXPECT_EQ(value, 143);
+    TEST_ASSERT(value == 143);
 
     // section 2, index 0
     returnValue = db.update(TEST_BLOCK_INDEX, 2, 0, 4);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(returnValue == true);
     returnValue = db.read(TEST_BLOCK_INDEX, 2, 0, value);
-    EXPECT_EQ(value, 4);
+    TEST_ASSERT(value == 4);
 
     // section 2, index 1
     returnValue = db.update(TEST_BLOCK_INDEX, 2, 1, 12);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(returnValue == true);
     returnValue = db.read(TEST_BLOCK_INDEX, 2, 1, value);
-    EXPECT_EQ(value, 12);
+    TEST_ASSERT(value == 12);
 
     // section 3, index 0
     returnValue = db.update(TEST_BLOCK_INDEX, 3, 0, 2000);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(returnValue == true);
     returnValue = db.read(TEST_BLOCK_INDEX, 3, 0, value);
-    EXPECT_EQ(value, 2000);
+    TEST_ASSERT(value == 2000);
 
     // section 3, index 1
     returnValue = db.update(TEST_BLOCK_INDEX, 3, 1, 1000);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(returnValue == true);
     returnValue = db.read(TEST_BLOCK_INDEX, 3, 1, value);
-    EXPECT_EQ(value, 1000);
+    TEST_ASSERT(value == 1000);
 
     // section 4, index 0
     returnValue = db.update(TEST_BLOCK_INDEX, 4, 0, 3300);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(returnValue == true);
     returnValue = db.read(TEST_BLOCK_INDEX, 4, 0, value);
-    EXPECT_EQ(value, 3300);
+    TEST_ASSERT(value == 3300);
 
     // section 4, index 1
     returnValue = db.update(TEST_BLOCK_INDEX, 4, 1, 32000);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(returnValue == true);
     returnValue = db.read(TEST_BLOCK_INDEX, 4, 1, value);
-    EXPECT_EQ(value, 32000);
+    TEST_ASSERT(value == 32000);
 
     // section 5, index 0
     returnValue = db.update(TEST_BLOCK_INDEX, 5, 0, 14);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(returnValue == true);
     returnValue = db.read(TEST_BLOCK_INDEX, 5, 0, value);
-    EXPECT_EQ(value, 14);
+    TEST_ASSERT(value == 14);
 
     // section 5, index 1
     returnValue = db.update(TEST_BLOCK_INDEX, 5, 1, 10);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(returnValue == true);
     returnValue = db.read(TEST_BLOCK_INDEX, 5, 1, value);
-    EXPECT_EQ(value, 10);
+    TEST_ASSERT(value == 10);
 }
 
-TEST_F(LESSDBtest, ErrorCheck)
+TEST_CASE(ErrorCheck)
 {
     LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
-    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     bool returnValue;
@@ -603,31 +596,31 @@ TEST_F(LESSDBtest, ErrorCheck)
     int32_t value;
 
     returnValue = db.read(TEST_BLOCK_INDEX, 0, sectionParams[0], value);
-    EXPECT_EQ(returnValue, false);
+    TEST_ASSERT(returnValue == false);
 
     returnValue = db.read(TEST_BLOCK_INDEX, 1, sectionParams[1], value);
-    EXPECT_EQ(returnValue, false);
+    TEST_ASSERT(returnValue == false);
 
     returnValue = db.read(TEST_BLOCK_INDEX, 2, sectionParams[2], value);
-    EXPECT_EQ(returnValue, false);
+    TEST_ASSERT(returnValue == false);
 
     // try calling read with invalid section
     returnValue = db.read(TEST_BLOCK_INDEX, NUMBER_OF_SECTIONS, 0, value);
-    EXPECT_EQ(returnValue, false);
+    TEST_ASSERT(returnValue == false);
 
     // try calling read with invalid block
     returnValue = db.read(NUMBER_OF_BLOCKS, 0, 0, value);
-    EXPECT_EQ(returnValue, false);
+    TEST_ASSERT(returnValue == false);
 
     // update
     returnValue = db.update(TEST_BLOCK_INDEX, 0, sectionParams[0], 1);
-    EXPECT_EQ(returnValue, false);
+    TEST_ASSERT(returnValue == false);
 
     returnValue = db.update(TEST_BLOCK_INDEX, 1, sectionParams[1], 1);
-    EXPECT_EQ(returnValue, false);
+    TEST_ASSERT(returnValue == false);
 
     returnValue = db.update(TEST_BLOCK_INDEX, 2, sectionParams[2], 1);
-    EXPECT_EQ(returnValue, false);
+    TEST_ASSERT(returnValue == false);
 
     // try to init database with too many parameters
     LESSDB::section_t outOfBoundsSection[1] = { { .numberOfParameters = LESSDB_SIZE + 1,
@@ -648,21 +641,21 @@ TEST_F(LESSDBtest, ErrorCheck)
     };
 
     returnValue = db.setLayout(outOfBoundsLayout, 1);
-    EXPECT_EQ(returnValue, false);
+    TEST_ASSERT(returnValue == false);
 
     // try to init database with null pointer
     returnValue = db.setLayout(NULL, 1);
-    EXPECT_EQ(returnValue, false);
+    TEST_ASSERT(returnValue == false);
 
     // try to init database with zero blocks
     returnValue = db.setLayout(dbLayout, 0);
-    EXPECT_EQ(returnValue, false);
+    TEST_ASSERT(returnValue == false);
 }
 
-TEST_F(LESSDBtest, ClearDB)
+TEST_CASE(ClearDB)
 {
     LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
-    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
     db.initData(LESSDB::factoryResetType_t::full);
     db.clear();
 
@@ -672,54 +665,54 @@ TEST_F(LESSDBtest, ClearDB)
     // verify that any read value equals 0
     // bit section
     returnValue = db.read(TEST_BLOCK_INDEX, 0, 0, value);
-    EXPECT_EQ(value, 0);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(value == 0);
+    TEST_ASSERT(returnValue == true);
 
     returnValue = db.read(TEST_BLOCK_INDEX, 0, 1, value);
-    EXPECT_EQ(value, 0);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(value == 0);
+    TEST_ASSERT(returnValue == true);
 
     // byte section
     returnValue = db.read(TEST_BLOCK_INDEX, 1, 0, value);
-    EXPECT_EQ(value, 0);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(value == 0);
+    TEST_ASSERT(returnValue == true);
 
     returnValue = db.read(TEST_BLOCK_INDEX, 1, 1, value);
-    EXPECT_EQ(value, 0);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(value == 0);
+    TEST_ASSERT(returnValue == true);
 
     // half-byte section
     returnValue = db.read(TEST_BLOCK_INDEX, 2, 0, value);
-    EXPECT_EQ(value, 0);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(value == 0);
+    TEST_ASSERT(returnValue == true);
 
     returnValue = db.read(TEST_BLOCK_INDEX, 2, 1, value);
-    EXPECT_EQ(value, 0);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(value == 0);
+    TEST_ASSERT(returnValue == true);
 
     // word section
     returnValue = db.read(TEST_BLOCK_INDEX, 3, 0, value);
-    EXPECT_EQ(value, 0);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(value == 0);
+    TEST_ASSERT(returnValue == true);
 
     returnValue = db.read(TEST_BLOCK_INDEX, 3, 1, value);
-    EXPECT_EQ(value, 0);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(value == 0);
+    TEST_ASSERT(returnValue == true);
 
     // dword section
     returnValue = db.read(TEST_BLOCK_INDEX, 4, 0, value);
-    EXPECT_EQ(value, 0);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(value == 0);
+    TEST_ASSERT(returnValue == true);
 
     returnValue = db.read(TEST_BLOCK_INDEX, 4, 1, value);
-    EXPECT_EQ(value, 0);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(value == 0);
+    TEST_ASSERT(returnValue == true);
 }
 
-TEST_F(LESSDBtest, DBsize)
+TEST_CASE(DBsize)
 {
     LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
-    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     // test if calculated database size matches the one returned from object
@@ -753,13 +746,13 @@ TEST_F(LESSDBtest, DBsize)
     }
 
     // test uses blocks with same sections
-    EXPECT_EQ(dbSize, expectedSize * NUMBER_OF_BLOCKS);
+    TEST_ASSERT(dbSize == expectedSize * NUMBER_OF_BLOCKS);
 }
 
-TEST_F(LESSDBtest, FactoryReset)
+TEST_CASE(FactoryReset)
 {
     LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
-    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     // block 0, section 1 is configured to preserve values after partial reset
@@ -768,44 +761,44 @@ TEST_F(LESSDBtest, FactoryReset)
     int32_t value;
 
     returnValue = db.update(0, 1, 0, 16);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(returnValue == true);
     returnValue = db.read(0, 1, 0, value);
-    EXPECT_EQ(returnValue, true);
-    EXPECT_EQ(value, 16);
+    TEST_ASSERT(returnValue == true);
+    TEST_ASSERT(value == 16);
 
     returnValue = db.update(0, 1, 1, 75);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(returnValue == true);
     returnValue = db.read(0, 1, 1, value);
-    EXPECT_EQ(returnValue, true);
-    EXPECT_EQ(value, 75);
+    TEST_ASSERT(returnValue == true);
+    TEST_ASSERT(value == 75);
 
     returnValue = db.update(0, 1, 2, 100);
-    EXPECT_EQ(returnValue, true);
+    TEST_ASSERT(returnValue == true);
     returnValue = db.read(0, 1, 2, value);
-    EXPECT_EQ(returnValue, true);
-    EXPECT_EQ(value, 100);
+    TEST_ASSERT(returnValue == true);
+    TEST_ASSERT(value == 100);
 
     // now perform partial reset
     db.initData(LESSDB::factoryResetType_t::partial);
 
     // verify that updated values are unchanged
     returnValue = db.read(0, 1, 0, value);
-    EXPECT_EQ(returnValue, true);
-    EXPECT_EQ(value, 16);
+    TEST_ASSERT(returnValue == true);
+    TEST_ASSERT(value == 16);
 
     returnValue = db.read(0, 1, 1, value);
-    EXPECT_EQ(returnValue, true);
-    EXPECT_EQ(value, 75);
+    TEST_ASSERT(returnValue == true);
+    TEST_ASSERT(value == 75);
 
     returnValue = db.read(0, 1, 2, value);
-    EXPECT_EQ(returnValue, true);
-    EXPECT_EQ(value, 100);
+    TEST_ASSERT(returnValue == true);
+    TEST_ASSERT(value == 100);
 }
 
-TEST_F(LESSDBtest, AutoIncrement)
+TEST_CASE(AutoIncrement)
 {
     LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
-    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     // block 0, section 1 has autoincrement configured
@@ -819,16 +812,16 @@ TEST_F(LESSDBtest, AutoIncrement)
     {
         testValue = i + defaultValues[1];
         returnValue = db.read(0, 1, i, value);
-        EXPECT_EQ(returnValue, true);
-        EXPECT_EQ(value, testValue);
+        TEST_ASSERT(returnValue == true);
+        TEST_ASSERT(value == testValue);
     }
 }
 
-TEST_F(LESSDBtest, FailedRead)
+TEST_CASE(FailedRead)
 {
     // configure memory read callback to always return false
     LESSDB db(memoryReadFail, memoryWrite, LESSDB_SIZE);
-    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     bool    returnValue;
@@ -839,15 +832,15 @@ TEST_F(LESSDBtest, FailedRead)
     for (int i = 0; i < NUMBER_OF_SECTIONS; i++)
     {
         returnValue = db.read(0, i, 0, value);
-        EXPECT_EQ(returnValue, false);
+        TEST_ASSERT(returnValue == false);
     }
 }
 
-TEST_F(LESSDBtest, FailedWrite)
+TEST_CASE(FailedWrite)
 {
     // configure memory write callback to always return false
     LESSDB db(memoryReadFail, memoryWriteFail, LESSDB_SIZE);
-    EXPECT_EQ(db.setLayout(dbLayout, NUMBER_OF_BLOCKS), true);
+    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     bool returnValue;
@@ -857,11 +850,11 @@ TEST_F(LESSDBtest, FailedWrite)
     for (int i = 0; i < NUMBER_OF_SECTIONS; i++)
     {
         returnValue = db.update(0, i, 0, 0);
-        EXPECT_EQ(returnValue, false);
+        TEST_ASSERT(returnValue == false);
     }
 }
 
-TEST_F(LESSDBtest, CachingHalfByte)
+TEST_CASE(CachingHalfByte)
 {
     //half-byte and bit parameters use caching
     //once half-byte value or bit value is read, both the address and values are stored internally
@@ -907,14 +900,14 @@ TEST_F(LESSDBtest, CachingHalfByte)
         }
     };
 
-    EXPECT_EQ(db.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS), true);
+    TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     //the simulated database is now initialized
     //create new database object which won't initialize/write data (only the layout will be set)
     //this is used so that database doesn't call ::update function which resets the cached address
     LESSDB db2(memoryRead, memoryWrite, LESSDB_SIZE);
-    EXPECT_EQ(db2.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS), true);
+    TEST_ASSERT(db2.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS) == true);
 
     //read the values back
     //this will verify that the values are read properly and that caching doesn't influence the readout
@@ -922,22 +915,22 @@ TEST_F(LESSDBtest, CachingHalfByte)
 
     for (int i = 0; i < TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS; i++)
     {
-        EXPECT_TRUE(db2.read(0, 0, i, readValue));
-        EXPECT_EQ(readValue, TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE);
+        TEST_ASSERT(db2.read(0, 0, i, readValue) == true);
+        TEST_ASSERT(readValue == TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE);
     }
 
     //try reading the same value twice
     LESSDB db3(memoryRead, memoryWrite, LESSDB_SIZE);
-    EXPECT_EQ(db3.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS), true);
+    TEST_ASSERT(db3.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS) == true);
 
-    EXPECT_TRUE(db3.read(0, 0, TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS - 1, readValue));
-    EXPECT_EQ(readValue, TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE);
+    TEST_ASSERT(db3.read(0, 0, TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS - 1, readValue) == true);
+    TEST_ASSERT(readValue == TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE);
 
-    EXPECT_TRUE(db3.read(0, 0, TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS - 1, readValue));
-    EXPECT_EQ(readValue, TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE);
+    TEST_ASSERT(db3.read(0, 0, TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS - 1, readValue) == true);
+    TEST_ASSERT(readValue == TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE);
 }
 
-TEST_F(LESSDBtest, CachingBit)
+TEST_CASE(CachingBit)
 {
     //half-byte and bit parameters use caching
     //once half-byte value or bit value is read, both the address and values are stored internally
@@ -983,14 +976,14 @@ TEST_F(LESSDBtest, CachingBit)
         }
     };
 
-    EXPECT_EQ(db.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS), true);
+    TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     //the simulated database is now initialized
     //create new database object which won't initialize/write data (only the layout will be set)
     //this is used so that database doesn't call ::update function which resets the cached address
     LESSDB db2(memoryRead, memoryWrite, LESSDB_SIZE);
-    EXPECT_EQ(db2.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS), true);
+    TEST_ASSERT(db2.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS) == true);
 
     //read the values back
     //this will verify that the values are read properly and that caching doesn't influence the readout
@@ -998,17 +991,17 @@ TEST_F(LESSDBtest, CachingBit)
 
     for (int i = 0; i < TEST_CACHING_BIT_AMOUNT_OF_PARAMS; i++)
     {
-        EXPECT_TRUE(db2.read(0, 0, i, readValue));
-        EXPECT_EQ(readValue, TEST_CACHING_BIT_SECTION_0_DEFAULT_VALUE);
+        TEST_ASSERT(db2.read(0, 0, i, readValue) == true);
+        TEST_ASSERT(readValue == TEST_CACHING_BIT_SECTION_0_DEFAULT_VALUE);
     }
 
     //try reading the same value twice
     LESSDB db3(memoryRead, memoryWrite, LESSDB_SIZE);
-    EXPECT_EQ(db3.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS), true);
+    TEST_ASSERT(db3.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS) == true);
 
-    EXPECT_TRUE(db3.read(0, 1, TEST_CACHING_BIT_AMOUNT_OF_PARAMS - 1, readValue));
-    EXPECT_EQ(readValue, TEST_CACHING_BIT_SECTION_1_DEFAULT_VALUE);
+    TEST_ASSERT(db3.read(0, 1, TEST_CACHING_BIT_AMOUNT_OF_PARAMS - 1, readValue) == true);
+    TEST_ASSERT(readValue == TEST_CACHING_BIT_SECTION_1_DEFAULT_VALUE);
 
-    EXPECT_TRUE(db3.read(0, 1, TEST_CACHING_BIT_AMOUNT_OF_PARAMS - 1, readValue));
-    EXPECT_EQ(readValue, TEST_CACHING_BIT_SECTION_1_DEFAULT_VALUE);
+    TEST_ASSERT(db3.read(0, 1, TEST_CACHING_BIT_AMOUNT_OF_PARAMS - 1, readValue) == true);
+    TEST_ASSERT(readValue == TEST_CACHING_BIT_SECTION_1_DEFAULT_VALUE);
 }
