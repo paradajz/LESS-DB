@@ -3,7 +3,7 @@
     "tasks": [
         {
             "label": "[Test] Build single test",
-            "command": "cd tests && make pre-build && make TESTS=${input:testName} && cp build/lessdb/${input:testName}.out build/test.out",
+            "command": "cd ./tests && make pre-build && make TESTS=${input:test} && cp $(../scripts/test_dir_get.sh $(make print-TARGETNAME) ${input:test})/${input:test}.out build/test.out",
             "type": "shell",
             "problemMatcher": [
                 "$gcc"
@@ -32,12 +32,12 @@
     ],
     "inputs": [
         {
-            "id": "testName",
+            "id": "test",
             "description": "Select test to compile",
             "default": "all",
             "type": "pickString",
             "options": [
-                "test_all",
+                "all",
             ]
         }
     ]

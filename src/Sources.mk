@@ -1,4 +1,4 @@
-SOURCES := $(shell find . -regex '.*\.\(cpp\|c\)')
+SOURCES := $(shell $(FIND) . -regex '.*\.\(cpp\|c\)')
 
 #make sure all objects are located in build directory
 OBJECTS := $(addprefix $(BUILD_DIR)/,$(SOURCES))
