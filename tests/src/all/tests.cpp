@@ -412,7 +412,7 @@ namespace
         }
     };
 
-    bool memoryReadFail(uint32_t address, LESSDB::sectionParameterType_t type, int32_t& value)
+    bool memoryReadFail(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type)
     {
         return false;
     }
@@ -422,7 +422,7 @@ namespace
         return false;
     }
 
-    bool memoryRead(uint32_t address, LESSDB::sectionParameterType_t type, int32_t& value)
+    bool memoryRead(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type)
     {
         switch (type)
         {
@@ -493,9 +493,9 @@ namespace
             memset(memoryArray, 0, LESSDB_SIZE);
         }
 
-        bool read(uint32_t address, LESSDB::sectionParameterType_t type, int32_t& value) override
+        bool read(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type) override
         {
-            return readCallback(address, type, value);
+            return readCallback(address, value, type);
         }
 
         bool write(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type) override
@@ -503,7 +503,7 @@ namespace
             return writeCallback(address, value, type);
         }
 
-        bool (*readCallback)(uint32_t address, LESSDB::sectionParameterType_t type, int32_t& value) = nullptr;
+        bool (*readCallback)(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type) = nullptr;
         bool (*writeCallback)(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type) = nullptr;
     } dbStorageMock;
 
