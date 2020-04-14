@@ -822,7 +822,7 @@ TEST_CASE(DBsize)
 {
     // test if calculated database size matches the one returned from object
     int expectedSize = 0;
-    int dbSize       = db.currentDBusage();
+    int dbSize       = db.currentDBsize();
 
     for (int i = 0; i < NUMBER_OF_SECTIONS; i++)
     {

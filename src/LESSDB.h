@@ -100,7 +100,8 @@ class LESSDB
     bool     read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t& value);
     int32_t  read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex);
     bool     update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t newValue);
-    uint32_t currentDBusage() const;
+    uint32_t currentDBsize() const;
+    uint32_t currentDBparameters() const;
     uint32_t dbSize() const;
     bool     initData(factoryResetType_t type = factoryResetType_t::full);
     bool     setStartAddress(uint32_t startAddress);
@@ -118,6 +119,11 @@ class LESSDB
     /// \brief Holds total memory usage for current database layout.
     ///
     uint32_t memoryUsage = 0;
+
+    ///
+    /// \brief Holds total number of parameters stored in database.
+    ///
+    uint32_t memoryParameters = 0;
 
     ///
     /// \brief Address from which database layout starts.

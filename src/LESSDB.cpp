@@ -31,7 +31,8 @@
 ///
 bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks)
 {
-    memoryUsage = 0;
+    memoryUsage      = 0;
+    memoryParameters = 0;
 
     if ((pointer != nullptr) && numberOfBlocks)
     {
@@ -89,6 +90,8 @@ bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks)
                         break;
                     }
                 }
+
+                memoryParameters += block[i].section[j].numberOfParameters;
             }
 
             uint8_t lastSection = block[i].numberOfSections - 1;
@@ -458,9 +461,18 @@ bool LESSDB::initData(factoryResetType_t type)
 /// \brief Checks for total memory usage of database.
 /// \returns Database size in bytes.
 ///
-uint32_t LESSDB::currentDBusage() const
+uint32_t LESSDB::currentDBsize() const
 {
     return memoryUsage;
+}
+
+///
+/// \brief Checks for total amount of parameters stored in database.
+/// \returns Number of parameters.
+///
+uint32_t LESSDB::currentDBparameters() const
+{
+    return memoryParameters;
 }
 
 ///
