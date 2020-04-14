@@ -40,6 +40,17 @@ class LESSDB
         dword
     };
 
+    class StorageAccess
+    {
+        public:
+        StorageAccess() {}
+
+        virtual void init() = 0;
+        virtual void clear() = 0;
+        virtual bool read(uint32_t address, LESSDB::sectionParameterType_t type, int32_t& value) = 0;
+        virtual bool write(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type) = 0;
+    };
+
     ///
     /// \brief List of possible ways to perform factory reset.
     ///
@@ -78,16 +89,14 @@ class LESSDB
     /// @param [in] writeCallback   Reference to function performing the actual writing to memory.
     /// @param [in] maxSize         Specifies maximum database size in bytes.
     ///
-    LESSDB(bool (&readCallback)(uint32_t address, sectionParameterType_t type, int32_t& value),
-           bool (&writeCallback)(uint32_t address, int32_t value, sectionParameterType_t type),
-           uint32_t maxSize)
-        : readCallback(readCallback)
-        , writeCallback(writeCallback)
+    LESSDB(StorageAccess& storageAccess,
+           uint32_t       maxSize)
+        : storageAccess(storageAccess)
         , maxSize(maxSize)
     {}
 
     bool     setLayout(block_t* pointer, uint8_t numberOfBlocks);
-    bool     clear();
+    void     clear();
     bool     read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t& value);
     int32_t  read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex);
     bool     update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t newValue);
@@ -127,14 +136,9 @@ class LESSDB
     block_t* block = nullptr;
 
     ///
-    /// \brief Function reference used to read the memory contents.
+    /// \brief Reference to object which provides actual access to the storage system.
     ///
-    bool (&readCallback)(uint32_t address, sectionParameterType_t type, int32_t& value);
-
-    ///
-    /// \brief Function reference used to update the memory contents.
-    ///
-    bool (&writeCallback)(uint32_t address, int32_t value, sectionParameterType_t type);
+    StorageAccess& storageAccess;
 
     ///
     /// \brief Holds the maximum size of database system in bytes.

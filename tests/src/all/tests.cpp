@@ -1,6 +1,7 @@
 #include "unity/src/unity.h"
 #include "unity/Helpers.h"
 #include "LESSDB.h"
+#include <string.h>
 
 #define NUMBER_OF_BLOCKS 6
 #define NUMBER_OF_SECTIONS 6
@@ -398,15 +399,52 @@ namespace
 
         return true;
     }
+
+    class DBstorageMock : public LESSDB::StorageAccess
+    {
+        public:
+        DBstorageMock() {}
+
+        void init() override
+        {
+        }
+
+        void clear() override
+        {
+            memset(memoryArray, 0, LESSDB_SIZE);
+        }
+
+        bool read(uint32_t address, LESSDB::sectionParameterType_t type, int32_t& value) override
+        {
+            return readCallback(address, type, value);
+        }
+
+        bool write(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type) override
+        {
+            return writeCallback(address, value, type);
+        }
+
+        bool (*readCallback)(uint32_t address, LESSDB::sectionParameterType_t type, int32_t& value) = nullptr;
+        bool (*writeCallback)(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type) = nullptr;
+    } dbStorageMock;
+
+    LESSDB db(dbStorageMock, LESSDB_SIZE);
 }    // namespace
 
-TEST_CASE(Read)
+TEST_SETUP()
 {
-    LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
+    TEST_ASSERT(db.setStartAddress(0) == true);
+
+    dbStorageMock.readCallback = memoryRead;
+    dbStorageMock.writeCallback = memoryWrite;
+
     TEST_ASSERT(db.dbSize() == LESSDB_SIZE);
     TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
     db.initData(LESSDB::factoryResetType_t::full);
+}
 
+TEST_CASE(Read)
+{
     int32_t value;
 
     // bit section
@@ -450,15 +488,14 @@ TEST_CASE(Read)
     TEST_ASSERT(value == defaultValues[1]);
 
     // perform the same round of tests with different starting point
-    LESSDB db2(memoryRead, memoryWrite, LESSDB_SIZE);
-    TEST_ASSERT(db2.setStartAddress(100) == true);
-    TEST_ASSERT(db2.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
-    db2.initData(LESSDB::factoryResetType_t::full);
+    TEST_ASSERT(db.setStartAddress(100) == true);
+    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
+    db.initData(LESSDB::factoryResetType_t::full);
 
     // bit section
     for (int i = 0; i < sectionParams[0]; i++)
     {
-        TEST_ASSERT(db2.read(TEST_BLOCK_INDEX, 0, i, value) == true);
+        TEST_ASSERT(db.read(TEST_BLOCK_INDEX, 0, i, value) == true);
         TEST_ASSERT(value == defaultValues[0]);
     }
 
@@ -466,45 +503,41 @@ TEST_CASE(Read)
     // autoincrement is enabled for this section
     for (int i = 0; i < sectionParams[1]; i++)
     {
-        TEST_ASSERT(db2.read(TEST_BLOCK_INDEX, 1, i, value) == true);
+        TEST_ASSERT(db.read(TEST_BLOCK_INDEX, 1, i, value) == true);
         TEST_ASSERT(value == defaultValues[1] + i);
     }
 
     // half-byte section
     for (int i = 0; i < sectionParams[2]; i++)
     {
-        TEST_ASSERT(db2.read(TEST_BLOCK_INDEX, 2, i, value) == true);
+        TEST_ASSERT(db.read(TEST_BLOCK_INDEX, 2, i, value) == true);
         TEST_ASSERT(value == defaultValues[2]);
     }
 
     // word section
     for (int i = 0; i < sectionParams[3]; i++)
     {
-        TEST_ASSERT(db2.read(TEST_BLOCK_INDEX, 3, i, value) == true);
+        TEST_ASSERT(db.read(TEST_BLOCK_INDEX, 3, i, value) == true);
         TEST_ASSERT(value == defaultValues[3]);
     }
 
     // dword section
     for (int i = 0; i < sectionParams[4]; i++)
     {
-        TEST_ASSERT(db2.read(TEST_BLOCK_INDEX, 4, i, value) == true);
+        TEST_ASSERT(db.read(TEST_BLOCK_INDEX, 4, i, value) == true);
         TEST_ASSERT(value == defaultValues[4]);
     }
 
     // try reading directly
-    value = db2.read(TEST_BLOCK_INDEX, 1, 0);
+    value = db.read(TEST_BLOCK_INDEX, 1, 0);
     TEST_ASSERT(value == defaultValues[1]);
 
     // try setting invalid address
-    TEST_ASSERT(db2.setStartAddress(LESSDB_SIZE) == false);
+    TEST_ASSERT(db.setStartAddress(LESSDB_SIZE) == false);
 }
 
 TEST_CASE(Update)
 {
-    LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
-    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
-    db.initData(LESSDB::factoryResetType_t::full);
-
     int32_t value;
     bool    returnValue;
 
@@ -585,10 +618,6 @@ TEST_CASE(Update)
 
 TEST_CASE(ErrorCheck)
 {
-    LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
-    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
-    db.initData(LESSDB::factoryResetType_t::full);
-
     bool returnValue;
 
     // read
@@ -654,9 +683,6 @@ TEST_CASE(ErrorCheck)
 
 TEST_CASE(ClearDB)
 {
-    LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
-    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
-    db.initData(LESSDB::factoryResetType_t::full);
     db.clear();
 
     bool    returnValue;
@@ -711,10 +737,6 @@ TEST_CASE(ClearDB)
 
 TEST_CASE(DBsize)
 {
-    LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
-    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
-    db.initData(LESSDB::factoryResetType_t::full);
-
     // test if calculated database size matches the one returned from object
     int expectedSize = 0;
     int dbSize = db.currentDBusage();
@@ -751,10 +773,6 @@ TEST_CASE(DBsize)
 
 TEST_CASE(FactoryReset)
 {
-    LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
-    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
-    db.initData(LESSDB::factoryResetType_t::full);
-
     // block 0, section 1 is configured to preserve values after partial reset
     // write some values first
     bool    returnValue;
@@ -797,10 +815,6 @@ TEST_CASE(FactoryReset)
 
 TEST_CASE(AutoIncrement)
 {
-    LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
-    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
-    db.initData(LESSDB::factoryResetType_t::full);
-
     // block 0, section 1 has autoincrement configured
     // verify
 
@@ -820,9 +834,7 @@ TEST_CASE(AutoIncrement)
 TEST_CASE(FailedRead)
 {
     // configure memory read callback to always return false
-    LESSDB db(memoryReadFail, memoryWrite, LESSDB_SIZE);
-    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
-    db.initData(LESSDB::factoryResetType_t::full);
+    dbStorageMock.readCallback = memoryReadFail;
 
     bool    returnValue;
     int32_t value;
@@ -839,9 +851,7 @@ TEST_CASE(FailedRead)
 TEST_CASE(FailedWrite)
 {
     // configure memory write callback to always return false
-    LESSDB db(memoryReadFail, memoryWriteFail, LESSDB_SIZE);
-    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
-    db.initData(LESSDB::factoryResetType_t::full);
+    dbStorageMock.writeCallback = memoryWriteFail;
 
     bool returnValue;
 
@@ -859,7 +869,6 @@ TEST_CASE(CachingHalfByte)
     //half-byte and bit parameters use caching
     //once half-byte value or bit value is read, both the address and values are stored internally
     //this is used to avoid accessing the database if not needed
-    LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
 
 #define TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS 4
 #define TEST_CACHING_HALFBYTE_AMOUNT_OF_SECTIONS 3
@@ -906,7 +915,7 @@ TEST_CASE(CachingHalfByte)
     //the simulated database is now initialized
     //create new database object which won't initialize/write data (only the layout will be set)
     //this is used so that database doesn't call ::update function which resets the cached address
-    LESSDB db2(memoryRead, memoryWrite, LESSDB_SIZE);
+    LESSDB db2(dbStorageMock, LESSDB_SIZE);
     TEST_ASSERT(db2.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS) == true);
 
     //read the values back
@@ -920,7 +929,7 @@ TEST_CASE(CachingHalfByte)
     }
 
     //try reading the same value twice
-    LESSDB db3(memoryRead, memoryWrite, LESSDB_SIZE);
+    LESSDB db3(dbStorageMock, LESSDB_SIZE);
     TEST_ASSERT(db3.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS) == true);
 
     TEST_ASSERT(db3.read(0, 0, TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS - 1, readValue) == true);
@@ -935,7 +944,6 @@ TEST_CASE(CachingBit)
     //half-byte and bit parameters use caching
     //once half-byte value or bit value is read, both the address and values are stored internally
     //this is used to avoid accessing the database if not needed
-    LESSDB db(memoryRead, memoryWrite, LESSDB_SIZE);
 
 #define TEST_CACHING_BIT_AMOUNT_OF_PARAMS 4
 #define TEST_CACHING_BIT_AMOUNT_OF_SECTIONS 3
@@ -982,8 +990,8 @@ TEST_CASE(CachingBit)
     //the simulated database is now initialized
     //create new database object which won't initialize/write data (only the layout will be set)
     //this is used so that database doesn't call ::update function which resets the cached address
-    LESSDB db2(memoryRead, memoryWrite, LESSDB_SIZE);
-    TEST_ASSERT(db2.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS) == true);
+    LESSDB db2(dbStorageMock, LESSDB_SIZE);
+    TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS) == true);
 
     //read the values back
     //this will verify that the values are read properly and that caching doesn't influence the readout
@@ -991,12 +999,12 @@ TEST_CASE(CachingBit)
 
     for (int i = 0; i < TEST_CACHING_BIT_AMOUNT_OF_PARAMS; i++)
     {
-        TEST_ASSERT(db2.read(0, 0, i, readValue) == true);
+        TEST_ASSERT(db.read(0, 0, i, readValue) == true);
         TEST_ASSERT(readValue == TEST_CACHING_BIT_SECTION_0_DEFAULT_VALUE);
     }
 
     //try reading the same value twice
-    LESSDB db3(memoryRead, memoryWrite, LESSDB_SIZE);
+    LESSDB db3(dbStorageMock, LESSDB_SIZE);
     TEST_ASSERT(db3.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS) == true);
 
     TEST_ASSERT(db3.read(0, 1, TEST_CACHING_BIT_AMOUNT_OF_PARAMS - 1, readValue) == true);

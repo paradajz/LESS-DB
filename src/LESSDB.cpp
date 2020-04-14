@@ -170,7 +170,7 @@ bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int
         {
             value = (bool)(lastValue & bitMask[parameterIndex - (arrayIndex << 3)]);
         }
-        else if (readCallback(startAddress, sectionParameterType_t::bit, value))
+        else if (storageAccess.read(startAddress, sectionParameterType_t::bit, value))
         {
             lastValue = value;
             value = (bool)(value & bitMask[parameterIndex - (arrayIndex << 3)]);
@@ -184,7 +184,7 @@ bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int
     case sectionParameterType_t::byte:
         startAddress += parameterIndex;
 
-        if (readCallback(startAddress, sectionParameterType_t::byte, value))
+        if (storageAccess.read(startAddress, sectionParameterType_t::byte, value))
         {
             // sanitize
             value &= (int32_t)0xFF;
@@ -205,7 +205,7 @@ bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int
             if (parameterIndex % 2)
                 value >>= 4;
         }
-        else if (readCallback(startAddress, sectionParameterType_t::halfByte, value))
+        else if (storageAccess.read(startAddress, sectionParameterType_t::halfByte, value))
         {
             lastValue = value;
 
@@ -227,7 +227,7 @@ bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int
     case sectionParameterType_t::word:
         startAddress += parameterIndex * 2;
 
-        if (readCallback(startAddress, sectionParameterType_t::word, value))
+        if (storageAccess.read(startAddress, sectionParameterType_t::word, value))
         {
             // sanitize
             value &= (int32_t)0xFFFF;
@@ -241,7 +241,7 @@ bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int
     default:
         // case sectionParameterType_t::dword:
         startAddress += parameterIndex * 4;
-        return readCallback(startAddress, sectionParameterType_t::dword, value);
+        return storageAccess.read(startAddress, sectionParameterType_t::dword, value);
         break;
     }
 
@@ -304,7 +304,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
         startAddress += arrayIndex;
 
         // read existing value first
-        if (readCallback(startAddress, sectionParameterType_t::bit, arrayValue))
+        if (storageAccess.read(startAddress, sectionParameterType_t::bit, arrayValue))
         {
             // update value with new bit
             if (newValue)
@@ -313,9 +313,9 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
                 arrayValue &= ~bitMask[bitIndex];
 
             // write to memory
-            if (writeCallback(startAddress, arrayValue, sectionParameterType_t::bit))
+            if (storageAccess.write(startAddress, arrayValue, sectionParameterType_t::bit))
             {
-                if (readCallback(startAddress, sectionParameterType_t::bit, checkValue))
+                if (storageAccess.read(startAddress, sectionParameterType_t::bit, checkValue))
                     return (arrayValue == checkValue);
             }
         }
@@ -326,9 +326,9 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
         newValue &= (int32_t)0xFF;
         startAddress += parameterIndex;
 
-        if (writeCallback(startAddress, newValue, sectionParameterType_t::byte))
+        if (storageAccess.write(startAddress, newValue, sectionParameterType_t::byte))
         {
-            if (readCallback(startAddress, sectionParameterType_t::byte, checkValue))
+            if (storageAccess.read(startAddress, sectionParameterType_t::byte, checkValue))
                 return (newValue == checkValue);
         }
         break;
@@ -341,7 +341,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
         startAddress += (parameterIndex / 2);
 
         // read old value first
-        if (readCallback(startAddress, sectionParameterType_t::halfByte, arrayValue))
+        if (storageAccess.read(startAddress, sectionParameterType_t::halfByte, arrayValue))
         {
             if (parameterIndex % 2)
             {
@@ -356,9 +356,9 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
                 arrayValue |= newValue;
             }
 
-            if (writeCallback(startAddress, arrayValue, sectionParameterType_t::halfByte))
+            if (storageAccess.write(startAddress, arrayValue, sectionParameterType_t::halfByte))
             {
-                if (readCallback(startAddress, sectionParameterType_t::halfByte, checkValue))
+                if (storageAccess.read(startAddress, sectionParameterType_t::halfByte, checkValue))
                     return (arrayValue == checkValue);
             }
         }
@@ -369,9 +369,9 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
         newValue &= (int32_t)0xFFFF;
         startAddress += (parameterIndex * 2);
 
-        if (writeCallback(startAddress, newValue, sectionParameterType_t::word))
+        if (storageAccess.write(startAddress, newValue, sectionParameterType_t::word))
         {
-            if (readCallback(startAddress, sectionParameterType_t::word, checkValue))
+            if (storageAccess.read(startAddress, sectionParameterType_t::word, checkValue))
                 return (newValue == checkValue);
         }
         break;
@@ -379,9 +379,9 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
     case sectionParameterType_t::dword:
         startAddress += (parameterIndex * 4);
 
-        if (writeCallback(startAddress, newValue, sectionParameterType_t::dword))
+        if (storageAccess.write(startAddress, newValue, sectionParameterType_t::dword))
         {
-            if (readCallback(startAddress, sectionParameterType_t::dword, checkValue))
+            if (storageAccess.read(startAddress, sectionParameterType_t::dword, checkValue))
                 return (newValue == checkValue);
         }
         break;
@@ -391,17 +391,11 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
 }
 
 ///
-/// \brief Clears entire memory by writing 0x00 to each location.
+/// \brief Clears entire memory.
 ///
-bool LESSDB::clear()
+void LESSDB::clear()
 {
-    for (uint32_t i = 0; i < maxSize; i++)
-    {
-        if (!writeCallback(i, 0x00, sectionParameterType_t::byte))
-            return false;
-    }
-
-    return true;
+    storageAccess.clear();
 }
 
 ///
