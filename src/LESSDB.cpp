@@ -35,7 +35,7 @@ bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks)
 
     if ((pointer != nullptr) && numberOfBlocks)
     {
-        block = pointer;
+        block        = pointer;
         blockCounter = numberOfBlocks;
 
         for (int i = 0; i < blockCounter; i++)
@@ -156,7 +156,7 @@ bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int
     if (!checkParameters(blockID, sectionID, parameterIndex))
         return false;
 
-    bool     returnValue = true;
+    bool     returnValue  = true;
     uint16_t startAddress = sectionAddress(blockID, sectionID);
     uint8_t  arrayIndex;
 
@@ -173,7 +173,7 @@ bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int
         else if (storageAccess.read(startAddress, value, sectionParameterType_t::bit))
         {
             lastValue = value;
-            value = (bool)(value & bitMask[parameterIndex - (arrayIndex << 3)]);
+            value     = (bool)(value & bitMask[parameterIndex - (arrayIndex << 3)]);
         }
         else
         {
@@ -284,7 +284,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
     if (!checkParameters(blockID, sectionID, parameterIndex))
         return false;
 
-    uint16_t               startAddress = sectionAddress(blockID, sectionID);
+    uint16_t               startAddress  = sectionAddress(blockID, sectionID);
     sectionParameterType_t parameterType = block[blockID].section[sectionID].parameterType;
 
     uint8_t arrayIndex;
@@ -300,7 +300,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
         // sanitize input
         newValue &= (int32_t)0x01;
         arrayIndex = parameterIndex / 8;
-        bitIndex = parameterIndex - 8 * arrayIndex;
+        bitIndex   = parameterIndex - 8 * arrayIndex;
         startAddress += arrayIndex;
 
         // read existing value first
@@ -414,8 +414,8 @@ bool LESSDB::initData(factoryResetType_t type)
             if (block[i].section[j].preserveOnPartialReset && (type == factoryResetType_t::partial))
                 continue;
 
-            sectionParameterType_t parameterType = block[i].section[j].parameterType;
-            uint16_t               defaultValue = block[i].section[j].defaultValue;
+            sectionParameterType_t parameterType      = block[i].section[j].parameterType;
+            uint16_t               defaultValue       = block[i].section[j].defaultValue;
             size_t                 numberOfParameters = block[i].section[j].numberOfParameters;
 
             switch (parameterType)

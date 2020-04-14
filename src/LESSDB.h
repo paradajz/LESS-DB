@@ -45,8 +45,8 @@ class LESSDB
         public:
         StorageAccess() {}
 
-        virtual void init() = 0;
-        virtual void clear() = 0;
+        virtual void init()                                                                      = 0;
+        virtual void clear()                                                                     = 0;
         virtual bool read(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type) = 0;
         virtual bool write(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type) = 0;
     };
@@ -127,8 +127,16 @@ class LESSDB
     ///
     /// \brief Array holding all bit masks for easier access.
     ///
-    const uint8_t bitMask[8] = { 0b00000001, 0b00000010, 0b00000100, 0b00001000,
-                                 0b00010000, 0b00100000, 0b01000000, 0b10000000 };
+    const uint8_t bitMask[8] = {
+        0b00000001,
+        0b00000010,
+        0b00000100,
+        0b00001000,
+        0b00010000,
+        0b00100000,
+        0b01000000,
+        0b10000000,
+    };
 
     ///
     /// \brief Pointer to array of LESSDB blocks.
@@ -150,7 +158,7 @@ class LESSDB
     /// Used if current requested address is the same as previous one.
     /// @{
 
-    uint8_t  lastValue = 0;
+    uint8_t  lastValue   = 0;
     uint16_t lastAddress = 0xFFFF;
 
     /// @}
