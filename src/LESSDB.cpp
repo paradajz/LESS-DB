@@ -100,30 +100,35 @@ bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks)
             {
             case sectionParameterType_t::bit:
                 blockUsage = block[i].section[lastSection].address +
-                             (block[i].section[lastSection].numberOfParameters % 8 != 0) +
-                             (block[i].section[lastSection].numberOfParameters / 8);
+                             (storageAccess.paramUsage(sectionParameterType_t::bit) *
+                              ((block[i].section[lastSection].numberOfParameters % 8 != 0) +
+                               block[i].section[lastSection].numberOfParameters / 8));
                 break;
 
             case sectionParameterType_t::byte:
                 blockUsage = block[i].section[lastSection].address +
-                             block[i].section[lastSection].numberOfParameters;
+                             (storageAccess.paramUsage(sectionParameterType_t::byte) *
+                              block[i].section[lastSection].numberOfParameters);
                 break;
 
             case sectionParameterType_t::halfByte:
                 blockUsage = block[i].section[lastSection].address +
-                             (block[i].section[lastSection].numberOfParameters % 2 != 0) +
-                             (block[i].section[lastSection].numberOfParameters / 2);
+                             (storageAccess.paramUsage(sectionParameterType_t::halfByte) *
+                              ((block[i].section[lastSection].numberOfParameters % 2 != 0) +
+                               block[i].section[lastSection].numberOfParameters / 2));
                 break;
 
             case sectionParameterType_t::word:
                 blockUsage = block[i].section[lastSection].address +
-                             (2 * block[i].section[lastSection].numberOfParameters);
+                             (storageAccess.paramUsage(sectionParameterType_t::word) *
+                              block[i].section[lastSection].numberOfParameters);
                 break;
 
             default:
                 // case sectionParameterType_t::dword:
                 blockUsage = block[i].section[lastSection].address +
-                             (4 * block[i].section[lastSection].numberOfParameters);
+                             (storageAccess.paramUsage(sectionParameterType_t::dword) *
+                              block[i].section[lastSection].numberOfParameters);
                 break;
             }
 

@@ -488,6 +488,24 @@ namespace
         {
         }
 
+        size_t paramUsage(LESSDB::sectionParameterType_t type) override
+        {
+            switch (type)
+            {
+            case LESSDB::sectionParameterType_t::word:
+                return 2;
+
+            case LESSDB::sectionParameterType_t::dword:
+                return 4;
+
+            case LESSDB::sectionParameterType_t::bit:
+            case LESSDB::sectionParameterType_t::halfByte:
+            case LESSDB::sectionParameterType_t::byte:
+            default:
+                return 1;
+            }
+        }
+
         void clear() override
         {
             memset(memoryArray, 0, LESSDB_SIZE);
