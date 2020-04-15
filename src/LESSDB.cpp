@@ -92,44 +92,29 @@ bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks)
                 }
 
                 memoryParameters += block[i].section[j].numberOfParameters;
-            }
 
-            uint8_t lastSection = block[i].numberOfSections - 1;
+                switch (block[i].section[j].parameterType)
+                {
+                case sectionParameterType_t::bit:
+                    blockUsage += (storageAccess.paramUsage(sectionParameterType_t::bit) *
+                                   ((block[i].section[j].numberOfParameters % 8 != 0) +
+                                    block[i].section[j].numberOfParameters / 8));
+                    break;
 
-            switch (block[i].section[lastSection].parameterType)
-            {
-            case sectionParameterType_t::bit:
-                blockUsage = block[i].section[lastSection].address +
-                             (storageAccess.paramUsage(sectionParameterType_t::bit) *
-                              ((block[i].section[lastSection].numberOfParameters % 8 != 0) +
-                               block[i].section[lastSection].numberOfParameters / 8));
-                break;
+                case sectionParameterType_t::halfByte:
+                    blockUsage += (storageAccess.paramUsage(sectionParameterType_t::halfByte) *
+                                   ((block[i].section[j].numberOfParameters % 2 != 0) +
+                                    block[i].section[j].numberOfParameters / 2));
+                    break;
 
-            case sectionParameterType_t::byte:
-                blockUsage = block[i].section[lastSection].address +
-                             (storageAccess.paramUsage(sectionParameterType_t::byte) *
-                              block[i].section[lastSection].numberOfParameters);
-                break;
-
-            case sectionParameterType_t::halfByte:
-                blockUsage = block[i].section[lastSection].address +
-                             (storageAccess.paramUsage(sectionParameterType_t::halfByte) *
-                              ((block[i].section[lastSection].numberOfParameters % 2 != 0) +
-                               block[i].section[lastSection].numberOfParameters / 2));
-                break;
-
-            case sectionParameterType_t::word:
-                blockUsage = block[i].section[lastSection].address +
-                             (storageAccess.paramUsage(sectionParameterType_t::word) *
-                              block[i].section[lastSection].numberOfParameters);
-                break;
-
-            default:
-                // case sectionParameterType_t::dword:
-                blockUsage = block[i].section[lastSection].address +
-                             (storageAccess.paramUsage(sectionParameterType_t::dword) *
-                              block[i].section[lastSection].numberOfParameters);
-                break;
+                case sectionParameterType_t::byte:
+                case sectionParameterType_t::word:
+                case sectionParameterType_t::dword:
+                default:
+                    blockUsage += (storageAccess.paramUsage(block[i].section[j].parameterType) *
+                                   block[i].section[j].numberOfParameters);
+                    break;
+                }
             }
 
             if (!i)
@@ -298,7 +283,6 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
     uint8_t arrayIndex;
     int32_t arrayValue;
     uint8_t bitIndex;
-    int32_t checkValue;
 
     switch (parameterType)
     {
@@ -320,12 +304,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
             else
                 arrayValue &= ~bitMask[bitIndex];
 
-            // write to memory
-            if (storageAccess.write(startAddress, arrayValue, sectionParameterType_t::bit))
-            {
-                if (storageAccess.read(startAddress, checkValue, sectionParameterType_t::bit))
-                    return (arrayValue == checkValue);
-            }
+            return write(startAddress, arrayValue, sectionParameterType_t::bit);
         }
         break;
 
@@ -333,12 +312,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
         // sanitize input
         newValue &= (int32_t)0xFF;
         startAddress += parameterIndex;
-
-        if (storageAccess.write(startAddress, newValue, sectionParameterType_t::byte))
-        {
-            if (storageAccess.read(startAddress, checkValue, sectionParameterType_t::byte))
-                return (newValue == checkValue);
-        }
+        return write(startAddress, newValue, sectionParameterType_t::byte);
         break;
 
     case sectionParameterType_t::halfByte:
@@ -364,11 +338,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
                 arrayValue |= newValue;
             }
 
-            if (storageAccess.write(startAddress, arrayValue, sectionParameterType_t::halfByte))
-            {
-                if (storageAccess.read(startAddress, checkValue, sectionParameterType_t::halfByte))
-                    return (arrayValue == checkValue);
-            }
+            return write(startAddress, arrayValue, sectionParameterType_t::halfByte);
         }
         break;
 
@@ -376,23 +346,33 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
         // sanitize input
         newValue &= (int32_t)0xFFFF;
         startAddress += (parameterIndex * 2);
-
-        if (storageAccess.write(startAddress, newValue, sectionParameterType_t::word))
-        {
-            if (storageAccess.read(startAddress, checkValue, sectionParameterType_t::word))
-                return (newValue == checkValue);
-        }
+        return write(startAddress, newValue, sectionParameterType_t::word);
         break;
 
     case sectionParameterType_t::dword:
         startAddress += (parameterIndex * 4);
-
-        if (storageAccess.write(startAddress, newValue, sectionParameterType_t::dword))
-        {
-            if (storageAccess.read(startAddress, checkValue, sectionParameterType_t::dword))
-                return (newValue == checkValue);
-        }
+        return write(startAddress, newValue, sectionParameterType_t::dword);
         break;
+    }
+
+    return false;
+}
+
+///
+/// \brief Convenience function to write value at specified address.
+/// @param [in] address Address to which to write the variable.
+/// @param [in] value   Value to write.
+/// @param [in] type    Type of variable.
+/// \returns True if writing succedes and read value matches the specified value, false otherwise.
+///
+bool LESSDB::write(uint16_t address, int32_t value, sectionParameterType_t type)
+{
+    if (storageAccess.write(address, value, type))
+    {
+        int32_t readValue;
+
+        if (storageAccess.read(address, readValue, type))
+            return (value == readValue);
     }
 
     return false;
@@ -422,6 +402,8 @@ bool LESSDB::initData(factoryResetType_t type)
             if (block[i].section[j].preserveOnPartialReset && (type == factoryResetType_t::partial))
                 continue;
 
+            uint16_t startAddress = sectionAddress(i, j);
+
             sectionParameterType_t parameterType      = block[i].section[j].parameterType;
             uint16_t               defaultValue       = block[i].section[j].defaultValue;
             size_t                 numberOfParameters = block[i].section[j].numberOfParameters;
@@ -431,30 +413,83 @@ bool LESSDB::initData(factoryResetType_t type)
             case sectionParameterType_t::byte:
             case sectionParameterType_t::word:
             case sectionParameterType_t::dword:
+            {
                 for (size_t k = 0; k < numberOfParameters; k++)
                 {
                     if (block[i].section[j].autoIncrement)
                     {
-                        if (!update(i, j, k, defaultValue + k))
+                        if (!write(startAddress, defaultValue + k, parameterType))
                             return false;
                     }
                     else
                     {
-                        if (!update(i, j, k, defaultValue))
+                        if (!write(startAddress, defaultValue, parameterType))
                             return false;
                     }
+
+                    if (parameterType == sectionParameterType_t::byte)
+                        startAddress++;
+                    else if (parameterType == sectionParameterType_t::word)
+                        startAddress += 2;
+                    else if (parameterType == sectionParameterType_t::dword)
+                        startAddress += 4;
                 }
-                break;
+            }
+            break;
 
             case sectionParameterType_t::bit:
-            case sectionParameterType_t::halfByte:
+            {
                 // no auto-increment here
-                for (size_t k = 0; k < numberOfParameters; k++)
+                size_t loops = (numberOfParameters / 8) + ((numberOfParameters % 8) != 0);
+
+                //optimize the writing - merge values into single byte
+                for (size_t k = 0; k < loops; k++)
                 {
-                    if (!update(i, j, k, defaultValue))
+                    uint8_t value = 0;
+
+                    for (uint8_t parameter = 0; parameter < 8; parameter++)
+                    {
+                        if (((k * 8) + parameter) >= numberOfParameters)
+                            break;
+
+                        value <<= 1;
+                        value |= defaultValue;
+                    }
+
+                    if (!write(startAddress, value, sectionParameterType_t::byte))
                         return false;
+
+                    startAddress++;
                 }
-                break;
+            }
+            break;
+
+            case sectionParameterType_t::halfByte:
+            {
+                // no auto-increment here
+                size_t loops = (numberOfParameters / 2) + ((numberOfParameters % 2) != 0);
+
+                //optimize the writing - merge values into single byte
+                for (size_t k = 0; k < loops; k++)
+                {
+                    uint8_t value = 0;
+
+                    for (uint8_t parameter = 0; parameter < 2; parameter++)
+                    {
+                        if (((k * 2) + parameter) >= numberOfParameters)
+                            break;
+
+                        value <<= 4;
+                        value |= defaultValue;
+                    }
+
+                    if (!write(startAddress, value, sectionParameterType_t::byte))
+                        return false;
+
+                    startAddress++;
+                }
+            }
+            break;
             }
         }
     }

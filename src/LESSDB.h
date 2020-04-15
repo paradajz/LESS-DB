@@ -108,6 +108,7 @@ class LESSDB
     bool     setStartAddress(uint32_t startAddress);
 
     private:
+    bool     write(uint16_t address, int32_t value, sectionParameterType_t type);
     bool     checkParameters(uint8_t blockID, uint8_t sectionID, size_t parameterIndex);
     uint16_t sectionAddress(uint8_t blockID, uint8_t sectionID);
 
