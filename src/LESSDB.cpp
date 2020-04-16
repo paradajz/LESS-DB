@@ -150,7 +150,7 @@ bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int
         return false;
 
     bool     returnValue  = true;
-    uint16_t startAddress = sectionAddress(blockID, sectionID);
+    uint32_t startAddress = sectionAddress(blockID, sectionID);
     uint8_t  arrayIndex;
 
     switch (block[blockID].section[sectionID].parameterType)
@@ -277,7 +277,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
     if (!checkParameters(blockID, sectionID, parameterIndex))
         return false;
 
-    uint16_t               startAddress  = sectionAddress(blockID, sectionID);
+    uint32_t               startAddress  = sectionAddress(blockID, sectionID);
     sectionParameterType_t parameterType = block[blockID].section[sectionID].parameterType;
 
     uint8_t arrayIndex;
@@ -365,7 +365,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
 /// @param [in] type    Type of variable.
 /// \returns True if writing succedes and read value matches the specified value, false otherwise.
 ///
-bool LESSDB::write(uint16_t address, int32_t value, sectionParameterType_t type)
+bool LESSDB::write(uint32_t address, int32_t value, sectionParameterType_t type)
 {
     if (storageAccess.write(address, value, type))
     {
@@ -402,7 +402,7 @@ bool LESSDB::initData(factoryResetType_t type)
             if (block[i].section[j].preserveOnPartialReset && (type == factoryResetType_t::partial))
                 continue;
 
-            uint16_t startAddress = sectionAddress(i, j);
+            uint32_t startAddress = sectionAddress(i, j);
 
             sectionParameterType_t parameterType      = block[i].section[j].parameterType;
             uint16_t               defaultValue       = block[i].section[j].defaultValue;
@@ -552,7 +552,7 @@ bool LESSDB::checkParameters(uint8_t blockID, uint8_t sectionID, size_t paramete
 /// @param [in] sectionID   Section index.
 /// \returns Section address.
 ///
-uint16_t LESSDB::sectionAddress(uint8_t blockID, uint8_t sectionID)
+uint32_t LESSDB::sectionAddress(uint8_t blockID, uint8_t sectionID)
 {
     return initialAddress + block[blockID].address + block[blockID].section[sectionID].address;
 }

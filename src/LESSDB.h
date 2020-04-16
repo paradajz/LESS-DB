@@ -71,7 +71,7 @@ class LESSDB
         const bool                   preserveOnPartialReset;
         const uint16_t               defaultValue;
         const bool                   autoIncrement;
-        uint16_t                     address;
+        uint32_t                     address;
     } section_t;
 
     ///
@@ -81,7 +81,7 @@ class LESSDB
     {
         const uint8_t    numberOfSections;
         section_t* const section;
-        uint16_t         address;
+        uint32_t         address;
     } block_t;
 
     ///
@@ -108,9 +108,9 @@ class LESSDB
     bool     setStartAddress(uint32_t startAddress);
 
     private:
-    bool     write(uint16_t address, int32_t value, sectionParameterType_t type);
+    bool     write(uint32_t address, int32_t value, sectionParameterType_t type);
     bool     checkParameters(uint8_t blockID, uint8_t sectionID, size_t parameterIndex);
-    uint16_t sectionAddress(uint8_t blockID, uint8_t sectionID);
+    uint32_t sectionAddress(uint8_t blockID, uint8_t sectionID);
 
     ///
     /// \brief Holds amount of blocks.
@@ -167,7 +167,7 @@ class LESSDB
     /// @{
 
     uint8_t  lastValue   = 0;
-    uint16_t lastAddress = 0xFFFF;
+    uint32_t lastAddress = 0xFFFF;
 
     /// @}
 };
