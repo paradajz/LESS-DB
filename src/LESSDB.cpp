@@ -125,7 +125,7 @@ bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks)
 
             memoryUsage += blockUsage;
 
-            if (memoryUsage >= maxSize)
+            if (memoryUsage >= storageAccess.size())
                 return false;
         }
 
@@ -521,7 +521,7 @@ uint32_t LESSDB::currentDBparameters() const
 ///
 uint32_t LESSDB::dbSize() const
 {
-    return maxSize;
+    return storageAccess.size();
 }
 
 ///
@@ -565,7 +565,7 @@ uint32_t LESSDB::sectionAddress(uint8_t blockID, uint8_t sectionID)
 ///
 bool LESSDB::setStartAddress(uint32_t startAddress)
 {
-    if (startAddress >= maxSize)
+    if (startAddress >= storageAccess.size())
         return false;
 
     initialAddress = startAddress;

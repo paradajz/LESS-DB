@@ -488,6 +488,11 @@ namespace
         {
         }
 
+        uint32_t size() override
+        {
+            return LESSDB_SIZE;
+        }
+
         size_t paramUsage(LESSDB::sectionParameterType_t type) override
         {
             switch (type)
@@ -525,7 +530,7 @@ namespace
         bool (*writeCallback)(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type) = nullptr;
     } dbStorageMock;
 
-    LESSDB db(dbStorageMock, LESSDB_SIZE);
+    LESSDB db(dbStorageMock);
 }    // namespace
 
 TEST_SETUP()
@@ -1022,7 +1027,7 @@ TEST_CASE(CachingHalfByte)
     //the simulated database is now initialized
     //create new database object which won't initialize/write data (only the layout will be set)
     //this is used so that database doesn't call ::update function which resets the cached address
-    LESSDB db2(dbStorageMock, LESSDB_SIZE);
+    LESSDB db2(dbStorageMock);
     TEST_ASSERT(db2.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS) == true);
 
     //read the values back
@@ -1036,7 +1041,7 @@ TEST_CASE(CachingHalfByte)
     }
 
     //try reading the same value twice
-    LESSDB db3(dbStorageMock, LESSDB_SIZE);
+    LESSDB db3(dbStorageMock);
     TEST_ASSERT(db3.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS) == true);
 
     TEST_ASSERT(db3.read(0, 0, TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS - 1, readValue) == true);
@@ -1103,7 +1108,7 @@ TEST_CASE(CachingBit)
     //the simulated database is now initialized
     //create new database object which won't initialize/write data (only the layout will be set)
     //this is used so that database doesn't call ::update function which resets the cached address
-    LESSDB db2(dbStorageMock, LESSDB_SIZE);
+    LESSDB db2(dbStorageMock);
     TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS) == true);
 
     //read the values back
@@ -1117,7 +1122,7 @@ TEST_CASE(CachingBit)
     }
 
     //try reading the same value twice
-    LESSDB db3(dbStorageMock, LESSDB_SIZE);
+    LESSDB db3(dbStorageMock);
     TEST_ASSERT(db3.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS) == true);
 
     TEST_ASSERT(db3.read(0, 1, TEST_CACHING_BIT_AMOUNT_OF_PARAMS - 1, readValue) == true);

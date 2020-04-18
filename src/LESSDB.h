@@ -45,11 +45,12 @@ class LESSDB
         public:
         StorageAccess() {}
 
-        virtual void   init()                                                                      = 0;
-        virtual void   clear()                                                                     = 0;
-        virtual bool   read(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type) = 0;
-        virtual bool   write(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type) = 0;
-        virtual size_t paramUsage(LESSDB::sectionParameterType_t type)                             = 0;
+        virtual void     init()                                                                      = 0;
+        virtual uint32_t size()                                                                      = 0;
+        virtual void     clear()                                                                     = 0;
+        virtual bool     read(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type) = 0;
+        virtual bool     write(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type) = 0;
+        virtual size_t   paramUsage(LESSDB::sectionParameterType_t type)                             = 0;
     };
 
     ///
@@ -90,10 +91,8 @@ class LESSDB
     /// @param [in] writeCallback   Reference to function performing the actual writing to memory.
     /// @param [in] maxSize         Specifies maximum database size in bytes.
     ///
-    LESSDB(StorageAccess& storageAccess,
-           uint32_t       maxSize)
+    LESSDB(StorageAccess& storageAccess)
         : storageAccess(storageAccess)
-        , maxSize(maxSize)
     {}
 
     bool     setLayout(block_t* pointer, uint8_t numberOfBlocks);
@@ -155,11 +154,6 @@ class LESSDB
     /// \brief Reference to object which provides actual access to the storage system.
     ///
     StorageAccess& storageAccess;
-
-    ///
-    /// \brief Holds the maximum size of database system in bytes.
-    ///
-    const uint32_t maxSize;
 
     ///
     /// \brief Cached values for bit and half-byte parameters.
