@@ -161,7 +161,7 @@ class LESSDB
     /// @{
 
     uint8_t  lastReadValue   = 0;
-    uint32_t lastReadAddress = 0xFFFF;
+    uint32_t lastReadAddress = 0xFFFFFFFF;
 
     /// @}
 };
