@@ -103,6 +103,8 @@ class LESSDB
     uint32_t currentDBsize() const;
     uint32_t currentDBparameters() const;
     uint32_t dbSize() const;
+    uint32_t lastParameterAddress() const;
+    uint32_t nextParameterAddress() const;
     bool     initData(factoryResetType_t type = factoryResetType_t::full);
     bool     setStartAddress(uint32_t startAddress);
 
@@ -164,4 +166,9 @@ class LESSDB
     uint32_t lastReadAddress = 0xFFFFFFFF;
 
     /// @}
+
+    ///
+    /// \brief Holds the database address at which last parameter is stored.
+    ///
+    uint32_t nextBlockAddress;
 };

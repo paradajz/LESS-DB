@@ -54,7 +54,7 @@ bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks)
                 {
                     uint8_t lastSection = j - 1;
 
-                    switch (block[i].section[j - 1].parameterType)
+                    switch (block[i].section[lastSection].parameterType)
                     {
                     case sectionParameterType_t::bit:
                         block[i].section[j].address =
@@ -117,16 +117,51 @@ bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks)
                 }
             }
 
-            if (!i)
-                block[0].address = 0;
-
-            if (i < blockCounter - 1)
-                block[i + 1].address = block[i].address + blockUsage;
-
             memoryUsage += blockUsage;
 
             if (memoryUsage >= storageAccess.size())
                 return false;
+
+            uint16_t lastSection = block[i].numberOfSections - 1;
+
+            nextBlockAddress = block[i].address + block[i].section[lastSection].address;
+
+            switch (block[i].section[lastSection].parameterType)
+            {
+            case sectionParameterType_t::bit:
+                nextBlockAddress +=
+                    (block[i].section[lastSection].numberOfParameters % 8 != 0) +
+                    (block[i].section[lastSection].numberOfParameters / 8);
+                break;
+
+            case sectionParameterType_t::byte:
+                nextBlockAddress +=
+                    block[i].section[lastSection].numberOfParameters;
+                break;
+
+            case sectionParameterType_t::halfByte:
+                nextBlockAddress +=
+                    (block[i].section[lastSection].numberOfParameters % 2 != 0) +
+                    (block[i].section[lastSection].numberOfParameters / 2);
+                break;
+
+            case sectionParameterType_t::word:
+                nextBlockAddress +=
+                    2 * block[i].section[lastSection].numberOfParameters;
+                break;
+
+            default:
+                // case sectionParameterType_t::dword:
+                nextBlockAddress +=
+                    4 * block[i].section[lastSection].numberOfParameters;
+                break;
+            }
+
+            if (!i)
+                block[0].address = 0;
+
+            if (i < (blockCounter - 1))
+                block[i + 1].address = nextBlockAddress;
         }
 
         return true;
@@ -522,6 +557,22 @@ uint32_t LESSDB::currentDBparameters() const
 uint32_t LESSDB::dbSize() const
 {
     return storageAccess.size();
+}
+
+///
+/// \brief Returns the database address at which last parameter is stored.
+///
+uint32_t LESSDB::lastParameterAddress() const
+{
+    return nextBlockAddress - 1;
+}
+
+///
+/// \brief Returns first unused database address.
+///
+uint32_t LESSDB::nextParameterAddress() const
+{
+    return nextBlockAddress;
 }
 
 ///
