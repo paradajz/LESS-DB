@@ -159,14 +159,14 @@ bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int
         arrayIndex = parameterIndex >> 3;
         startAddress += arrayIndex;
 
-        if (startAddress == lastAddress)
+        if (startAddress == lastReadAddress)
         {
-            value = (bool)(lastValue & bitMask[parameterIndex - (arrayIndex << 3)]);
+            value = (bool)(lastReadValue & bitMask[parameterIndex - (arrayIndex << 3)]);
         }
         else if (storageAccess.read(startAddress, value, sectionParameterType_t::bit))
         {
-            lastValue = value;
-            value     = (bool)(value & bitMask[parameterIndex - (arrayIndex << 3)]);
+            lastReadValue = value;
+            value         = (bool)(value & bitMask[parameterIndex - (arrayIndex << 3)]);
         }
         else
         {
@@ -191,16 +191,16 @@ bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int
     case sectionParameterType_t::halfByte:
         startAddress += parameterIndex / 2;
 
-        if (startAddress == lastAddress)
+        if (startAddress == lastReadAddress)
         {
-            value = lastValue;
+            value = lastReadValue;
 
             if (parameterIndex % 2)
                 value >>= 4;
         }
         else if (storageAccess.read(startAddress, value, sectionParameterType_t::halfByte))
         {
-            lastValue = value;
+            lastReadValue = value;
 
             if (parameterIndex % 2)
                 value >>= 4;
@@ -239,7 +239,7 @@ bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int
     }
 
     if (returnValue)
-        lastAddress = startAddress;
+        lastReadAddress = startAddress;
 
     return returnValue;
 }
@@ -288,7 +288,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
     {
     case sectionParameterType_t::bit:
         // reset cached address to initiate new read
-        lastAddress = 0xFFFF;
+        lastReadAddress = 0xFFFF;
         // sanitize input
         newValue &= (int32_t)0x01;
         arrayIndex = parameterIndex / 8;
@@ -317,7 +317,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
 
     case sectionParameterType_t::halfByte:
         // reset cached address to initiate new read
-        lastAddress = 0xFFFF;
+        lastReadAddress = 0xFFFF;
         // sanitize input
         newValue &= (int32_t)0x0F;
         startAddress += (parameterIndex / 2);

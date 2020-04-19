@@ -160,8 +160,8 @@ class LESSDB
     /// Used if current requested address is the same as previous one.
     /// @{
 
-    uint8_t  lastValue   = 0;
-    uint32_t lastAddress = 0xFFFF;
+    uint8_t  lastReadValue   = 0;
+    uint32_t lastReadAddress = 0xFFFF;
 
     /// @}
 };
