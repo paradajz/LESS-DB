@@ -175,7 +175,7 @@ bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks)
 /// @param [in] blockID         Block index.
 /// @param [in] sectionID       Section index.
 /// @param [in] parameterIndex  Parameter index.
-/// @param [in, out] value      Pointer to variable in which read value will be stored.
+/// @param [in, out] value      Reference to variable in which read value will be stored.
 /// \returns True on success.
 ///
 bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t& value)
@@ -280,6 +280,18 @@ bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int
 }
 
 ///
+/// \brief Reads a value from database.
+/// @param [in] address         Database address from which to read.
+/// @param [in, out] value      Reference to variable in which read value will be stored.
+/// @param [in] type            Type of value to read.
+/// \returns True on success.
+///
+bool LESSDB::read(uint32_t address, int32_t& value, sectionParameterType_t type)
+{
+    return storageAccess.read(address, value, type);
+}
+
+///
 /// \brief Reads a value from database without error checking.
 /// @param [in] blockID         Block index.
 /// @param [in] sectionID       Section index.
@@ -291,6 +303,21 @@ int32_t LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex)
     int32_t value = -1;
 
     read(blockID, sectionID, parameterIndex, value);
+
+    return value;
+}
+
+///
+/// \brief Reads a byte value from database without error checking.
+/// @param [in] address         Database address from which to read.
+/// @param [in] type            Type of value to read.
+/// \returns Value from database.
+///
+int32_t LESSDB::read(uint32_t address, sectionParameterType_t type)
+{
+    int32_t value = -1;
+
+    read(address, value, type);
 
     return value;
 }
@@ -391,6 +418,18 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
     }
 
     return false;
+}
+
+///
+/// \brief Updates value for specified database address.
+/// @param [in] address     Address to which to write the value.
+/// @param [in] newValue    New value for specified address.
+/// @param [in] type        Type of value to write at specified address.
+/// \returns True on success, false otherwise.
+///
+bool LESSDB::update(uint32_t address, int32_t newValue, sectionParameterType_t type)
+{
+    return write(address, newValue, type);
 }
 
 ///

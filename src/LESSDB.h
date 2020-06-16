@@ -98,8 +98,11 @@ class LESSDB
     bool     setLayout(block_t* pointer, uint8_t numberOfBlocks);
     void     clear();
     bool     read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t& value);
+    bool     read(uint32_t address, int32_t& value, sectionParameterType_t type);
     int32_t  read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex);
+    int32_t  read(uint32_t address, sectionParameterType_t type);
     bool     update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t newValue);
+    bool     update(uint32_t address, int32_t newValue, sectionParameterType_t type);
     uint32_t currentDBsize() const;
     uint32_t currentDBparameters() const;
     uint32_t dbSize() const;
