@@ -769,7 +769,6 @@ TEST_CASE(ErrorCheck)
     LESSDB::block_t outOfBoundsLayout[1] = {
         // block 0
         {
-            .address          = 0,
             .numberOfSections = 1,
             .section          = outOfBoundsSection,
         },
@@ -1015,7 +1014,6 @@ TEST_CASE(CachingHalfByte)
     LESSDB::block_t cachingLayout[1] = {
         // block 0
         {
-            .address          = 0,
             .numberOfSections = TEST_CACHING_HALFBYTE_AMOUNT_OF_SECTIONS,
             .section          = cachingTestBlock0Sections,
         }
@@ -1096,7 +1094,6 @@ TEST_CASE(CachingBit)
     LESSDB::block_t cachingLayout[1] = {
         // block 0
         {
-            .address          = 0,
             .numberOfSections = TEST_CACHING_BIT_AMOUNT_OF_SECTIONS,
             .section          = cachingTestBlock0Sections,
         }
