@@ -30,94 +30,93 @@ bool LESSDB::init()
 
 ///
 /// \brief Calculates all addresses for specified blocks and sections.
-/// @param [in] pointer         Pointer to database structure.
+/// @param [in] layout          Reference to database structure.
 /// @param [in] numberOfBlocks  Total number of blocks in database structure.
 /// \returns True on success, false otherwise.
 ///
-bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks)
+bool LESSDB::setLayout(std::vector<block_t>& layout)
 {
     memoryUsage      = 0;
     memoryParameters = 0;
 
-    if ((pointer != nullptr) && numberOfBlocks)
+    if (layout.size())
     {
-        block        = pointer;
-        blockCounter = numberOfBlocks;
+        block = &layout;
 
-        for (int i = 0; i < blockCounter; i++)
+        for (size_t i = 0; i < block->size(); i++)
         {
             uint32_t blockUsage = 0;
 
-            for (int j = 0; j < block[i].numberOfSections; j++)
+            for (size_t j = 0; j < block->at(i).section.size(); j++)
             {
                 if (!j)
                 {
                     // first section address is always 0
-                    block[i].section[0].address = 0;
+                    block->at(i).section[0].address = 0;
                 }
                 else
                 {
                     uint8_t lastSection = j - 1;
 
-                    switch (block[i].section[lastSection].parameterType)
+                    switch (block->at(i).section[lastSection].parameterType)
                     {
                     case sectionParameterType_t::bit:
-                        block[i].section[j].address =
-                            (block[i].section[lastSection].numberOfParameters % 8 != 0) +
-                            (block[i].section[lastSection].numberOfParameters / 8) +
-                            block[i].section[lastSection].address;
+                        block->at(i).section[j].address =
+                            (block->at(i).section[lastSection].numberOfParameters % 8 != 0) +
+                            (block->at(i).section[lastSection].numberOfParameters / 8) +
+                            block->at(i).section[lastSection].address;
                         break;
 
                     case sectionParameterType_t::byte:
-                        block[i].section[j].address =
-                            block[i].section[lastSection].numberOfParameters +
-                            block[i].section[lastSection].address;
+                        block->at(i).section[j].address =
+                            block->at(i).section[lastSection].numberOfParameters +
+                            block->at(i).section[lastSection].address;
                         break;
 
                     case sectionParameterType_t::halfByte:
-                        block[i].section[j].address =
-                            (block[i].section[lastSection].numberOfParameters % 2 != 0) +
-                            (block[i].section[lastSection].numberOfParameters / 2) +
-                            block[i].section[lastSection].address;
+                        block->at(i).section[j].address =
+                            (block->at(i).section[lastSection].numberOfParameters % 2 != 0) +
+                            (block->at(i).section[lastSection].numberOfParameters / 2) +
+                            block->at(i).section[lastSection].address;
                         break;
 
                     case sectionParameterType_t::word:
-                        block[i].section[j].address =
-                            2 * block[i].section[lastSection].numberOfParameters +
-                            block[i].section[lastSection].address;
+                        block->at(i).section[j].address =
+                            2 * block->at(i).section[lastSection].numberOfParameters +
+                            block->at(i).section[lastSection].address;
                         break;
 
                     default:
                         // case sectionParameterType_t::dword:
-                        block[i].section[j].address =
-                            4 * block[i].section[lastSection].numberOfParameters +
-                            block[i].section[lastSection].address;
+                        block->at(i).section[j].address =
+                            4 * block->at(i).section[lastSection].numberOfParameters +
+                            block->at(i).section[lastSection].address;
                         break;
                     }
                 }
 
-                memoryParameters += block[i].section[j].numberOfParameters;
+                memoryParameters += block->at(i).section[j].numberOfParameters;
 
-                switch (block[i].section[j].parameterType)
+                switch (block->at(i).section[j].parameterType)
                 {
                 case sectionParameterType_t::bit:
                     blockUsage += (storageAccess.paramUsage(sectionParameterType_t::bit) *
-                                   ((block[i].section[j].numberOfParameters % 8 != 0) +
-                                    block[i].section[j].numberOfParameters / 8));
+                                   ((block->at(i).section[j].numberOfParameters % 8 != 0) +
+                                    block->at(i).section[j].numberOfParameters / 8));
                     break;
 
                 case sectionParameterType_t::halfByte:
                     blockUsage += (storageAccess.paramUsage(sectionParameterType_t::halfByte) *
-                                   ((block[i].section[j].numberOfParameters % 2 != 0) +
-                                    block[i].section[j].numberOfParameters / 2));
+                                   ((block->at(i).section[j].numberOfParameters % 2 != 0) +
+                                    block->at(i).section[j].numberOfParameters / 2));
                     break;
 
                 case sectionParameterType_t::byte:
                 case sectionParameterType_t::word:
                 case sectionParameterType_t::dword:
                 default:
-                    blockUsage += (storageAccess.paramUsage(block[i].section[j].parameterType) *
-                                   block[i].section[j].numberOfParameters);
+                    blockUsage += (storageAccess.paramUsage(block->at(i).section[j].parameterType) *
+                                   block->at(i).section[j].numberOfParameters);
                     break;
                 }
             }
@@ -127,46 +126,46 @@ bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks)
             if (memoryUsage >= storageAccess.size())
                 return false;
 
-            uint16_t lastSection = block[i].numberOfSections - 1;
+            uint16_t lastSection = block->at(i).section.size() - 1;
 
-            nextBlockAddress = block[i].address + block[i].section[lastSection].address;
+            nextBlockAddress = block->at(i).address + block->at(i).section[lastSection].address;
 
-            switch (block[i].section[lastSection].parameterType)
+            switch (block->at(i).section[lastSection].parameterType)
             {
             case sectionParameterType_t::bit:
                 nextBlockAddress +=
-                    (block[i].section[lastSection].numberOfParameters % 8 != 0) +
-                    (block[i].section[lastSection].numberOfParameters / 8);
+                    (block->at(i).section[lastSection].numberOfParameters % 8 != 0) +
+                    (block->at(i).section[lastSection].numberOfParameters / 8);
                 break;
 
             case sectionParameterType_t::byte:
                 nextBlockAddress +=
-                    block[i].section[lastSection].numberOfParameters;
+                    block->at(i).section[lastSection].numberOfParameters;
                 break;
 
             case sectionParameterType_t::halfByte:
                 nextBlockAddress +=
-                    (block[i].section[lastSection].numberOfParameters % 2 != 0) +
-                    (block[i].section[lastSection].numberOfParameters / 2);
+                    (block->at(i).section[lastSection].numberOfParameters % 2 != 0) +
+                    (block->at(i).section[lastSection].numberOfParameters / 2);
                 break;
 
             case sectionParameterType_t::word:
                 nextBlockAddress +=
-                    2 * block[i].section[lastSection].numberOfParameters;
+                    2 * block->at(i).section[lastSection].numberOfParameters;
                 break;
 
             default:
                 // case sectionParameterType_t::dword:
                 nextBlockAddress +=
-                    4 * block[i].section[lastSection].numberOfParameters;
+                    4 * block->at(i).section[lastSection].numberOfParameters;
                 break;
             }
 
             if (!i)
-                block[0].address = 0;
+                block->at(0).address = 0;
 
-            if (i < (blockCounter - 1))
-                block[i + 1].address = nextBlockAddress;
+            if (i < (block->size() - 1))
+                block->at(i + 1).address = nextBlockAddress;
         }
 
         return true;
@@ -193,7 +192,7 @@ bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int
     uint32_t startAddress = sectionAddress(blockID, sectionID);
     uint8_t  arrayIndex;
 
-    switch (block[blockID].section[sectionID].parameterType)
+    switch (block->at(blockID).section[sectionID].parameterType)
     {
     case sectionParameterType_t::bit:
         arrayIndex = parameterIndex >> 3;
@@ -345,7 +344,7 @@ bool LESSDB::update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, i
         return false;
 
     uint32_t               startAddress  = sectionAddress(blockID, sectionID);
-    sectionParameterType_t parameterType = block[blockID].section[sectionID].parameterType;
+    sectionParameterType_t parameterType = block->at(blockID).section[sectionID].parameterType;
 
     uint8_t arrayIndex;
     int32_t arrayValue;
@@ -466,7 +465,7 @@ bool LESSDB::clear()
 }
 
 ///
-/// \brief Writes default values to memory from defaultValue parameter.
+/// \brief Writes default values to memory from defaultValues parameter.
 /// @param [in] type    Type of initialization (partial or full).
 ///                     Full will simply overwrite currently existing data.
 ///                     Partial will leave data as is, but only if
@@ -474,18 +473,17 @@ bool LESSDB::clear()
 ///
 bool LESSDB::initData(factoryResetType_t type)
 {
-    for (uint8_t i = 0; i < blockCounter; i++)
+    for (uint8_t i = 0; i < block->size(); i++)
     {
-        for (uint8_t j = 0; j < block[i].numberOfSections; j++)
+        for (uint8_t j = 0; j < block->at(i).section.size(); j++)
         {
-            if (block[i].section[j].preserveOnPartialReset && (type == factoryResetType_t::partial))
+            if (block->at(i).section[j].preserveOnPartialReset && (type == factoryResetType_t::partial))
                 continue;
 
             uint32_t startAddress = sectionAddress(i, j);
 
-            sectionParameterType_t parameterType      = block[i].section[j].parameterType;
-            uint16_t               defaultValue       = block[i].section[j].defaultValue;
-            size_t                 numberOfParameters = block[i].section[j].numberOfParameters;
+            sectionParameterType_t parameterType      = block->at(i).section[j].parameterType;
+            size_t                 numberOfParameters = block->at(i).section[j].numberOfParameters;
 
             switch (parameterType)
             {
@@ -495,15 +493,36 @@ bool LESSDB::initData(factoryResetType_t type)
             {
                 for (size_t k = 0; k < numberOfParameters; k++)
                 {
-                    if (block[i].section[j].autoIncrement)
+                    if (block->at(i).section[j].autoIncrement)
                     {
-                        if (!write(startAddress, defaultValue + k, parameterType))
-                            return false;
+                        if (block->at(i).section[j].defaultValues.size() == 1)
+                        {
+                            if (!write(startAddress, block->at(i).section[j].defaultValues.at(0) + k, parameterType))
+                                return false;
+                        }
+                        else
+                        {
+                            if (!write(startAddress, 0, parameterType))
+                                return false;
+                        }
                     }
                     else
                     {
-                        if (!write(startAddress, defaultValue, parameterType))
-                            return false;
+                        if (block->at(i).section[j].defaultValues.size() == numberOfParameters)
+                        {
+                            if (!write(startAddress, block->at(i).section[j].defaultValues.at(k), parameterType))
+                                return false;
+                        }
+                        else if (block->at(i).section[j].defaultValues.size() == 1)
+                        {
+                            if (!write(startAddress, block->at(i).section[j].defaultValues.at(0), parameterType))
+                                return false;
+                        }
+                        else
+                        {
+                            if (!write(startAddress, 0, parameterType))
+                                return false;
+                        }
                     }
 
                     if (parameterType == sectionParameterType_t::byte)
@@ -532,7 +551,13 @@ bool LESSDB::initData(factoryResetType_t type)
                             break;
 
                         value <<= 1;
-                        value |= defaultValue;
+
+                        if (block->at(i).section[j].defaultValues.size() == numberOfParameters)
+                            value |= block->at(i).section[j].defaultValues.at(i);
+                        else if (block->at(i).section[j].defaultValues.size() == 1)
+                            value |= block->at(i).section[j].defaultValues.at(0);
+                        else
+                            value |= 0;
                     }
 
                     if (!write(startAddress, value, sectionParameterType_t::byte))
@@ -559,7 +584,13 @@ bool LESSDB::initData(factoryResetType_t type)
                             break;
 
                         value <<= 4;
-                        value |= defaultValue;
+
+                        if (block->at(i).section[j].defaultValues.size() == numberOfParameters)
+                            value |= block->at(i).section[j].defaultValues.at(i);
+                        else if (block->at(i).section[j].defaultValues.size() == 1)
+                            value |= block->at(i).section[j].defaultValues.at(0);
+                        else
+                            value |= 0;
                     }
 
                     if (!write(startAddress, value, sectionParameterType_t::byte))
@@ -629,13 +660,13 @@ uint32_t LESSDB::nextParameterAddress() const
 bool LESSDB::checkParameters(uint8_t blockID, uint8_t sectionID, size_t parameterIndex)
 {
     // sanity check
-    if (blockID >= blockCounter)
+    if (blockID >= block->size())
         return false;
 
-    if (sectionID >= block[blockID].numberOfSections)
+    if (sectionID >= block->at(blockID).section.size())
         return false;
 
-    if (parameterIndex >= block[blockID].section[sectionID].numberOfParameters)
+    if (parameterIndex >= block->at(blockID).section[sectionID].numberOfParameters)
         return false;
 
     return true;
@@ -649,7 +680,7 @@ bool LESSDB::checkParameters(uint8_t blockID, uint8_t sectionID, size_t paramete
 ///
 uint32_t LESSDB::sectionAddress(uint8_t blockID, uint8_t sectionID)
 {
-    return initialAddress + block[blockID].address + block[blockID].section[sectionID].address;
+    return initialAddress + block->at(blockID).address + block->at(blockID).section[sectionID].address;
 }
 
 ///

@@ -3,7 +3,6 @@
 #include "LESSDB.h"
 #include <string.h>
 
-#define NUMBER_OF_BLOCKS   6
 #define NUMBER_OF_SECTIONS 6
 #define TEST_BLOCK_INDEX   0
 #define LESSDB_SIZE        1021
@@ -32,383 +31,365 @@ namespace
         30,
     };
 
-    LESSDB::section_t block0sections[NUMBER_OF_SECTIONS] = {
-        {
-            .numberOfParameters     = sectionParams[0],
-            .parameterType          = sectionTypes[0],
-            .preserveOnPartialReset = false,
-            .defaultValue           = defaultValues[0],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[1],
-            .parameterType          = sectionTypes[1],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[1],
-            .autoIncrement          = true,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[2],
-            .parameterType          = sectionTypes[2],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[2],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[3],
-            .parameterType          = sectionTypes[3],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[3],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[4],
-            .parameterType          = sectionTypes[4],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[4],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[5],
-            .parameterType          = sectionTypes[5],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[5],
-            .autoIncrement          = false,
-            .address                = 0,
-        }
-    };
-
-    LESSDB::section_t block1sections[NUMBER_OF_SECTIONS] = {
-        {
-            .numberOfParameters     = sectionParams[1],
-            .parameterType          = sectionTypes[1],
-            .preserveOnPartialReset = false,
-            .defaultValue           = defaultValues[1],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[2],
-            .parameterType          = sectionTypes[2],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[2],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[3],
-            .parameterType          = sectionTypes[3],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[3],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[4],
-            .parameterType          = sectionTypes[4],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[4],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[5],
-            .parameterType          = sectionTypes[5],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[5],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[0],
-            .parameterType          = sectionTypes[0],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[0],
-            .autoIncrement          = false,
-            .address                = 0,
-        }
-    };
-
-    LESSDB::section_t block2sections[NUMBER_OF_SECTIONS] = {
-        {
-            .numberOfParameters     = sectionParams[2],
-            .parameterType          = sectionTypes[2],
-            .preserveOnPartialReset = false,
-            .defaultValue           = defaultValues[2],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[3],
-            .parameterType          = sectionTypes[3],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[3],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[4],
-            .parameterType          = sectionTypes[4],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[4],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[5],
-            .parameterType          = sectionTypes[5],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[5],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[0],
-            .parameterType          = sectionTypes[0],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[0],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[1],
-            .parameterType          = sectionTypes[1],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[1],
-            .autoIncrement          = false,
-            .address                = 0,
-        }
-    };
-
-    LESSDB::section_t block3sections[NUMBER_OF_SECTIONS] = {
-        {
-            .numberOfParameters     = sectionParams[3],
-            .parameterType          = sectionTypes[3],
-            .preserveOnPartialReset = false,
-            .defaultValue           = defaultValues[3],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[4],
-            .parameterType          = sectionTypes[4],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[4],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[5],
-            .parameterType          = sectionTypes[5],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[5],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[0],
-            .parameterType          = sectionTypes[0],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[0],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[1],
-            .parameterType          = sectionTypes[1],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[1],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[2],
-            .parameterType          = sectionTypes[2],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[2],
-            .autoIncrement          = false,
-            .address                = 0,
-        }
-    };
-
-    LESSDB::section_t block4sections[NUMBER_OF_SECTIONS] = {
-        {
-            .numberOfParameters     = sectionParams[4],
-            .parameterType          = sectionTypes[4],
-            .preserveOnPartialReset = false,
-            .defaultValue           = defaultValues[4],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[5],
-            .parameterType          = sectionTypes[5],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[5],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[0],
-            .parameterType          = sectionTypes[0],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[0],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[1],
-            .parameterType          = sectionTypes[1],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[1],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[2],
-            .parameterType          = sectionTypes[2],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[2],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[3],
-            .parameterType          = sectionTypes[3],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[3],
-            .autoIncrement          = false,
-            .address                = 0,
-        }
-    };
-
-    LESSDB::section_t block5sections[NUMBER_OF_SECTIONS] = {
-        {
-            .numberOfParameters     = sectionParams[5],
-            .parameterType          = sectionTypes[5],
-            .preserveOnPartialReset = false,
-            .defaultValue           = defaultValues[5],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[0],
-            .parameterType          = sectionTypes[0],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[0],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[1],
-            .parameterType          = sectionTypes[1],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[1],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[2],
-            .parameterType          = sectionTypes[2],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[2],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[3],
-            .parameterType          = sectionTypes[3],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[3],
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = sectionParams[4],
-            .parameterType          = sectionTypes[4],
-            .preserveOnPartialReset = true,
-            .defaultValue           = defaultValues[4],
-            .autoIncrement          = false,
-            .address                = 0,
-        }
-    };
-
-    LESSDB::block_t dbLayout[NUMBER_OF_BLOCKS] = {
+    std::vector<LESSDB::block_t> dbLayout = {
         // block 0
         {
-            .numberOfSections = NUMBER_OF_SECTIONS,
-            .section          = block0sections,
-            .address          = 0,
+            .section = {
+                {
+                    .numberOfParameters     = sectionParams[0],
+                    .parameterType          = sectionTypes[0],
+                    .preserveOnPartialReset = false,
+                    .defaultValues          = { 1 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[1],
+                    .parameterType          = sectionTypes[1],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 10 },
+                    .autoIncrement          = true,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[2],
+                    .parameterType          = sectionTypes[2],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 15 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[3],
+                    .parameterType          = sectionTypes[3],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 20 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[4],
+                    .parameterType          = sectionTypes[4],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 25 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[5],
+                    .parameterType          = sectionTypes[5],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 30 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+            },
+            .address = 0,
         },
 
         // block 1
         {
-            .numberOfSections = NUMBER_OF_SECTIONS,
-            .section          = block1sections,
-            .address          = 0,
+            .section = {
+                {
+                    .numberOfParameters     = sectionParams[1],
+                    .parameterType          = sectionTypes[1],
+                    .preserveOnPartialReset = false,
+                    .defaultValues          = { 10 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[2],
+                    .parameterType          = sectionTypes[2],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 15 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[3],
+                    .parameterType          = sectionTypes[3],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 20 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[4],
+                    .parameterType          = sectionTypes[4],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 25 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[5],
+                    .parameterType          = sectionTypes[5],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 30 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[0],
+                    .parameterType          = sectionTypes[0],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 1 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+            },
+            .address = 0,
         },
 
         // block 2
         {
-            .numberOfSections = NUMBER_OF_SECTIONS,
-            .section          = block2sections,
-            .address          = 0,
+            .section = {
+                {
+                    .numberOfParameters     = sectionParams[2],
+                    .parameterType          = sectionTypes[2],
+                    .preserveOnPartialReset = false,
+                    .defaultValues          = { 15 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[3],
+                    .parameterType          = sectionTypes[3],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 20 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[4],
+                    .parameterType          = sectionTypes[4],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 25 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[5],
+                    .parameterType          = sectionTypes[5],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 30 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[0],
+                    .parameterType          = sectionTypes[0],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 1 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[1],
+                    .parameterType          = sectionTypes[1],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 10 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+            },
+            .address = 0,
         },
 
         // block 3
         {
-            .numberOfSections = NUMBER_OF_SECTIONS,
-            .section          = block3sections,
-            .address          = 0,
+            .section = {
+                {
+                    .numberOfParameters     = sectionParams[3],
+                    .parameterType          = sectionTypes[3],
+                    .preserveOnPartialReset = false,
+                    .defaultValues          = { 20 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[4],
+                    .parameterType          = sectionTypes[4],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 25 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[5],
+                    .parameterType          = sectionTypes[5],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 30 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[0],
+                    .parameterType          = sectionTypes[0],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 1 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[1],
+                    .parameterType          = sectionTypes[1],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 10 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[2],
+                    .parameterType          = sectionTypes[2],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 15 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+            },
+            .address = 0,
         },
 
         // block 4
         {
-            .numberOfSections = NUMBER_OF_SECTIONS,
-            .section          = block4sections,
-            .address          = 0,
+            .section = {
+                {
+                    .numberOfParameters     = sectionParams[4],
+                    .parameterType          = sectionTypes[4],
+                    .preserveOnPartialReset = false,
+                    .defaultValues          = { 25 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[5],
+                    .parameterType          = sectionTypes[5],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 30 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[0],
+                    .parameterType          = sectionTypes[0],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 1 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[1],
+                    .parameterType          = sectionTypes[1],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 10 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[2],
+                    .parameterType          = sectionTypes[2],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 15 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[3],
+                    .parameterType          = sectionTypes[3],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 20 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+            },
+            .address = 0,
         },
 
         // block 5
         {
-            .numberOfSections = NUMBER_OF_SECTIONS,
-            .section          = block5sections,
-            .address          = 0,
+            .section = {
+                {
+                    .numberOfParameters     = sectionParams[5],
+                    .parameterType          = sectionTypes[5],
+                    .preserveOnPartialReset = false,
+                    .defaultValues          = { 30 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[0],
+                    .parameterType          = sectionTypes[0],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 1 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[1],
+                    .parameterType          = sectionTypes[1],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 10 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[2],
+                    .parameterType          = sectionTypes[2],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 15 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[3],
+                    .parameterType          = sectionTypes[3],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 20 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = sectionParams[4],
+                    .parameterType          = sectionTypes[4],
+                    .preserveOnPartialReset = true,
+                    .defaultValues          = { 25 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+            },
+            .address = 0,
         }
     };
 
@@ -543,7 +524,7 @@ TEST_SETUP()
     dbStorageMock.writeCallback = memoryWrite;
 
     TEST_ASSERT(db.dbSize() == LESSDB_SIZE);
-    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
+    TEST_ASSERT(db.setLayout(dbLayout) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 }
 
@@ -593,7 +574,7 @@ TEST_CASE(Read)
 
     // perform the same round of tests with different starting point
     TEST_ASSERT(db.setStartAddress(100) == true);
-    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
+    TEST_ASSERT(db.setLayout(dbLayout) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     // bit section
@@ -742,7 +723,7 @@ TEST_CASE(ErrorCheck)
     TEST_ASSERT(returnValue == false);
 
     // try calling read with invalid block
-    returnValue = db.read(NUMBER_OF_BLOCKS, 0, 0, value);
+    returnValue = db.read(dbLayout.size(), 0, 0, value);
     TEST_ASSERT(returnValue == false);
 
     // update
@@ -756,35 +737,25 @@ TEST_CASE(ErrorCheck)
     TEST_ASSERT(returnValue == false);
 
     // try to init database with too many parameters
-    LESSDB::section_t outOfBoundsSection[1] = {
-        {
-            .numberOfParameters = LESSDB_SIZE + 1,
-            .parameterType =
-                LESSDB::sectionParameterType_t::byte,
-            .preserveOnPartialReset = false,
-            .defaultValue           = 1,
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-    };
-
-    LESSDB::block_t outOfBoundsLayout[1] = {
+    std::vector<LESSDB::block_t> outOfBoundsLayout = {
         // block 0
         {
-            .numberOfSections = 1,
-            .section          = outOfBoundsSection,
+            .section = {
+                {
+                    .numberOfParameters = LESSDB_SIZE + 1,
+                    .parameterType =
+                        LESSDB::sectionParameterType_t::byte,
+                    .preserveOnPartialReset = false,
+                    .defaultValues          = { 1 },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+            },
+            .address = 0,
         },
     };
 
-    returnValue = db.setLayout(outOfBoundsLayout, 1);
-    TEST_ASSERT(returnValue == false);
-
-    // try to init database with null pointer
-    returnValue = db.setLayout(NULL, 1);
-    TEST_ASSERT(returnValue == false);
-
-    // try to init database with zero blocks
-    returnValue = db.setLayout(dbLayout, 0);
+    returnValue = db.setLayout(outOfBoundsLayout);
     TEST_ASSERT(returnValue == false);
 }
 
@@ -840,42 +811,6 @@ TEST_CASE(ClearDB)
     returnValue = db.read(TEST_BLOCK_INDEX, 4, 1, value);
     TEST_ASSERT(value == 0);
     TEST_ASSERT(returnValue == true);
-}
-
-TEST_CASE(DBsize)
-{
-    // test if calculated database size matches the one returned from object
-    int expectedSize = 0;
-    int dbSize       = db.currentDBsize();
-
-    for (int i = 0; i < NUMBER_OF_SECTIONS; i++)
-    {
-        switch (sectionTypes[i])
-        {
-        case LESSDB::sectionParameterType_t::bit:
-            expectedSize += ((sectionParams[i] % 8 != 0) + sectionParams[i] / 8);
-            break;
-
-        case LESSDB::sectionParameterType_t::byte:
-            expectedSize += sectionParams[i];
-            break;
-
-        case LESSDB::sectionParameterType_t::halfByte:
-            expectedSize += ((sectionParams[i] % 2 != 0) + sectionParams[i] / 2);
-            break;
-
-        case LESSDB::sectionParameterType_t::word:
-            expectedSize += (sectionParams[i] * 2);
-            break;
-
-        case LESSDB::sectionParameterType_t::dword:
-            expectedSize += (sectionParams[i] * 4);
-            break;
-        }
-    }
-
-    // test uses blocks with same sections
-    TEST_ASSERT(dbSize == expectedSize * NUMBER_OF_BLOCKS);
 }
 
 TEST_CASE(FactoryReset)
@@ -978,57 +913,53 @@ TEST_CASE(CachingHalfByte)
     //this is used to avoid accessing the database if not needed
 
 #define TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS        4
-#define TEST_CACHING_HALFBYTE_AMOUNT_OF_SECTIONS      3
-#define TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS        1
 #define TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE 10
 #define TEST_CACHING_HALFBYTE_SECTION_1_DEFAULT_VALUE 4
 #define TEST_CACHING_HALFBYTE_SECTION_2_DEFAULT_VALUE 0
 
-    LESSDB::section_t cachingTestBlock0Sections[TEST_CACHING_HALFBYTE_AMOUNT_OF_SECTIONS] = {
-        {
-            .numberOfParameters     = TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS,
-            .parameterType          = LESSDB::sectionParameterType_t::halfByte,
-            .preserveOnPartialReset = false,
-            .defaultValue           = TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE,
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS,
-            .parameterType          = LESSDB::sectionParameterType_t::halfByte,
-            .preserveOnPartialReset = false,
-            .defaultValue           = TEST_CACHING_HALFBYTE_SECTION_1_DEFAULT_VALUE,
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS,
-            .parameterType          = LESSDB::sectionParameterType_t::halfByte,
-            .preserveOnPartialReset = false,
-            .defaultValue           = TEST_CACHING_HALFBYTE_SECTION_2_DEFAULT_VALUE,
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-    };
-
-    LESSDB::block_t cachingLayout[1] = {
+    std::vector<LESSDB::block_t> cachingLayout = {
         // block 0
         {
-            .numberOfSections = TEST_CACHING_HALFBYTE_AMOUNT_OF_SECTIONS,
-            .section          = cachingTestBlock0Sections,
+            .section = {
+                {
+                    .numberOfParameters     = TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS,
+                    .parameterType          = LESSDB::sectionParameterType_t::halfByte,
+                    .preserveOnPartialReset = false,
+                    .defaultValues          = { TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS,
+                    .parameterType          = LESSDB::sectionParameterType_t::halfByte,
+                    .preserveOnPartialReset = false,
+                    .defaultValues          = { TEST_CACHING_HALFBYTE_SECTION_1_DEFAULT_VALUE },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS,
+                    .parameterType          = LESSDB::sectionParameterType_t::halfByte,
+                    .preserveOnPartialReset = false,
+                    .defaultValues          = { TEST_CACHING_HALFBYTE_SECTION_2_DEFAULT_VALUE },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+            },
+            .address = 0,
         }
     };
 
-    TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS) == true);
+    TEST_ASSERT(db.setLayout(cachingLayout) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     //the simulated database is now initialized
     //create new database object which won't initialize/write data (only the layout will be set)
     //this is used so that database doesn't call ::update function which resets the cached address
     LESSDB db2(dbStorageMock);
-    TEST_ASSERT(db2.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS) == true);
+    TEST_ASSERT(db2.setLayout(cachingLayout) == true);
 
     //read the values back
     //this will verify that the values are read properly and that caching doesn't influence the readout
@@ -1042,7 +973,7 @@ TEST_CASE(CachingHalfByte)
 
     //try reading the same value twice
     LESSDB db3(dbStorageMock);
-    TEST_ASSERT(db3.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS) == true);
+    TEST_ASSERT(db3.setLayout(cachingLayout) == true);
 
     TEST_ASSERT(db3.read(0, 0, TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS - 1, readValue) == true);
     TEST_ASSERT(readValue == TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE);
@@ -1058,57 +989,53 @@ TEST_CASE(CachingBit)
     //this is used to avoid accessing the database if not needed
 
 #define TEST_CACHING_BIT_AMOUNT_OF_PARAMS        4
-#define TEST_CACHING_BIT_AMOUNT_OF_SECTIONS      3
-#define TEST_CACHING_BIT_AMOUNT_OF_BLOCKS        1
 #define TEST_CACHING_BIT_SECTION_0_DEFAULT_VALUE 0
 #define TEST_CACHING_BIT_SECTION_1_DEFAULT_VALUE 1
 #define TEST_CACHING_BIT_SECTION_2_DEFAULT_VALUE 1
 
-    LESSDB::section_t cachingTestBlock0Sections[TEST_CACHING_BIT_AMOUNT_OF_SECTIONS] = {
-        {
-            .numberOfParameters     = TEST_CACHING_BIT_AMOUNT_OF_PARAMS,
-            .parameterType          = LESSDB::sectionParameterType_t::bit,
-            .preserveOnPartialReset = false,
-            .defaultValue           = TEST_CACHING_BIT_SECTION_0_DEFAULT_VALUE,
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = TEST_CACHING_BIT_AMOUNT_OF_PARAMS,
-            .parameterType          = LESSDB::sectionParameterType_t::bit,
-            .preserveOnPartialReset = false,
-            .defaultValue           = TEST_CACHING_BIT_SECTION_1_DEFAULT_VALUE,
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-
-        {
-            .numberOfParameters     = TEST_CACHING_BIT_AMOUNT_OF_PARAMS,
-            .parameterType          = LESSDB::sectionParameterType_t::bit,
-            .preserveOnPartialReset = false,
-            .defaultValue           = TEST_CACHING_BIT_SECTION_2_DEFAULT_VALUE,
-            .autoIncrement          = false,
-            .address                = 0,
-        },
-    };
-
-    LESSDB::block_t cachingLayout[1] = {
+    std::vector<LESSDB::block_t> cachingLayout = {
         // block 0
         {
-            .numberOfSections = TEST_CACHING_BIT_AMOUNT_OF_SECTIONS,
-            .section          = cachingTestBlock0Sections,
+            .section = {
+                {
+                    .numberOfParameters     = TEST_CACHING_BIT_AMOUNT_OF_PARAMS,
+                    .parameterType          = LESSDB::sectionParameterType_t::bit,
+                    .preserveOnPartialReset = false,
+                    .defaultValues          = { TEST_CACHING_BIT_SECTION_0_DEFAULT_VALUE },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = TEST_CACHING_BIT_AMOUNT_OF_PARAMS,
+                    .parameterType          = LESSDB::sectionParameterType_t::bit,
+                    .preserveOnPartialReset = false,
+                    .defaultValues          = { TEST_CACHING_BIT_SECTION_1_DEFAULT_VALUE },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+
+                {
+                    .numberOfParameters     = TEST_CACHING_BIT_AMOUNT_OF_PARAMS,
+                    .parameterType          = LESSDB::sectionParameterType_t::bit,
+                    .preserveOnPartialReset = false,
+                    .defaultValues          = { TEST_CACHING_BIT_SECTION_2_DEFAULT_VALUE },
+                    .autoIncrement          = false,
+                    .address                = 0,
+                },
+            },
+            .address = 0,
         }
     };
 
-    TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS) == true);
+    TEST_ASSERT(db.setLayout(cachingLayout) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     //the simulated database is now initialized
     //create new database object which won't initialize/write data (only the layout will be set)
     //this is used so that database doesn't call ::update function which resets the cached address
     LESSDB db2(dbStorageMock);
-    TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS) == true);
+    TEST_ASSERT(db.setLayout(cachingLayout) == true);
 
     //read the values back
     //this will verify that the values are read properly and that caching doesn't influence the readout
@@ -1122,7 +1049,7 @@ TEST_CASE(CachingBit)
 
     //try reading the same value twice
     LESSDB db3(dbStorageMock);
-    TEST_ASSERT(db3.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS) == true);
+    TEST_ASSERT(db3.setLayout(cachingLayout) == true);
 
     TEST_ASSERT(db3.read(0, 1, TEST_CACHING_BIT_AMOUNT_OF_PARAMS - 1, readValue) == true);
     TEST_ASSERT(readValue == TEST_CACHING_BIT_SECTION_1_DEFAULT_VALUE);

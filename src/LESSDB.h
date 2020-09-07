@@ -24,6 +24,7 @@
 
 #include <inttypes.h>
 #include <stddef.h>
+#include <vector>
 
 class LESSDB
 {
@@ -70,7 +71,7 @@ class LESSDB
         const size_t                 numberOfParameters;
         const sectionParameterType_t parameterType;
         const bool                   preserveOnPartialReset;
-        const uint16_t               defaultValue;
+        const std::vector<uint32_t>  defaultValues;
         const bool                   autoIncrement;
         uint32_t                     address;
     } section_t;
@@ -80,9 +81,8 @@ class LESSDB
     ///
     typedef struct
     {
-        const uint8_t    numberOfSections;
-        section_t* const section;
-        uint32_t         address;
+        std::vector<section_t> section;
+        uint32_t               address;
     } block_t;
 
     ///
@@ -96,7 +96,7 @@ class LESSDB
     {}
 
     bool     init();
-    bool     setLayout(block_t* pointer, uint8_t numberOfBlocks);
+    bool     setLayout(std::vector<block_t>& layout);
     bool     clear();
     bool     read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t& value);
     bool     read(uint32_t address, int32_t& value, sectionParameterType_t type);
@@ -116,11 +116,6 @@ class LESSDB
     bool     write(uint32_t address, int32_t value, sectionParameterType_t type);
     bool     checkParameters(uint8_t blockID, uint8_t sectionID, size_t parameterIndex);
     uint32_t sectionAddress(uint8_t blockID, uint8_t sectionID);
-
-    ///
-    /// \brief Holds amount of blocks.
-    ///
-    uint8_t blockCounter = 0;
 
     ///
     /// \brief Holds total memory usage for current database layout.
@@ -154,7 +149,7 @@ class LESSDB
     ///
     /// \brief Pointer to array of LESSDB blocks.
     ///
-    block_t* block = nullptr;
+    std::vector<block_t>* block;
 
     ///
     /// \brief Reference to object which provides actual access to the storage system.
