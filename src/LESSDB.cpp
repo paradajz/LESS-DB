@@ -23,6 +23,11 @@
 #include <stdlib.h>
 #include "LESSDB.h"
 
+bool LESSDB::init()
+{
+    return storageAccess.init();
+}
+
 ///
 /// \brief Calculates all addresses for specified blocks and sections.
 /// @param [in] pointer         Pointer to database structure.

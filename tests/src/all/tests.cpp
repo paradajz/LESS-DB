@@ -484,8 +484,9 @@ namespace
         public:
         DBstorageMock() {}
 
-        void init() override
+        bool init() override
         {
+            return true;
         }
 
         uint32_t size() override

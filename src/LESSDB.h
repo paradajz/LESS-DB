@@ -45,7 +45,7 @@ class LESSDB
         public:
         StorageAccess() {}
 
-        virtual void     init()                                                                      = 0;
+        virtual bool     init()                                                                      = 0;
         virtual uint32_t size()                                                                      = 0;
         virtual void     clear()                                                                     = 0;
         virtual bool     read(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type) = 0;
@@ -95,6 +95,7 @@ class LESSDB
         : storageAccess(storageAccess)
     {}
 
+    bool     init();
     bool     setLayout(block_t* pointer, uint8_t numberOfBlocks);
     void     clear();
     bool     read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t& value);
