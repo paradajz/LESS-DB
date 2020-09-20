@@ -512,9 +512,10 @@ namespace
             }
         }
 
-        void clear() override
+        bool clear() override
         {
             memset(memoryArray, 0, LESSDB_SIZE);
+            return true;
         }
 
         bool read(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type) override

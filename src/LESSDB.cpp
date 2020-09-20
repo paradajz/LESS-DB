@@ -460,9 +460,9 @@ bool LESSDB::write(uint32_t address, int32_t value, sectionParameterType_t type)
 ///
 /// \brief Clears entire memory.
 ///
-void LESSDB::clear()
+bool LESSDB::clear()
 {
-    storageAccess.clear();
+    return storageAccess.clear();
 }
 
 ///

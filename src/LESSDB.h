@@ -47,7 +47,7 @@ class LESSDB
 
         virtual bool     init()                                                                      = 0;
         virtual uint32_t size()                                                                      = 0;
-        virtual void     clear()                                                                     = 0;
+        virtual bool     clear()                                                                     = 0;
         virtual bool     read(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type) = 0;
         virtual bool     write(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type) = 0;
         virtual size_t   paramUsage(LESSDB::sectionParameterType_t type)                             = 0;
@@ -97,7 +97,7 @@ class LESSDB
 
     bool     init();
     bool     setLayout(block_t* pointer, uint8_t numberOfBlocks);
-    void     clear();
+    bool     clear();
     bool     read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t& value);
     bool     read(uint32_t address, int32_t& value, sectionParameterType_t type);
     int32_t  read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex);
