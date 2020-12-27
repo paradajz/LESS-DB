@@ -305,7 +305,7 @@ bool LESSDB::read(uint32_t address, int32_t& value, sectionParameterType_t type)
 ///
 int32_t LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex)
 {
-    int32_t value = -1;
+    int32_t value = 0;
 
     read(blockID, sectionID, parameterIndex, value);
 
