@@ -173,5 +173,5 @@ class LESSDB
     ///
     /// \brief Holds the database address at which last parameter is stored.
     ///
-    uint32_t nextBlockAddress;
+    uint32_t nextBlockAddress = 0;
 };

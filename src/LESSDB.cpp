@@ -134,6 +134,9 @@ bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks, uint32_t startA
 
             uint16_t lastSection = block[i].numberOfSections - 1;
 
+            if (!i)
+                block[0].address = initialAddress;
+
             nextBlockAddress = block[i].address + block[i].section[lastSection].address;
 
             switch (block[i].section[lastSection].parameterType)
@@ -166,9 +169,6 @@ bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks, uint32_t startA
                     4 * block[i].section[lastSection].numberOfParameters;
                 break;
             }
-
-            if (!i)
-                block[0].address = 0;
 
             if (i < (blockCounter - 1))
                 block[i + 1].address = nextBlockAddress;
@@ -654,5 +654,5 @@ bool LESSDB::checkParameters(uint8_t blockID, uint8_t sectionID, size_t paramete
 ///
 uint32_t LESSDB::sectionAddress(uint8_t blockID, uint8_t sectionID)
 {
-    return initialAddress + block[blockID].address + block[blockID].section[sectionID].address;
+    return block[blockID].address + block[blockID].section[sectionID].address;
 }
