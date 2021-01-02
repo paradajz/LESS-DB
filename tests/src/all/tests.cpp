@@ -537,13 +537,11 @@ namespace
 
 TEST_SETUP()
 {
-    TEST_ASSERT(db.setStartAddress(0) == true);
-
     dbStorageMock.readCallback  = memoryRead;
     dbStorageMock.writeCallback = memoryWrite;
 
     TEST_ASSERT(db.dbSize() == LESSDB_SIZE);
-    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
+    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS, 0) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 }
 
@@ -592,8 +590,7 @@ TEST_CASE(Read)
     TEST_ASSERT(value == defaultValues[1]);
 
     // perform the same round of tests with different starting point
-    TEST_ASSERT(db.setStartAddress(100) == true);
-    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS) == true);
+    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS, 100) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     // bit section
@@ -635,9 +632,6 @@ TEST_CASE(Read)
     // try reading directly
     value = db.read(TEST_BLOCK_INDEX, 1, 0);
     TEST_ASSERT(value == defaultValues[1]);
-
-    // try setting invalid address
-    TEST_ASSERT(db.setStartAddress(LESSDB_SIZE) == false);
 }
 
 TEST_CASE(Update)
@@ -776,15 +770,15 @@ TEST_CASE(ErrorCheck)
         },
     };
 
-    returnValue = db.setLayout(outOfBoundsLayout, 1);
+    returnValue = db.setLayout(outOfBoundsLayout, 1, 0);
     TEST_ASSERT(returnValue == false);
 
     // try to init database with null pointer
-    returnValue = db.setLayout(NULL, 1);
+    returnValue = db.setLayout(NULL, 1, 0);
     TEST_ASSERT(returnValue == false);
 
     // try to init database with zero blocks
-    returnValue = db.setLayout(dbLayout, 0);
+    returnValue = db.setLayout(dbLayout, 0, 0);
     TEST_ASSERT(returnValue == false);
 }
 
@@ -1021,14 +1015,14 @@ TEST_CASE(CachingHalfByte)
         }
     };
 
-    TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS) == true);
+    TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS, 0) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     //the simulated database is now initialized
     //create new database object which won't initialize/write data (only the layout will be set)
     //this is used so that database doesn't call ::update function which resets the cached address
     LESSDB db2(dbStorageMock);
-    TEST_ASSERT(db2.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS) == true);
+    TEST_ASSERT(db2.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS, 0) == true);
 
     //read the values back
     //this will verify that the values are read properly and that caching doesn't influence the readout
@@ -1042,7 +1036,7 @@ TEST_CASE(CachingHalfByte)
 
     //try reading the same value twice
     LESSDB db3(dbStorageMock);
-    TEST_ASSERT(db3.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS) == true);
+    TEST_ASSERT(db3.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS, 0) == true);
 
     TEST_ASSERT(db3.read(0, 0, TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS - 1, readValue) == true);
     TEST_ASSERT(readValue == TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE);
@@ -1101,14 +1095,14 @@ TEST_CASE(CachingBit)
         }
     };
 
-    TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS) == true);
+    TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS, 0) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     //the simulated database is now initialized
     //create new database object which won't initialize/write data (only the layout will be set)
     //this is used so that database doesn't call ::update function which resets the cached address
     LESSDB db2(dbStorageMock);
-    TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS) == true);
+    TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS, 0) == true);
 
     //read the values back
     //this will verify that the values are read properly and that caching doesn't influence the readout
@@ -1122,7 +1116,7 @@ TEST_CASE(CachingBit)
 
     //try reading the same value twice
     LESSDB db3(dbStorageMock);
-    TEST_ASSERT(db3.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS) == true);
+    TEST_ASSERT(db3.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS, 0) == true);
 
     TEST_ASSERT(db3.read(0, 1, TEST_CACHING_BIT_AMOUNT_OF_PARAMS - 1, readValue) == true);
     TEST_ASSERT(readValue == TEST_CACHING_BIT_SECTION_1_DEFAULT_VALUE);

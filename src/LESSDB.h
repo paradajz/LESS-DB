@@ -96,7 +96,7 @@ class LESSDB
     {}
 
     bool     init();
-    bool     setLayout(block_t* pointer, uint8_t numberOfBlocks);
+    bool     setLayout(block_t* pointer, uint8_t numberOfBlocks, uint32_t startAddress);
     bool     clear();
     bool     read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t& value);
     bool     read(uint32_t address, int32_t& value, sectionParameterType_t type);
@@ -110,7 +110,6 @@ class LESSDB
     uint32_t lastParameterAddress() const;
     uint32_t nextParameterAddress() const;
     bool     initData(factoryResetType_t type = factoryResetType_t::full);
-    bool     setStartAddress(uint32_t startAddress);
 
     private:
     bool     write(uint32_t address, int32_t value, sectionParameterType_t type);

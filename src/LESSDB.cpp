@@ -32,10 +32,15 @@ bool LESSDB::init()
 /// \brief Calculates all addresses for specified blocks and sections.
 /// @param [in] pointer         Pointer to database structure.
 /// @param [in] numberOfBlocks  Total number of blocks in database structure.
+/// @param [in] startAddress    Address from which to start indexing blocks.
 /// \returns True on success, false otherwise.
 ///
-bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks)
+bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks, uint32_t startAddress)
 {
+    if (startAddress >= storageAccess.size())
+        return false;
+
+    initialAddress   = startAddress;
     memoryUsage      = 0;
     memoryParameters = 0;
 
@@ -650,19 +655,4 @@ bool LESSDB::checkParameters(uint8_t blockID, uint8_t sectionID, size_t paramete
 uint32_t LESSDB::sectionAddress(uint8_t blockID, uint8_t sectionID)
 {
     return initialAddress + block[blockID].address + block[blockID].section[sectionID].address;
-}
-
-///
-/// \brief Used to specify start address in database.
-/// By default, this address is set to 0.
-/// @param [in] startAddress    New start address.
-/// \returns True on success.
-///
-bool LESSDB::setStartAddress(uint32_t startAddress)
-{
-    if (startAddress >= storageAccess.size())
-        return false;
-
-    initialAddress = startAddress;
-    return true;
 }
