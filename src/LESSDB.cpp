@@ -190,12 +190,18 @@ bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks, uint32_t startA
 ///
 bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t& value)
 {
-    // sanity check
-    if (!checkParameters(blockID, sectionID, parameterIndex))
+    //sanity checks
+    if (blockID >= blockCounter)
+        return false;
+
+    if (sectionID >= block[blockID].numberOfSections)
+        return false;
+
+    if (parameterIndex >= block[blockID].section[sectionID].numberOfParameters)
         return false;
 
     bool     returnValue  = true;
-    uint32_t startAddress = sectionAddress(blockID, sectionID);
+    uint32_t startAddress = block[blockID].address + block[blockID].section[sectionID].address;
     uint8_t  arrayIndex;
 
     switch (block[blockID].section[sectionID].parameterType)
