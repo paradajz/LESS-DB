@@ -308,19 +308,93 @@ bool LESSDB::read(uint32_t address, int32_t& value, sectionParameterType_t type)
 }
 
 ///
-/// \brief Reads a value from database without error checking.
+/// \brief Reads a value from database with reduced error checking.
 /// @param [in] blockID         Block index.
 /// @param [in] sectionID       Section index.
 /// @param [in] parameterIndex  Parameter index.
-/// \returns Value from database.
+/// \returns Value from database. In case of read failure, 0 will be returned.
 ///
 int32_t LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex)
 {
-    int32_t value = 0;
+    //sanity checks
+    if (blockID >= blockCounter)
+        return 0;
 
-    read(blockID, sectionID, parameterIndex, value);
+    if (sectionID >= block[blockID].numberOfSections)
+        return 0;
 
-    return value;
+    if (parameterIndex >= block[blockID].section[sectionID].numberOfParameters)
+        return 0;
+
+    int32_t  returnValue  = 0;
+    uint32_t startAddress = block[blockID].address + block[blockID].section[sectionID].address;
+    uint8_t  arrayIndex;
+
+    switch (block[blockID].section[sectionID].parameterType)
+    {
+    case sectionParameterType_t::bit:
+        arrayIndex = parameterIndex >> 3;
+        startAddress += arrayIndex;
+
+        if (startAddress == lastReadAddress)
+        {
+            returnValue = (bool)(lastReadValue & bitMask[parameterIndex - (arrayIndex << 3)]);
+        }
+        else if (storageAccess.read(startAddress, returnValue, sectionParameterType_t::bit))
+        {
+            lastReadValue = returnValue;
+            returnValue   = (bool)(returnValue & bitMask[parameterIndex - (arrayIndex << 3)]);
+        }
+        break;
+
+    case sectionParameterType_t::byte:
+        startAddress += parameterIndex;
+
+        storageAccess.read(startAddress, returnValue, sectionParameterType_t::byte);
+        // sanitize
+        returnValue &= (int32_t)0xFF;
+        break;
+
+    case sectionParameterType_t::halfByte:
+        startAddress += parameterIndex / 2;
+
+        if (startAddress == lastReadAddress)
+        {
+            returnValue = lastReadValue;
+
+            if (parameterIndex % 2)
+                returnValue >>= 4;
+        }
+        else if (storageAccess.read(startAddress, returnValue, sectionParameterType_t::halfByte))
+        {
+            lastReadValue = returnValue;
+
+            if (parameterIndex % 2)
+                returnValue >>= 4;
+        }
+
+        // sanitize
+        returnValue &= (int32_t)0x0F;
+        break;
+
+    case sectionParameterType_t::word:
+        startAddress += parameterIndex * 2;
+
+        storageAccess.read(startAddress, returnValue, sectionParameterType_t::word);
+        // sanitize
+        returnValue &= (int32_t)0xFFFF;
+        break;
+
+    default:
+        // case sectionParameterType_t::dword:
+        startAddress += parameterIndex * 4;
+        storageAccess.read(startAddress, returnValue, sectionParameterType_t::dword);
+        break;
+    }
+
+    lastReadAddress = startAddress;
+
+    return returnValue;
 }
 
 ///
