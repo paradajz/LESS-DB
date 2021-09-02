@@ -1,15 +1,7 @@
-TARGETNAME := $(shell basename `git rev-parse --show-toplevel`)
+TARGETNAME := liblessdb
 BUILD_DIR_BASE := ./build
 BUILD_DIR := $(BUILD_DIR_BASE)/$(TARGETNAME)
 .DEFAULT_GOAL := $(BUILD_DIR)/$(TARGETNAME).a
-
-ifeq ($(shell uname), Linux)
-    FIND := find
-else ifeq ($(shell uname), Darwin)
-    FIND := gfind
-else
-    $(error Unsupported platform)
-endif
 
 include Sources.mk
 
@@ -51,7 +43,7 @@ $(BUILD_DIR)/%.cpp.o: %.cpp
 
 format:
 	@echo Checking code formatting...
-	@$(FIND) . -regex '.*\.\(cpp\|hpp\|h\|cc\|cxx\)' \
+	@find . -regex '.*\.\(cpp\|hpp\|h\|cc\|cxx\)' \
 	-exec $(CLANG_FORMAT) -style=file -i {} \;
 ifeq ($(CF_FAIL_ON_DIFF), 1)
 	git diff -s --exit-code
