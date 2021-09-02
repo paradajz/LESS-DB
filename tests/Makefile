@@ -1,59 +1,41 @@
+ifeq ($(shell uname), Linux)
+    FIND := find
+else ifeq ($(shell uname), Darwin)
+    FIND := gfind
+else
+    $(error Unsupported platform)
+endif
+
 .DEFAULT_GOAL := test
 
-TARGETNAME := $(shell basename `git rev-parse --show-toplevel`)
 BUILD_DIR_BASE := ./build
-BUILD_DIR := $(BUILD_DIR_BASE)/$(TARGETNAME)
-GEN_DIR := test_run
+TARGET := lessdb
+BUILD_DIR := $(BUILD_DIR_BASE)/$(TARGET)
+TEST_BINARIES := $(addprefix -object ,$(shell $(FIND) $(BUILD_DIR_BASE) -name "*.out" 2>/dev/null))
+FW_ROOT_DIR := ../src
 SCRIPTS_DIR := ../scripts
 
-ifeq ($(shell uname), Linux)
-    FIND := find
-else ifeq ($(shell uname), Darwin)
-    FIND := gfind
-else
-    $(error Unsupported platform)
-endif
-
-ifeq ($(shell uname), Linux)
-    FIND := find
-else ifeq ($(shell uname), Darwin)
-    FIND := gfind
-else
-    $(error Unsupported platform)
-endif
-
--include Defines.mk
+include Defines.mk
 include Sources.mk
 -include Objects.mk
 
-C_COMPILER := clang
-CPP_COMPILER := clang++
-LLVM_PROFDATA := llvm-profdata
-LLVM_COV := llvm-cov
-CLANG_FORMAT := clang-format
-
-TEST_BINARIES := $(addprefix -object ,$(shell $(FIND) $(BUILD_DIR_BASE) -name "*.out" 2>/dev/null))
-
-#do not allow overriding this variable via command-line
-override undefine TESTS_EXPANDED
-
-FW_ROOT_DIR := ../src
+C_COMPILER ?= clang
+CPP_COMPILER ?= clang++
+LLVM_PROFDATA ?= llvm-profdata
+LLVM_COV ?= llvm-cov
+CLANG_FORMAT ?= clang-format
 
 #passed to both c and c++ compiler
 COMMON_FLAGS := \
 -fprofile-instr-generate \
 -fcoverage-mapping \
--Og \
+-O0 \
 -g \
 -Wall
 
-#common defines
-DEFINES_COMMON := \
-UNITY_INCLUDE_CONFIG_H
-
 #c++ compiler only
 CPP_FLAGS := \
--std=c++11
+-std=c++17
 
 #c compiler only
 C_FLAGS := \
@@ -65,12 +47,12 @@ LDFLAGS :=
 $(BUILD_DIR)/%.c.o $(BUILD_DIR_BASE)/%.c.o: %.c
 	@mkdir -p $(@D)
 	@echo Building: $<
-	@$(C_COMPILER) $(COMMON_FLAGS) $(C_FLAGS) $(addprefix -D,$(DEFINES_COMMON)) $(INCLUDE_DIRS_COMMON) $(INCLUDE_FILES_COMMON) -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)" -c "$<" -o "$@"
+	@$(C_COMPILER) $(COMMON_FLAGS) $(C_FLAGS) $(addprefix -D,$(DEFINES)) $(INCLUDE_DIRS_COMMON) $(INCLUDE_FILES_COMMON) -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)" -c "$<" -o "$@"
 
 $(BUILD_DIR)/%.cpp.o $(BUILD_DIR_BASE)/%.cpp.o: %.cpp
 	@mkdir -p $(@D)
 	@echo Building: $<
-	@$(CPP_COMPILER) $(COMMON_FLAGS) $(CPP_FLAGS) $(addprefix -D,$(DEFINES_COMMON)) $(INCLUDE_DIRS_COMMON) $(INCLUDE_FILES_COMMON) -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)" -c "$<" -o "$@"
+	@$(CPP_COMPILER) $(COMMON_FLAGS) $(CPP_FLAGS) $(addprefix -D,$(DEFINES)) $(INCLUDE_DIRS_COMMON) $(INCLUDE_FILES_COMMON) -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)" -c "$<" -o "$@"
 
 define LINK_OBJECTS
 	@echo Creating executable: $@
@@ -78,12 +60,11 @@ define LINK_OBJECTS
 endef
 
 pre-build:
-	@chmod +x $(SCRIPTS_DIR)/gen_test_targets.sh && $(SCRIPTS_DIR)/gen_test_targets.sh $(GEN_DIR)/$(TARGETNAME)
-	@chmod +x $(SCRIPTS_DIR)/gen_test_runners.sh && $(SCRIPTS_DIR)/gen_test_runners.sh $(GEN_DIR)/$(TARGETNAME)
+	@$(SCRIPTS_DIR)/gen_test_targets.sh
 
 exec:
 	@echo Running all compiled tests.
-	@chmod +x $(SCRIPTS_DIR)/tests_exec.sh && $(SCRIPTS_DIR)/tests_exec.sh $(BUILD_DIR_BASE)
+	@$(SCRIPTS_DIR)/tests_exec.sh $(BUILD_DIR_BASE)
 
 coverage:
 	@echo Creating coverage report.
@@ -103,7 +84,6 @@ endif
 clean:
 	@echo Cleaning up.
 	@rm -rf $(BUILD_DIR_BASE)/
-	@rm -rf $(GEN_DIR)/
 
 #debugging
 print-%:
