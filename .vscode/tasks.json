@@ -2,14 +2,6 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "[Test] Build single test",
-            "command": "cd ./tests && make pre-build && make TESTS=${input:test} && cp $(../scripts/test_dir_get.sh $(make print-TARGETNAME) ${input:test})/${input:test}.out build/test.out",
-            "type": "shell",
-            "problemMatcher": [
-                "$gcc"
-            ]
-        },
-        {
             "label": "[Test] Build all tests",
             "command": "cd tests && make pre-build && make",
             "type": "shell",
@@ -28,17 +20,6 @@
             "command": "cd tests && make exec",
             "type": "shell",
             "problemMatcher": []
-        }
-    ],
-    "inputs": [
-        {
-            "id": "test",
-            "description": "Select test to compile",
-            "default": "all",
-            "type": "pickString",
-            "options": [
-                "all",
-            ]
         }
     ]
 }
