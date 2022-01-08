@@ -200,7 +200,7 @@ bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks, uint32_t startA
 ///
 bool LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t& value)
 {
-    //sanity checks
+    // sanity checks
     if (blockID >= blockCounter)
         return false;
 
@@ -326,7 +326,7 @@ bool LESSDB::read(uint32_t address, int32_t& value, sectionParameterType_t type)
 ///
 int32_t LESSDB::read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex)
 {
-    //sanity checks
+    // sanity checks
     if (blockID >= blockCounter)
         return 0;
 
@@ -616,7 +616,7 @@ bool LESSDB::initData(factoryResetType_t type)
                 // no auto-increment here
                 size_t loops = (numberOfParameters / 8) + ((numberOfParameters % 8) != 0);
 
-                //optimize the writing - merge values into single byte
+                // optimize the writing - merge values into single byte
                 for (size_t k = 0; k < loops; k++)
                 {
                     uint8_t value = 0;
@@ -643,7 +643,7 @@ bool LESSDB::initData(factoryResetType_t type)
                 // no auto-increment here
                 size_t loops = (numberOfParameters / 2) + ((numberOfParameters % 2) != 0);
 
-                //optimize the writing - merge values into single byte
+                // optimize the writing - merge values into single byte
                 for (size_t k = 0; k < loops; k++)
                 {
                     uint8_t value = 0;
