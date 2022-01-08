@@ -50,7 +50,6 @@ class LESSDB
         virtual bool     clear()                                                                     = 0;
         virtual bool     read(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type) = 0;
         virtual bool     write(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type) = 0;
-        virtual size_t   paramUsage(LESSDB::sectionParameterType_t type)                             = 0;
     };
 
     ///

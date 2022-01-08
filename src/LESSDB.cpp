@@ -106,24 +106,34 @@ bool LESSDB::setLayout(block_t* pointer, uint8_t numberOfBlocks, uint32_t startA
                 switch (block[i].section[j].parameterType)
                 {
                 case sectionParameterType_t::bit:
-                    blockUsage += (storageAccess.paramUsage(sectionParameterType_t::bit) *
-                                   ((block[i].section[j].numberOfParameters % 8 != 0) +
+                {
+                    blockUsage += (((block[i].section[j].numberOfParameters % 8 != 0) +
                                     block[i].section[j].numberOfParameters / 8));
-                    break;
+                }
+                break;
 
                 case sectionParameterType_t::halfByte:
-                    blockUsage += (storageAccess.paramUsage(sectionParameterType_t::halfByte) *
-                                   ((block[i].section[j].numberOfParameters % 2 != 0) +
+                {
+                    blockUsage += (((block[i].section[j].numberOfParameters % 2 != 0) +
                                     block[i].section[j].numberOfParameters / 2));
-                    break;
+                }
+                break;
 
                 case sectionParameterType_t::byte:
                 case sectionParameterType_t::word:
                 case sectionParameterType_t::dword:
                 default:
-                    blockUsage += (storageAccess.paramUsage(block[i].section[j].parameterType) *
+                {
+                    const size_t multiplier = (block[i].section[j].parameterType == sectionParameterType_t::byte)
+                                                  ? 1
+                                              : (block[i].section[j].parameterType == sectionParameterType_t::word)
+                                                  ? 2     // word
+                                                  : 4;    // dword
+
+                    blockUsage += (multiplier *
                                    block[i].section[j].numberOfParameters);
-                    break;
+                }
+                break;
                 }
             }
 
