@@ -28,9 +28,6 @@
 class LESSDB
 {
     public:
-    ///
-    /// \brief List of possible parameter types in section.
-    ///
     enum class sectionParameterType_t : uint8_t
     {
         bit,
@@ -43,8 +40,6 @@ class LESSDB
     class StorageAccess
     {
         public:
-        StorageAccess() {}
-
         virtual bool     init()                                                                      = 0;
         virtual uint32_t size()                                                                      = 0;
         virtual bool     clear()                                                                     = 0;
@@ -52,92 +47,103 @@ class LESSDB
         virtual bool     write(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type) = 0;
     };
 
-    ///
-    /// \brief List of possible ways to perform factory reset.
-    ///
     enum class factoryResetType_t : uint8_t
     {
         partial,
         full
     };
 
-    ///
-    /// \brief A structure holding information for a single section.
-    ///
-    typedef struct
+    enum class preserveSetting_t : uint8_t
     {
-        const size_t                 numberOfParameters;
-        const sectionParameterType_t parameterType;
-        const bool                   preserveOnPartialReset;
-        const uint16_t               defaultValue;
-        const bool                   autoIncrement;
-        uint32_t                     address;
-    } section_t;
+        enable,
+        disable
+    };
 
-    ///
-    /// \brief A structure holding information for a single block.
-    ///
-    typedef struct
+    enum class autoIncrementSetting_t : uint8_t
     {
-        const uint8_t    numberOfSections;
-        section_t* const section;
-        uint32_t         address;
-    } block_t;
+        enable,
+        disable
+    };
 
-    ///
-    /// \brief LESSDB constructor.
-    /// @param [in] readCallback    Reference to function performing the actual reading from memory.
-    /// @param [in] writeCallback   Reference to function performing the actual writing to memory.
-    /// @param [in] maxSize         Specifies maximum database size in bytes.
-    ///
+    class Section
+    {
+        public:
+        Section(size_t                 numberOfParameters,
+                sectionParameterType_t parameterType,
+                preserveSetting_t      preserveOnPartialReset,
+                autoIncrementSetting_t autoIncrement,
+                int32_t                defaultValue)
+            : _numberOfParameters(numberOfParameters)
+            , _parameterType(parameterType)
+            , _preserveOnPartialReset(preserveOnPartialReset)
+            , _autoIncrement(autoIncrement)
+            , _defaultValue(defaultValue)
+        {}
+
+        private:
+        friend class LESSDB;
+
+        const size_t                 _numberOfParameters;
+        const sectionParameterType_t _parameterType;
+        const preserveSetting_t      _preserveOnPartialReset;
+        const autoIncrementSetting_t _autoIncrement;
+        const int32_t                _defaultValue;
+        uint32_t                     _address = 0;
+    };
+
+    class Block
+    {
+        public:
+        Block(size_t   numberOfSections,
+              Section* section)
+            : _numberOfSections(numberOfSections)
+            , _section(section)
+        {}
+
+        private:
+        friend class LESSDB;
+
+        const size_t   _numberOfSections;
+        Section* const _section;
+        uint32_t       _address = 0;
+    };
+
     LESSDB(StorageAccess& storageAccess)
         : storageAccess(storageAccess)
     {}
 
-    bool     init();
-    bool     setLayout(block_t* pointer, uint8_t numberOfBlocks, uint32_t startAddress);
-    bool     clear();
-    bool     read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t& value);
-    bool     read(uint32_t address, int32_t& value, sectionParameterType_t type);
-    int32_t  read(uint8_t blockID, uint8_t sectionID, size_t parameterIndex);
-    int32_t  read(uint32_t address, sectionParameterType_t type);
-    bool     update(uint8_t blockID, uint8_t sectionID, size_t parameterIndex, int32_t newValue);
-    bool     update(uint32_t address, int32_t newValue, sectionParameterType_t type);
-    uint32_t currentDBsize() const;
-    uint32_t currentDBparameters() const;
-    uint32_t dbSize() const;
-    uint32_t lastParameterAddress() const;
-    uint32_t nextParameterAddress() const;
-    bool     initData(factoryResetType_t type = factoryResetType_t::full);
+    bool            init();
+    bool            setLayout(Block* pointer, size_t numberOfBlocks, uint32_t startAddress);
+    static uint16_t layoutUID(Block* pointer, size_t numberOfBlocks, uint16_t magicValue = 0);
+    bool            clear();
+    bool            read(size_t blockID, size_t sectionID, size_t parameterIndex, int32_t& value);
+    int32_t         read(size_t blockID, size_t sectionID, size_t parameterIndex);
+    bool            update(size_t blockID, size_t sectionID, size_t parameterIndex, int32_t newValue);
+    uint32_t        currentDBsize() const;
+    uint32_t        currentDBparameters() const;
+    uint32_t        dbSize() const;
+    uint32_t        lastParameterAddress() const;
+    uint32_t        nextParameterAddress() const;
+    bool            initData(factoryResetType_t type = factoryResetType_t::full);
 
     private:
     bool     write(uint32_t address, int32_t value, sectionParameterType_t type);
-    bool     checkParameters(uint8_t blockID, uint8_t sectionID, size_t parameterIndex);
-    uint32_t sectionAddress(uint8_t blockID, uint8_t sectionID);
+    bool     checkParameters(size_t blockID, size_t sectionID, size_t parameterIndex);
+    uint32_t sectionAddress(size_t blockID, size_t sectionID);
 
-    ///
-    /// \brief Holds amount of blocks.
-    ///
-    uint8_t blockCounter = 0;
+    /// Holds amount of blocks.
+    size_t blockCounter = 0;
 
-    ///
-    /// \brief Holds total memory usage for current database layout.
-    ///
+    /// Holds total memory usage for current database layout.
     uint32_t memoryUsage = 0;
 
-    ///
-    /// \brief Holds total number of parameters stored in database.
-    ///
+    /// Holds total number of parameters stored in database.
     uint32_t memoryParameters = 0;
 
-    ///
-    /// \brief Address from which database layout starts.
-    ///
+    /// Address from which database layout starts.
     uint32_t initialAddress = 0;
 
-    ///
-    /// \brief Array holding all bit masks for easier access.
-    ///
+    /// Array holding all bit masks for easier access.
     const uint8_t bitMask[8] = {
         0b00000001,
         0b00000010,
@@ -149,28 +155,17 @@ class LESSDB
         0b10000000,
     };
 
-    ///
-    /// \brief Pointer to array of LESSDB blocks.
-    ///
-    block_t* block = nullptr;
+    /// Pointer to array of LESSDB blocks.
+    Block* block = nullptr;
 
-    ///
-    /// \brief Reference to object which provides actual access to the storage system.
-    ///
+    /// Reference to object which provides actual access to the storage system.
     StorageAccess& storageAccess;
 
-    ///
-    /// \brief Cached values for bit and half-byte parameters.
+    /// Cached values for bit and half-byte parameters.
     /// Used if current requested address is the same as previous one.
-    /// @{
-
     uint8_t  lastReadValue   = 0;
     uint32_t lastReadAddress = 0xFFFFFFFF;
 
-    /// @}
-
-    ///
-    /// \brief Holds the database address at which last parameter is stored.
-    ///
+    /// Holds the database address at which last parameter is stored.
     uint32_t nextBlockAddress = 0;
 };
