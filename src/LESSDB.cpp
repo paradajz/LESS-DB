@@ -33,6 +33,7 @@ bool LESSDB::init()
 /// Calculates all addresses for specified blocks and sections.
 /// param [in] layout           Reference to database structure.
 /// param [in] startAddress     Address from which to start indexing blocks.
+///                             Set to 0 by default.
 /// returns: True on success, false otherwise.
 bool LESSDB::setLayout(std::vector<Block>& layout, uint32_t startAddress)
 {

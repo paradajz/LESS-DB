@@ -111,7 +111,7 @@ class LESSDB
     {}
 
     bool            init();
-    bool            setLayout(std::vector<Block>& layout, uint32_t startAddress);
+    bool            setLayout(std::vector<Block>& layout, uint32_t startAddress = 0);
     static uint16_t layoutUID(std::vector<Block>& layout, uint16_t magicValue = 0);
     bool            clear();
     bool            read(size_t blockID, size_t sectionID, size_t parameterIndex, int32_t& value);
