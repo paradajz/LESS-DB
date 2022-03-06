@@ -106,8 +106,8 @@ class LESSDB
         uint32_t              _address = 0;
     };
 
-    LESSDB(StorageAccess& storageAccess)
-        : storageAccess(storageAccess)
+    LESSDB(StorageAccess& _storageAccess)
+        : _storageAccess(_storageAccess)
     {}
 
     bool            init();
@@ -130,16 +130,16 @@ class LESSDB
     uint32_t sectionAddress(size_t blockID, size_t sectionID);
 
     /// Holds total memory usage for current database layout.
-    uint32_t memoryUsage = 0;
+    uint32_t _memoryUsage = 0;
 
     /// Holds total number of parameters stored in database.
-    uint32_t memoryParameters = 0;
+    uint32_t _memoryParameters = 0;
 
     /// Address from which database layout starts.
-    uint32_t initialAddress = 0;
+    uint32_t _initialAddress = 0;
 
     /// Array holding all bit masks for easier access.
-    const uint8_t bitMask[8] = {
+    const uint8_t BIT_MASK[8] = {
         0b00000001,
         0b00000010,
         0b00000100,
@@ -154,13 +154,13 @@ class LESSDB
     std::vector<Block>* _layout = {};
 
     /// Reference to object which provides actual access to the storage system.
-    StorageAccess& storageAccess;
+    StorageAccess& _storageAccess;
 
     /// Cached values for bit and half-byte parameters.
     /// Used if current requested address is the same as previous one.
-    uint8_t  lastReadValue   = 0;
-    uint32_t lastReadAddress = 0xFFFFFFFF;
+    uint8_t  _lastReadValue   = 0;
+    uint32_t _lastReadAddress = 0xFFFFFFFF;
 
     /// Holds the database address at which last parameter is stored.
-    uint32_t nextBlockAddress = 0;
+    uint32_t _nextBlockAddress = 0;
 };
