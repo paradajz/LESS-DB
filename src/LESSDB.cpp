@@ -23,17 +23,18 @@
 #include <stdlib.h>
 #include "LESSDB.h"
 
+#define LAYOUT_ACCESS (*_layout)
+
 bool LESSDB::init()
 {
     return storageAccess.init();
 }
 
 /// Calculates all addresses for specified blocks and sections.
-/// param [in] pointer         Pointer to database structure.
-/// param [in] numberOfBlocks  Total number of blocks in database structure.
-/// param [in] startAddress    Address from which to start indexing blocks.
+/// param [in] layout           Reference to database structure.
+/// param [in] startAddress     Address from which to start indexing blocks.
 /// returns: True on success, false otherwise.
-bool LESSDB::setLayout(Block* pointer, size_t numberOfBlocks, uint32_t startAddress)
+bool LESSDB::setLayout(std::vector<Block>& layout, uint32_t startAddress)
 {
     if (startAddress >= storageAccess.size())
     {
@@ -44,189 +45,187 @@ bool LESSDB::setLayout(Block* pointer, size_t numberOfBlocks, uint32_t startAddr
     memoryUsage      = 0;
     memoryParameters = 0;
 
-    if ((pointer != nullptr) && numberOfBlocks)
+    if (!layout.size())
     {
-        block        = pointer;
-        blockCounter = numberOfBlocks;
+        return false;
+    }
 
-        for (size_t i = 0; i < blockCounter; i++)
+    _layout = &layout;
+
+    for (size_t i = 0; i < LAYOUT_ACCESS.size(); i++)
+    {
+        uint32_t blockUsage = 0;
+
+        for (size_t j = 0; j < LAYOUT_ACCESS[i]._sections.size(); j++)
         {
-            uint32_t blockUsage = 0;
-
-            for (size_t j = 0; j < block[i]._numberOfSections; j++)
+            if (!j)
             {
-                if (!j)
-                {
-                    // first section address is always 0
-                    block[i]._section[0]._address = 0;
-                }
-                else
-                {
-                    size_t lastSection = j - 1;
+                // first section address is always 0
+                LAYOUT_ACCESS[i]._sections[0]._address = 0;
+            }
+            else
+            {
+                size_t lastSection = j - 1;
 
-                    switch (block[i]._section[lastSection]._parameterType)
-                    {
-                    case sectionParameterType_t::bit:
-                    {
-                        block[i]._section[j]._address =
-                            (block[i]._section[lastSection]._numberOfParameters % 8 != 0) +
-                            (block[i]._section[lastSection]._numberOfParameters / 8) +
-                            block[i]._section[lastSection]._address;
-                    }
-                    break;
-
-                    case sectionParameterType_t::byte:
-                    {
-                        block[i]._section[j]._address =
-                            block[i]._section[lastSection]._numberOfParameters +
-                            block[i]._section[lastSection]._address;
-                    }
-                    break;
-
-                    case sectionParameterType_t::halfByte:
-                    {
-                        block[i]._section[j]._address =
-                            (block[i]._section[lastSection]._numberOfParameters % 2 != 0) +
-                            (block[i]._section[lastSection]._numberOfParameters / 2) +
-                            block[i]._section[lastSection]._address;
-                    }
-                    break;
-
-                    case sectionParameterType_t::word:
-                    {
-                        block[i]._section[j]._address =
-                            2 * block[i]._section[lastSection]._numberOfParameters +
-                            block[i]._section[lastSection]._address;
-                    }
-                    break;
-
-                    default:
-                    {
-                        // case sectionParameterType_t::dword:
-                        block[i]._section[j]._address =
-                            4 * block[i]._section[lastSection]._numberOfParameters +
-                            block[i]._section[lastSection]._address;
-                    }
-                    break;
-                    }
-                }
-
-                memoryParameters += block[i]._section[j]._numberOfParameters;
-
-                switch (block[i]._section[j]._parameterType)
+                switch (LAYOUT_ACCESS[i]._sections[lastSection]._parameterType)
                 {
                 case sectionParameterType_t::bit:
                 {
-                    blockUsage += (((block[i]._section[j]._numberOfParameters % 8 != 0) +
-                                    block[i]._section[j]._numberOfParameters / 8));
+                    LAYOUT_ACCESS[i]._sections[j]._address =
+                        (LAYOUT_ACCESS[i]._sections[lastSection]._numberOfParameters % 8 != 0) +
+                        (LAYOUT_ACCESS[i]._sections[lastSection]._numberOfParameters / 8) +
+                        LAYOUT_ACCESS[i]._sections[lastSection]._address;
+                }
+                break;
+
+                case sectionParameterType_t::byte:
+                {
+                    LAYOUT_ACCESS[i]._sections[j]._address =
+                        LAYOUT_ACCESS[i]._sections[lastSection]._numberOfParameters +
+                        LAYOUT_ACCESS[i]._sections[lastSection]._address;
                 }
                 break;
 
                 case sectionParameterType_t::halfByte:
                 {
-                    blockUsage += (((block[i]._section[j]._numberOfParameters % 2 != 0) +
-                                    block[i]._section[j]._numberOfParameters / 2));
+                    LAYOUT_ACCESS[i]._sections[j]._address =
+                        (LAYOUT_ACCESS[i]._sections[lastSection]._numberOfParameters % 2 != 0) +
+                        (LAYOUT_ACCESS[i]._sections[lastSection]._numberOfParameters / 2) +
+                        LAYOUT_ACCESS[i]._sections[lastSection]._address;
                 }
                 break;
 
-                case sectionParameterType_t::byte:
                 case sectionParameterType_t::word:
-                case sectionParameterType_t::dword:
+                {
+                    LAYOUT_ACCESS[i]._sections[j]._address =
+                        2 * LAYOUT_ACCESS[i]._sections[lastSection]._numberOfParameters +
+                        LAYOUT_ACCESS[i]._sections[lastSection]._address;
+                }
+                break;
+
                 default:
                 {
-                    const size_t multiplier = (block[i]._section[j]._parameterType == sectionParameterType_t::byte)
-                                                  ? 1
-                                              : (block[i]._section[j]._parameterType == sectionParameterType_t::word)
-                                                  ? 2     // word
-                                                  : 4;    // dword
-
-                    blockUsage += (multiplier *
-                                   block[i]._section[j]._numberOfParameters);
+                    // case sectionParameterType_t::dword:
+                    LAYOUT_ACCESS[i]._sections[j]._address =
+                        4 * LAYOUT_ACCESS[i]._sections[lastSection]._numberOfParameters +
+                        LAYOUT_ACCESS[i]._sections[lastSection]._address;
                 }
                 break;
                 }
             }
 
-            memoryUsage += blockUsage;
+            memoryParameters += LAYOUT_ACCESS[i]._sections[j]._numberOfParameters;
 
-            if (memoryUsage >= storageAccess.size())
-            {
-                return false;
-            }
-
-            size_t lastSection = block[i]._numberOfSections - 1;
-
-            if (!i)
-            {
-                block[0]._address = initialAddress;
-            }
-
-            nextBlockAddress = block[i]._address + block[i]._section[lastSection]._address;
-
-            switch (block[i]._section[lastSection]._parameterType)
+            switch (LAYOUT_ACCESS[i]._sections[j]._parameterType)
             {
             case sectionParameterType_t::bit:
             {
-                nextBlockAddress +=
-                    (block[i]._section[lastSection]._numberOfParameters % 8 != 0) +
-                    (block[i]._section[lastSection]._numberOfParameters / 8);
-            }
-            break;
-
-            case sectionParameterType_t::byte:
-            {
-                nextBlockAddress +=
-                    block[i]._section[lastSection]._numberOfParameters;
+                blockUsage += (((LAYOUT_ACCESS[i]._sections[j]._numberOfParameters % 8 != 0) +
+                                LAYOUT_ACCESS[i]._sections[j]._numberOfParameters / 8));
             }
             break;
 
             case sectionParameterType_t::halfByte:
             {
-                nextBlockAddress +=
-                    (block[i]._section[lastSection]._numberOfParameters % 2 != 0) +
-                    (block[i]._section[lastSection]._numberOfParameters / 2);
+                blockUsage += (((LAYOUT_ACCESS[i]._sections[j]._numberOfParameters % 2 != 0) +
+                                LAYOUT_ACCESS[i]._sections[j]._numberOfParameters / 2));
             }
             break;
 
+            case sectionParameterType_t::byte:
             case sectionParameterType_t::word:
-            {
-                nextBlockAddress +=
-                    2 * block[i]._section[lastSection]._numberOfParameters;
-            }
-            break;
-
+            case sectionParameterType_t::dword:
             default:
             {
-                // case sectionParameterType_t::dword:
-                nextBlockAddress +=
-                    4 * block[i]._section[lastSection]._numberOfParameters;
+                const size_t multiplier = (LAYOUT_ACCESS[i]._sections[j]._parameterType == sectionParameterType_t::byte)
+                                              ? 1
+                                          : (LAYOUT_ACCESS[i]._sections[j]._parameterType == sectionParameterType_t::word)
+                                              ? 2     // word
+                                              : 4;    // dword
+
+                blockUsage += (multiplier *
+                               LAYOUT_ACCESS[i]._sections[j]._numberOfParameters);
             }
             break;
-            }
-
-            if (i < (blockCounter - 1))
-            {
-                block[i + 1]._address = nextBlockAddress;
             }
         }
 
-        return true;
+        memoryUsage += blockUsage;
+
+        if (memoryUsage >= storageAccess.size())
+        {
+            return false;
+        }
+
+        size_t lastSection = LAYOUT_ACCESS[i]._sections.size() - 1;
+
+        if (!i)
+        {
+            LAYOUT_ACCESS[0]._address = initialAddress;
+        }
+
+        nextBlockAddress = LAYOUT_ACCESS[i]._address + LAYOUT_ACCESS[i]._sections[lastSection]._address;
+
+        switch (LAYOUT_ACCESS[i]._sections[lastSection]._parameterType)
+        {
+        case sectionParameterType_t::bit:
+        {
+            nextBlockAddress +=
+                (LAYOUT_ACCESS[i]._sections[lastSection]._numberOfParameters % 8 != 0) +
+                (LAYOUT_ACCESS[i]._sections[lastSection]._numberOfParameters / 8);
+        }
+        break;
+
+        case sectionParameterType_t::byte:
+        {
+            nextBlockAddress +=
+                LAYOUT_ACCESS[i]._sections[lastSection]._numberOfParameters;
+        }
+        break;
+
+        case sectionParameterType_t::halfByte:
+        {
+            nextBlockAddress +=
+                (LAYOUT_ACCESS[i]._sections[lastSection]._numberOfParameters % 2 != 0) +
+                (LAYOUT_ACCESS[i]._sections[lastSection]._numberOfParameters / 2);
+        }
+        break;
+
+        case sectionParameterType_t::word:
+        {
+            nextBlockAddress +=
+                2 * LAYOUT_ACCESS[i]._sections[lastSection]._numberOfParameters;
+        }
+        break;
+
+        default:
+        {
+            // case sectionParameterType_t::dword:
+            nextBlockAddress +=
+                4 * LAYOUT_ACCESS[i]._sections[lastSection]._numberOfParameters;
+        }
+        break;
+        }
+
+        if (i < (LAYOUT_ACCESS.size() - 1))
+        {
+            LAYOUT_ACCESS[i + 1]._address = nextBlockAddress;
+        }
     }
 
-    return false;
+    return true;
 }
 
 /// Calculates unique ID for specified layout.
 /// UID is calculated by appending number of parameters and their types for all
 /// sections and all blocks.
-/// param [in] pointer         Pointer to database structure.
-/// param [in] numberOfBlocks  Total number of blocks in database structure.
-/// param [in] magicValue      Additional optional value which will be appended
-///                            to calculated UID. If ommited, it is set to 0
-///                            by default.
-uint16_t LESSDB::layoutUID(Block* pointer, size_t numberOfBlocks, uint16_t magicValue)
+/// param [in] layout       Reference to database structure.
+/// param [in] magicValue   Additional optional value which will be appended
+///                         to calculated UID. If ommited, it is set to 0
+///                         by default.
+uint16_t LESSDB::layoutUID(std::vector<Block>& layout, uint16_t magicValue)
 {
-    if (pointer == nullptr || !numberOfBlocks)
+    if (!layout.size())
     {
         return 0;
     }
@@ -234,12 +233,12 @@ uint16_t LESSDB::layoutUID(Block* pointer, size_t numberOfBlocks, uint16_t magic
     uint16_t signature = 0;
 
     // get unique database signature based on its blocks/sections
-    for (size_t i = 0; i < numberOfBlocks; i++)
+    for (size_t i = 0; i < layout.size(); i++)
     {
-        for (size_t j = 0; j < pointer[i]._numberOfSections; j++)
+        for (size_t j = 0; j < layout[i]._sections.size(); j++)
         {
-            signature += static_cast<uint16_t>(pointer[i]._section[j]._numberOfParameters);
-            signature += static_cast<uint16_t>(pointer[i]._section[j]._parameterType);
+            signature += static_cast<uint16_t>(layout[i]._sections[j]._numberOfParameters);
+            signature += static_cast<uint16_t>(layout[i]._sections[j]._parameterType);
         }
     }
 
@@ -263,10 +262,10 @@ bool LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex, int32
     }
 
     bool     returnValue  = true;
-    uint32_t startAddress = block[blockID]._address + block[blockID]._section[sectionID]._address;
+    uint32_t startAddress = LAYOUT_ACCESS[blockID]._address + LAYOUT_ACCESS[blockID]._sections[sectionID]._address;
     uint8_t  arrayIndex;
 
-    switch (block[blockID]._section[sectionID]._parameterType)
+    switch (LAYOUT_ACCESS[blockID]._sections[sectionID]._parameterType)
     {
     case sectionParameterType_t::bit:
     {
@@ -393,7 +392,7 @@ int32_t LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex)
 /// returns: True on success, false otherwise.
 bool LESSDB::update(size_t blockID, size_t sectionID, size_t parameterIndex, int32_t newValue)
 {
-    if (block == nullptr)
+    if (!LAYOUT_ACCESS.size())
     {
         return false;
     }
@@ -405,7 +404,7 @@ bool LESSDB::update(size_t blockID, size_t sectionID, size_t parameterIndex, int
     }
 
     uint32_t               startAddress  = sectionAddress(blockID, sectionID);
-    sectionParameterType_t parameterType = block[blockID]._section[sectionID]._parameterType;
+    sectionParameterType_t parameterType = LAYOUT_ACCESS[blockID]._sections[sectionID]._parameterType;
 
     uint8_t arrayIndex;
     int32_t arrayValue;
@@ -532,20 +531,20 @@ bool LESSDB::clear()
 ///                     preserveOnPartialReset parameter is set to true.
 bool LESSDB::initData(factoryResetType_t type)
 {
-    for (size_t i = 0; i < blockCounter; i++)
+    for (size_t i = 0; i < LAYOUT_ACCESS.size(); i++)
     {
-        for (size_t j = 0; j < block[i]._numberOfSections; j++)
+        for (size_t j = 0; j < LAYOUT_ACCESS[i]._sections.size(); j++)
         {
-            if ((block[i]._section[j]._preserveOnPartialReset == preserveSetting_t::enable) && (type == factoryResetType_t::partial))
+            if ((LAYOUT_ACCESS[i]._sections[j]._preserveOnPartialReset == preserveSetting_t::enable) && (type == factoryResetType_t::partial))
             {
                 continue;
             }
 
             uint32_t startAddress = sectionAddress(i, j);
 
-            auto parameterType      = block[i]._section[j]._parameterType;
-            auto defaultValue       = block[i]._section[j]._defaultValue;
-            auto numberOfParameters = block[i]._section[j]._numberOfParameters;
+            auto parameterType      = LAYOUT_ACCESS[i]._sections[j]._parameterType;
+            auto defaultValue       = LAYOUT_ACCESS[i]._sections[j]._defaultValue;
+            auto numberOfParameters = LAYOUT_ACCESS[i]._sections[j]._numberOfParameters;
 
             switch (parameterType)
             {
@@ -555,7 +554,7 @@ bool LESSDB::initData(factoryResetType_t type)
             {
                 for (size_t k = 0; k < numberOfParameters; k++)
                 {
-                    if (block[i]._section[j]._autoIncrement == autoIncrementSetting_t::enable)
+                    if (LAYOUT_ACCESS[i]._sections[j]._autoIncrement == autoIncrementSetting_t::enable)
                     {
                         if (!write(startAddress, defaultValue + k, parameterType))
                         {
@@ -695,17 +694,17 @@ uint32_t LESSDB::nextParameterAddress() const
 bool LESSDB::checkParameters(size_t blockID, size_t sectionID, size_t parameterIndex)
 {
     // sanity check
-    if (blockID >= blockCounter)
+    if (blockID >= LAYOUT_ACCESS.size())
     {
         return false;
     }
 
-    if (sectionID >= block[blockID]._numberOfSections)
+    if (sectionID >= LAYOUT_ACCESS[blockID]._sections.size())
     {
         return false;
     }
 
-    if (parameterIndex >= block[blockID]._section[sectionID]._numberOfParameters)
+    if (parameterIndex >= LAYOUT_ACCESS[blockID]._sections[sectionID]._numberOfParameters)
     {
         return false;
     }
@@ -719,5 +718,5 @@ bool LESSDB::checkParameters(size_t blockID, size_t sectionID, size_t parameterI
 /// returns: Section address.
 uint32_t LESSDB::sectionAddress(size_t blockID, size_t sectionID)
 {
-    return block[blockID]._address + block[blockID]._section[sectionID]._address;
+    return LAYOUT_ACCESS[blockID]._address + LAYOUT_ACCESS[blockID]._sections[sectionID]._address;
 }

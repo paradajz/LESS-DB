@@ -2,18 +2,16 @@
 #include "LESSDB.h"
 #include <string.h>
 
-#define NUMBER_OF_BLOCKS   6
-#define NUMBER_OF_SECTIONS 6
-#define TEST_BLOCK_INDEX   0
-#define LESSDB_SIZE        1021
+#define TEST_BLOCK_INDEX 0
+#define LESSDB_SIZE      1021
 
 namespace
 {
     uint8_t memoryArray[LESSDB_SIZE];
 
-    const size_t sectionParams[NUMBER_OF_SECTIONS] = { 5, 10, 15, 10, 15, 10 };
+    std::vector<size_t> sectionParams = { 5, 10, 15, 10, 15, 10 };
 
-    const LESSDB::sectionParameterType_t sectionTypes[NUMBER_OF_SECTIONS] = {
+    const std::vector<LESSDB::sectionParameterType_t> sectionTypes = {
         LESSDB::sectionParameterType_t::bit,
         LESSDB::sectionParameterType_t::byte,
         LESSDB::sectionParameterType_t::halfByte,
@@ -22,7 +20,7 @@ namespace
         LESSDB::sectionParameterType_t::byte
     };
 
-    const uint16_t defaultValues[NUMBER_OF_SECTIONS] = {
+    const std::vector<uint16_t> defaultValues = {
         1,
         10,
         15,
@@ -31,7 +29,7 @@ namespace
         30,
     };
 
-    LESSDB::Section block0sections[NUMBER_OF_SECTIONS] = {
+    std::vector<LESSDB::Section> block0sections = {
         {
             sectionParams[0],
             sectionTypes[0],
@@ -81,7 +79,7 @@ namespace
         },
     };
 
-    LESSDB::Section block1sections[NUMBER_OF_SECTIONS] = {
+    std::vector<LESSDB::Section> block1sections = {
         {
             sectionParams[1],
             sectionTypes[1],
@@ -131,7 +129,7 @@ namespace
         },
     };
 
-    LESSDB::Section block2sections[NUMBER_OF_SECTIONS] = {
+    std::vector<LESSDB::Section> block2sections = {
         {
             sectionParams[2],
             sectionTypes[2],
@@ -181,7 +179,7 @@ namespace
         },
     };
 
-    LESSDB::Section block3sections[NUMBER_OF_SECTIONS] = {
+    std::vector<LESSDB::Section> block3sections = {
         {
             sectionParams[3],
             sectionTypes[3],
@@ -231,7 +229,7 @@ namespace
         },
     };
 
-    LESSDB::Section block4sections[NUMBER_OF_SECTIONS] = {
+    std::vector<LESSDB::Section> block4sections = {
         {
             sectionParams[4],
             sectionTypes[4],
@@ -281,7 +279,7 @@ namespace
         },
     };
 
-    LESSDB::Section block5sections[NUMBER_OF_SECTIONS] = {
+    std::vector<LESSDB::Section> block5sections = {
         {
             sectionParams[5],
             sectionTypes[5],
@@ -331,34 +329,28 @@ namespace
         },
     };
 
-    LESSDB::Block dbLayout[NUMBER_OF_BLOCKS] = {
+    std::vector<LESSDB::Block> dbLayout = {
         {
-            NUMBER_OF_SECTIONS,
             block0sections,
         },
 
         {
-            NUMBER_OF_SECTIONS,
             block1sections,
         },
 
         {
-            NUMBER_OF_SECTIONS,
             block2sections,
         },
 
         {
-            NUMBER_OF_SECTIONS,
             block3sections,
         },
 
         {
-            NUMBER_OF_SECTIONS,
             block4sections,
         },
 
         {
-            NUMBER_OF_SECTIONS,
             block5sections,
         },
     };
@@ -474,7 +466,8 @@ TEST_SETUP()
     dbStorageMock.writeCallback = memoryWrite;
 
     TEST_ASSERT(db.dbSize() == LESSDB_SIZE);
-    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS, 0) == true);
+    TEST_ASSERT(db.setLayout(dbLayout, 0) == true);
+
     db.initData(LESSDB::factoryResetType_t::full);
 }
 
@@ -523,7 +516,7 @@ TEST_CASE(Read)
     TEST_ASSERT(value == defaultValues[1]);
 
     // perform the same round of tests with different starting point
-    TEST_ASSERT(db.setLayout(dbLayout, NUMBER_OF_BLOCKS, 100) == true);
+    TEST_ASSERT(db.setLayout(dbLayout, 100) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     // bit section
@@ -665,11 +658,11 @@ TEST_CASE(ErrorCheck)
     TEST_ASSERT(returnValue == false);
 
     // try calling read with invalid section
-    returnValue = db.read(TEST_BLOCK_INDEX, NUMBER_OF_SECTIONS, 0, value);
+    returnValue = db.read(TEST_BLOCK_INDEX, dbLayout.size(), 0, value);
     TEST_ASSERT(returnValue == false);
 
     // try calling read with invalid block
-    returnValue = db.read(NUMBER_OF_BLOCKS, 0, 0, value);
+    returnValue = db.read(dbLayout.size(), 0, 0, value);
     TEST_ASSERT(returnValue == false);
 
     // update
@@ -683,7 +676,7 @@ TEST_CASE(ErrorCheck)
     TEST_ASSERT(returnValue == false);
 
     // try to init database with too many parameters
-    LESSDB::Section outOfBoundsSection[1] = {
+    std::vector<LESSDB::Section> outOfBoundsSection = {
         {
             LESSDB_SIZE + 1,
             LESSDB::sectionParameterType_t::byte,
@@ -693,22 +686,18 @@ TEST_CASE(ErrorCheck)
         },
     };
 
-    LESSDB::Block outOfBoundsLayout[1] = {
+    std::vector<LESSDB::Block> outOfBoundsLayout = {
         {
-            1,
             outOfBoundsSection,
         },
     };
 
-    returnValue = db.setLayout(outOfBoundsLayout, 1, 0);
-    TEST_ASSERT(returnValue == false);
-
-    // try to init database with null pointer
-    returnValue = db.setLayout(NULL, 1, 0);
+    returnValue = db.setLayout(outOfBoundsLayout, 0);
     TEST_ASSERT(returnValue == false);
 
     // try to init database with zero blocks
-    returnValue = db.setLayout(dbLayout, 0, 0);
+    std::vector<LESSDB::Block> emptyLayout = {};
+    returnValue                            = db.setLayout(emptyLayout, 0);
     TEST_ASSERT(returnValue == false);
 }
 
@@ -772,7 +761,7 @@ TEST_CASE(DBsize)
     int expectedSize = 0;
     int dbSize       = db.currentDBsize();
 
-    for (int i = 0; i < NUMBER_OF_SECTIONS; i++)
+    for (int i = 0; i < dbLayout.size(); i++)
     {
         switch (sectionTypes[i])
         {
@@ -799,7 +788,7 @@ TEST_CASE(DBsize)
     }
 
     // test uses blocks with same sections
-    TEST_ASSERT(dbSize == expectedSize * NUMBER_OF_BLOCKS);
+    TEST_ASSERT(dbSize == expectedSize * dbLayout.size());
 }
 
 TEST_CASE(FactoryReset)
@@ -872,7 +861,7 @@ TEST_CASE(FailedRead)
 
     // check if reading now returns an error for all sections
     // block 0
-    for (int i = 0; i < NUMBER_OF_SECTIONS; i++)
+    for (int i = 0; i < dbLayout.size(); i++)
     {
         returnValue = db.read(0, i, 0, value);
         TEST_ASSERT(returnValue == false);
@@ -888,7 +877,7 @@ TEST_CASE(FailedWrite)
 
     // check if writing now returns an error for all sections
     // block 0
-    for (int i = 0; i < NUMBER_OF_SECTIONS; i++)
+    for (int i = 0; i < dbLayout.size(); i++)
     {
         returnValue = db.update(0, i, 0, 0);
         TEST_ASSERT(returnValue == false);
@@ -902,13 +891,11 @@ TEST_CASE(CachingHalfByte)
     // this is used to avoid accessing the database if not needed
 
     static constexpr size_t TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS        = 4;
-    static constexpr size_t TEST_CACHING_HALFBYTE_AMOUNT_OF_SECTIONS      = 3;
-    static constexpr size_t TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS        = 1;
     static constexpr size_t TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE = 10;
     static constexpr size_t TEST_CACHING_HALFBYTE_SECTION_1_DEFAULT_VALUE = 4;
     static constexpr size_t TEST_CACHING_HALFBYTE_SECTION_2_DEFAULT_VALUE = 0;
 
-    LESSDB::Section cachingTestBlock0Sections[TEST_CACHING_HALFBYTE_AMOUNT_OF_SECTIONS] = {
+    std::vector<LESSDB::Section> cachingTestBlock0Sections = {
         {
             TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS,
             LESSDB::sectionParameterType_t::halfByte,
@@ -934,21 +921,20 @@ TEST_CASE(CachingHalfByte)
         },
     };
 
-    LESSDB::Block cachingLayout[1] = {
+    std::vector<LESSDB::Block> cachingLayout = {
         {
-            TEST_CACHING_HALFBYTE_AMOUNT_OF_SECTIONS,
             cachingTestBlock0Sections,
         },
     };
 
-    TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS, 0) == true);
+    TEST_ASSERT(db.setLayout(cachingLayout, 0) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     // the simulated database is now initialized
     // create new database object which won't initialize/write data (only the layout will be set)
     // this is used so that database doesn't call ::update function which resets the cached address
     LESSDB db2(dbStorageMock);
-    TEST_ASSERT(db2.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS, 0) == true);
+    TEST_ASSERT(db2.setLayout(cachingLayout, 0) == true);
 
     // read the values back
     // this will verify that the values are read properly and that caching doesn't influence the readout
@@ -962,7 +948,7 @@ TEST_CASE(CachingHalfByte)
 
     // try reading the same value twice
     LESSDB db3(dbStorageMock);
-    TEST_ASSERT(db3.setLayout(cachingLayout, TEST_CACHING_HALFBYTE_AMOUNT_OF_BLOCKS, 0) == true);
+    TEST_ASSERT(db3.setLayout(cachingLayout, 0) == true);
 
     TEST_ASSERT(db3.read(0, 0, TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS - 1, readValue) == true);
     TEST_ASSERT(readValue == TEST_CACHING_HALFBYTE_SECTION_0_DEFAULT_VALUE);
@@ -978,13 +964,11 @@ TEST_CASE(CachingBit)
     // this is used to avoid accessing the database if not needed
 
     static constexpr size_t TEST_CACHING_BIT_AMOUNT_OF_PARAMS        = 4;
-    static constexpr size_t TEST_CACHING_BIT_AMOUNT_OF_SECTIONS      = 3;
-    static constexpr size_t TEST_CACHING_BIT_AMOUNT_OF_BLOCKS        = 1;
     static constexpr size_t TEST_CACHING_BIT_SECTION_0_DEFAULT_VALUE = 0;
     static constexpr size_t TEST_CACHING_BIT_SECTION_1_DEFAULT_VALUE = 1;
     static constexpr size_t TEST_CACHING_BIT_SECTION_2_DEFAULT_VALUE = 1;
 
-    LESSDB::Section cachingTestBlock0Sections[TEST_CACHING_BIT_AMOUNT_OF_SECTIONS] = {
+    std::vector<LESSDB::Section> cachingTestBlock0Sections = {
         {
             TEST_CACHING_BIT_AMOUNT_OF_PARAMS,
             LESSDB::sectionParameterType_t::bit,
@@ -1010,21 +994,20 @@ TEST_CASE(CachingBit)
         },
     };
 
-    LESSDB::Block cachingLayout[1] = {
+    std::vector<LESSDB::Block> cachingLayout = {
         {
-            TEST_CACHING_BIT_AMOUNT_OF_SECTIONS,
             cachingTestBlock0Sections,
         },
     };
 
-    TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS, 0) == true);
+    TEST_ASSERT(db.setLayout(cachingLayout, 0) == true);
     db.initData(LESSDB::factoryResetType_t::full);
 
     // the simulated database is now initialized
     // create new database object which won't initialize/write data (only the layout will be set)
     // this is used so that database doesn't call ::update function which resets the cached address
     LESSDB db2(dbStorageMock);
-    TEST_ASSERT(db.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS, 0) == true);
+    TEST_ASSERT(db.setLayout(cachingLayout, 0) == true);
 
     // read the values back
     // this will verify that the values are read properly and that caching doesn't influence the readout
@@ -1038,7 +1021,7 @@ TEST_CASE(CachingBit)
 
     // try reading the same value twice
     LESSDB db3(dbStorageMock);
-    TEST_ASSERT(db3.setLayout(cachingLayout, TEST_CACHING_BIT_AMOUNT_OF_BLOCKS, 0) == true);
+    TEST_ASSERT(db3.setLayout(cachingLayout, 0) == true);
 
     TEST_ASSERT(db3.read(0, 1, TEST_CACHING_BIT_AMOUNT_OF_PARAMS - 1, readValue) == true);
     TEST_ASSERT(readValue == TEST_CACHING_BIT_SECTION_1_DEFAULT_VALUE);

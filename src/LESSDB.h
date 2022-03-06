@@ -24,6 +24,7 @@
 
 #include <inttypes.h>
 #include <stddef.h>
+#include <vector>
 
 class LESSDB
 {
@@ -94,18 +95,15 @@ class LESSDB
     class Block
     {
         public:
-        Block(size_t   numberOfSections,
-              Section* section)
-            : _numberOfSections(numberOfSections)
-            , _section(section)
+        Block(std::vector<Section>& sections)
+            : _sections(sections)
         {}
 
         private:
         friend class LESSDB;
 
-        const size_t   _numberOfSections;
-        Section* const _section;
-        uint32_t       _address = 0;
+        std::vector<Section>& _sections;
+        uint32_t              _address = 0;
     };
 
     LESSDB(StorageAccess& storageAccess)
@@ -113,8 +111,8 @@ class LESSDB
     {}
 
     bool            init();
-    bool            setLayout(Block* pointer, size_t numberOfBlocks, uint32_t startAddress);
-    static uint16_t layoutUID(Block* pointer, size_t numberOfBlocks, uint16_t magicValue = 0);
+    bool            setLayout(std::vector<Block>& layout, uint32_t startAddress);
+    static uint16_t layoutUID(std::vector<Block>& layout, uint16_t magicValue = 0);
     bool            clear();
     bool            read(size_t blockID, size_t sectionID, size_t parameterIndex, int32_t& value);
     int32_t         read(size_t blockID, size_t sectionID, size_t parameterIndex);
@@ -130,9 +128,6 @@ class LESSDB
     bool     write(uint32_t address, int32_t value, sectionParameterType_t type);
     bool     checkParameters(size_t blockID, size_t sectionID, size_t parameterIndex);
     uint32_t sectionAddress(size_t blockID, size_t sectionID);
-
-    /// Holds amount of blocks.
-    size_t blockCounter = 0;
 
     /// Holds total memory usage for current database layout.
     uint32_t memoryUsage = 0;
@@ -155,8 +150,8 @@ class LESSDB
         0b10000000,
     };
 
-    /// Pointer to array of LESSDB blocks.
-    Block* block = nullptr;
+    /// Database layout.
+    std::vector<Block>* _layout = {};
 
     /// Reference to object which provides actual access to the storage system.
     StorageAccess& storageAccess;
