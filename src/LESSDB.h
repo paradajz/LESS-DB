@@ -31,11 +31,11 @@ class LESSDB
     public:
     enum class sectionParameterType_t : uint8_t
     {
-        bit,
-        byte,
-        halfByte,
-        word,
-        dword
+        BIT,
+        BYTE,
+        HALF_BYTE,
+        WORD,
+        DWORD
     };
 
     class StorageAccess
@@ -50,20 +50,20 @@ class LESSDB
 
     enum class factoryResetType_t : uint8_t
     {
-        partial,
-        full
+        PARTIAL,
+        FULL
     };
 
     enum class preserveSetting_t : uint8_t
     {
-        enable,
-        disable
+        ENABLE,
+        DISABLE
     };
 
     enum class autoIncrementSetting_t : uint8_t
     {
-        enable,
-        disable
+        ENABLE,
+        DISABLE
     };
 
     class Section
@@ -74,21 +74,21 @@ class LESSDB
                 preserveSetting_t      preserveOnPartialReset,
                 autoIncrementSetting_t autoIncrement,
                 int32_t                defaultValue)
-            : _numberOfParameters(numberOfParameters)
-            , _parameterType(parameterType)
-            , _preserveOnPartialReset(preserveOnPartialReset)
-            , _autoIncrement(autoIncrement)
-            , _defaultValue(defaultValue)
+            : NUMBER_OF_PARAMETERS(numberOfParameters)
+            , PARAMETER_TYPE(parameterType)
+            , PRESERVE_ON_PARTIAL_RESET(preserveOnPartialReset)
+            , AUTO_INCREMENT(autoIncrement)
+            , DEFAULT_VALUE(defaultValue)
         {}
 
         private:
         friend class LESSDB;
 
-        const size_t                 _numberOfParameters;
-        const sectionParameterType_t _parameterType;
-        const preserveSetting_t      _preserveOnPartialReset;
-        const autoIncrementSetting_t _autoIncrement;
-        const int32_t                _defaultValue;
+        const size_t                 NUMBER_OF_PARAMETERS;
+        const sectionParameterType_t PARAMETER_TYPE;
+        const preserveSetting_t      PRESERVE_ON_PARTIAL_RESET;
+        const autoIncrementSetting_t AUTO_INCREMENT;
+        const int32_t                DEFAULT_VALUE;
         uint32_t                     _address = 0;
     };
 
@@ -122,7 +122,7 @@ class LESSDB
     uint32_t        dbSize() const;
     uint32_t        lastParameterAddress() const;
     uint32_t        nextParameterAddress() const;
-    bool            initData(factoryResetType_t type = factoryResetType_t::full);
+    bool            initData(factoryResetType_t type = factoryResetType_t::FULL);
 
     private:
     bool     write(uint32_t address, int32_t value, sectionParameterType_t type);
