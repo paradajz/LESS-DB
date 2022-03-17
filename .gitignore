@@ -6,3 +6,4 @@ Documentation/*
 *Objects.mk*
 *.profraw
 **/tests/test_run/*
+**/.cache/*
