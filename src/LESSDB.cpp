@@ -53,83 +53,83 @@ bool LESSDB::setLayout(std::vector<Block>& layout, uint32_t startAddress)
 
     _layout = &layout;
 
-    for (size_t i = 0; i < LAYOUT_ACCESS.size(); i++)
+    for (size_t block = 0; block < LAYOUT_ACCESS.size(); block++)
     {
         uint32_t blockUsage = 0;
 
-        for (size_t j = 0; j < LAYOUT_ACCESS[i]._sections.size(); j++)
+        for (size_t section = 0; section < LAYOUT_ACCESS[block]._sections.size(); section++)
         {
-            if (!j)
+            if (section == 0)
             {
                 // first section address is always 0
-                LAYOUT_ACCESS[i]._sections[0]._address = 0;
+                LAYOUT_ACCESS[block]._sections[section]._address = 0;
             }
             else
             {
-                size_t lastSection = j - 1;
+                size_t lastSection = section - 1;
 
-                switch (LAYOUT_ACCESS[i]._sections[lastSection].PARAMETER_TYPE)
+                switch (LAYOUT_ACCESS[block]._sections[lastSection].PARAMETER_TYPE)
                 {
                 case sectionParameterType_t::BIT:
                 {
-                    LAYOUT_ACCESS[i]._sections[j]._address =
-                        (LAYOUT_ACCESS[i]._sections[lastSection].NUMBER_OF_PARAMETERS % 8 != 0) +
-                        (LAYOUT_ACCESS[i]._sections[lastSection].NUMBER_OF_PARAMETERS / 8) +
-                        LAYOUT_ACCESS[i]._sections[lastSection]._address;
+                    LAYOUT_ACCESS[block]._sections[section]._address =
+                        (LAYOUT_ACCESS[block]._sections[lastSection].NUMBER_OF_PARAMETERS % 8 != 0) +
+                        (LAYOUT_ACCESS[block]._sections[lastSection].NUMBER_OF_PARAMETERS / 8) +
+                        LAYOUT_ACCESS[block]._sections[lastSection]._address;
                 }
                 break;
 
                 case sectionParameterType_t::BYTE:
                 {
-                    LAYOUT_ACCESS[i]._sections[j]._address =
-                        LAYOUT_ACCESS[i]._sections[lastSection].NUMBER_OF_PARAMETERS +
-                        LAYOUT_ACCESS[i]._sections[lastSection]._address;
+                    LAYOUT_ACCESS[block]._sections[section]._address =
+                        LAYOUT_ACCESS[block]._sections[lastSection].NUMBER_OF_PARAMETERS +
+                        LAYOUT_ACCESS[block]._sections[lastSection]._address;
                 }
                 break;
 
                 case sectionParameterType_t::HALF_BYTE:
                 {
-                    LAYOUT_ACCESS[i]._sections[j]._address =
-                        (LAYOUT_ACCESS[i]._sections[lastSection].NUMBER_OF_PARAMETERS % 2 != 0) +
-                        (LAYOUT_ACCESS[i]._sections[lastSection].NUMBER_OF_PARAMETERS / 2) +
-                        LAYOUT_ACCESS[i]._sections[lastSection]._address;
+                    LAYOUT_ACCESS[block]._sections[section]._address =
+                        (LAYOUT_ACCESS[block]._sections[lastSection].NUMBER_OF_PARAMETERS % 2 != 0) +
+                        (LAYOUT_ACCESS[block]._sections[lastSection].NUMBER_OF_PARAMETERS / 2) +
+                        LAYOUT_ACCESS[block]._sections[lastSection]._address;
                 }
                 break;
 
                 case sectionParameterType_t::WORD:
                 {
-                    LAYOUT_ACCESS[i]._sections[j]._address =
-                        2 * LAYOUT_ACCESS[i]._sections[lastSection].NUMBER_OF_PARAMETERS +
-                        LAYOUT_ACCESS[i]._sections[lastSection]._address;
+                    LAYOUT_ACCESS[block]._sections[section]._address =
+                        2 * LAYOUT_ACCESS[block]._sections[lastSection].NUMBER_OF_PARAMETERS +
+                        LAYOUT_ACCESS[block]._sections[lastSection]._address;
                 }
                 break;
 
                 default:
                 {
                     // case sectionParameterType_t::dword:
-                    LAYOUT_ACCESS[i]._sections[j]._address =
-                        4 * LAYOUT_ACCESS[i]._sections[lastSection].NUMBER_OF_PARAMETERS +
-                        LAYOUT_ACCESS[i]._sections[lastSection]._address;
+                    LAYOUT_ACCESS[block]._sections[section]._address =
+                        4 * LAYOUT_ACCESS[block]._sections[lastSection].NUMBER_OF_PARAMETERS +
+                        LAYOUT_ACCESS[block]._sections[lastSection]._address;
                 }
                 break;
                 }
             }
 
-            _memoryParameters += LAYOUT_ACCESS[i]._sections[j].NUMBER_OF_PARAMETERS;
+            _memoryParameters += LAYOUT_ACCESS[block]._sections[section].NUMBER_OF_PARAMETERS;
 
-            switch (LAYOUT_ACCESS[i]._sections[j].PARAMETER_TYPE)
+            switch (LAYOUT_ACCESS[block]._sections[section].PARAMETER_TYPE)
             {
             case sectionParameterType_t::BIT:
             {
-                blockUsage += (((LAYOUT_ACCESS[i]._sections[j].NUMBER_OF_PARAMETERS % 8 != 0) +
-                                LAYOUT_ACCESS[i]._sections[j].NUMBER_OF_PARAMETERS / 8));
+                blockUsage += (((LAYOUT_ACCESS[block]._sections[section].NUMBER_OF_PARAMETERS % 8 != 0) +
+                                LAYOUT_ACCESS[block]._sections[section].NUMBER_OF_PARAMETERS / 8));
             }
             break;
 
             case sectionParameterType_t::HALF_BYTE:
             {
-                blockUsage += (((LAYOUT_ACCESS[i]._sections[j].NUMBER_OF_PARAMETERS % 2 != 0) +
-                                LAYOUT_ACCESS[i]._sections[j].NUMBER_OF_PARAMETERS / 2));
+                blockUsage += (((LAYOUT_ACCESS[block]._sections[section].NUMBER_OF_PARAMETERS % 2 != 0) +
+                                LAYOUT_ACCESS[block]._sections[section].NUMBER_OF_PARAMETERS / 2));
             }
             break;
 
@@ -138,13 +138,13 @@ bool LESSDB::setLayout(std::vector<Block>& layout, uint32_t startAddress)
             case sectionParameterType_t::DWORD:
             default:
             {
-                const size_t MULTIPLIER = (LAYOUT_ACCESS[i]._sections[j].PARAMETER_TYPE == sectionParameterType_t::BYTE)
+                const size_t MULTIPLIER = (LAYOUT_ACCESS[block]._sections[section].PARAMETER_TYPE == sectionParameterType_t::BYTE)
                                               ? 1
-                                          : (LAYOUT_ACCESS[i]._sections[j].PARAMETER_TYPE == sectionParameterType_t::WORD)
+                                          : (LAYOUT_ACCESS[block]._sections[section].PARAMETER_TYPE == sectionParameterType_t::WORD)
                                               ? 2     // word
                                               : 4;    // dword
 
-                blockUsage += (MULTIPLIER * LAYOUT_ACCESS[i]._sections[j].NUMBER_OF_PARAMETERS);
+                blockUsage += (MULTIPLIER * LAYOUT_ACCESS[block]._sections[section].NUMBER_OF_PARAMETERS);
             }
             break;
             }
@@ -157,43 +157,43 @@ bool LESSDB::setLayout(std::vector<Block>& layout, uint32_t startAddress)
             return false;
         }
 
-        size_t lastSection = LAYOUT_ACCESS[i]._sections.size() - 1;
+        size_t lastSection = LAYOUT_ACCESS[block]._sections.size() - 1;
 
-        if (!i)
+        if (block == 0)
         {
-            LAYOUT_ACCESS[0]._address = _initialAddress;
+            LAYOUT_ACCESS[block]._address = _initialAddress;
         }
 
-        _nextBlockAddress = LAYOUT_ACCESS[i]._address + LAYOUT_ACCESS[i]._sections[lastSection]._address;
+        _nextBlockAddress = LAYOUT_ACCESS[block]._address + LAYOUT_ACCESS[block]._sections[lastSection]._address;
 
-        switch (LAYOUT_ACCESS[i]._sections[lastSection].PARAMETER_TYPE)
+        switch (LAYOUT_ACCESS[block]._sections[lastSection].PARAMETER_TYPE)
         {
         case sectionParameterType_t::BIT:
         {
             _nextBlockAddress +=
-                (LAYOUT_ACCESS[i]._sections[lastSection].NUMBER_OF_PARAMETERS % 8 != 0) +
-                (LAYOUT_ACCESS[i]._sections[lastSection].NUMBER_OF_PARAMETERS / 8);
+                (LAYOUT_ACCESS[block]._sections[lastSection].NUMBER_OF_PARAMETERS % 8 != 0) +
+                (LAYOUT_ACCESS[block]._sections[lastSection].NUMBER_OF_PARAMETERS / 8);
         }
         break;
 
         case sectionParameterType_t::BYTE:
         {
-            _nextBlockAddress += LAYOUT_ACCESS[i]._sections[lastSection].NUMBER_OF_PARAMETERS;
+            _nextBlockAddress += LAYOUT_ACCESS[block]._sections[lastSection].NUMBER_OF_PARAMETERS;
         }
         break;
 
         case sectionParameterType_t::HALF_BYTE:
         {
             _nextBlockAddress +=
-                (LAYOUT_ACCESS[i]._sections[lastSection].NUMBER_OF_PARAMETERS % 2 != 0) +
-                (LAYOUT_ACCESS[i]._sections[lastSection].NUMBER_OF_PARAMETERS / 2);
+                (LAYOUT_ACCESS[block]._sections[lastSection].NUMBER_OF_PARAMETERS % 2 != 0) +
+                (LAYOUT_ACCESS[block]._sections[lastSection].NUMBER_OF_PARAMETERS / 2);
         }
         break;
 
         case sectionParameterType_t::WORD:
         {
             _nextBlockAddress +=
-                2 * LAYOUT_ACCESS[i]._sections[lastSection].NUMBER_OF_PARAMETERS;
+                2 * LAYOUT_ACCESS[block]._sections[lastSection].NUMBER_OF_PARAMETERS;
         }
         break;
 
@@ -201,14 +201,14 @@ bool LESSDB::setLayout(std::vector<Block>& layout, uint32_t startAddress)
         {
             // case sectionParameterType_t::DWORD:
             _nextBlockAddress +=
-                4 * LAYOUT_ACCESS[i]._sections[lastSection].NUMBER_OF_PARAMETERS;
+                4 * LAYOUT_ACCESS[block]._sections[lastSection].NUMBER_OF_PARAMETERS;
         }
         break;
         }
 
-        if (i < (LAYOUT_ACCESS.size() - 1))
+        if (block < (LAYOUT_ACCESS.size() - 1))
         {
-            LAYOUT_ACCESS[i + 1]._address = _nextBlockAddress;
+            LAYOUT_ACCESS[block + 1]._address = _nextBlockAddress;
         }
     }
 
@@ -232,12 +232,12 @@ uint16_t LESSDB::layoutUID(std::vector<Block>& layout, uint16_t magicValue)
     uint16_t signature = 0;
 
     // get unique database signature based on its blocks/sections
-    for (size_t i = 0; i < layout.size(); i++)
+    for (size_t block = 0; block < layout.size(); block++)
     {
-        for (size_t j = 0; j < layout[i]._sections.size(); j++)
+        for (size_t section = 0; section < layout[block]._sections.size(); section++)
         {
-            signature += static_cast<uint16_t>(layout[i]._sections[j].NUMBER_OF_PARAMETERS);
-            signature += static_cast<uint16_t>(layout[i]._sections[j].PARAMETER_TYPE);
+            signature += static_cast<uint16_t>(layout[block]._sections[section].NUMBER_OF_PARAMETERS);
+            signature += static_cast<uint16_t>(layout[block]._sections[section].PARAMETER_TYPE);
         }
     }
 
@@ -530,20 +530,22 @@ bool LESSDB::clear()
 ///                     preserveOnPartialReset parameter is set to true.
 bool LESSDB::initData(factoryResetType_t type)
 {
-    for (size_t i = 0; i < LAYOUT_ACCESS.size(); i++)
+    for (size_t block = 0; block < LAYOUT_ACCESS.size(); block++)
     {
-        for (size_t j = 0; j < LAYOUT_ACCESS[i]._sections.size(); j++)
+        for (size_t section = 0; section < LAYOUT_ACCESS[block]._sections.size(); section++)
         {
-            if ((LAYOUT_ACCESS[i]._sections[j].PRESERVE_ON_PARTIAL_RESET == preserveSetting_t::ENABLE) && (type == factoryResetType_t::PARTIAL))
+            if (
+                (LAYOUT_ACCESS[block]._sections[section].PRESERVE_ON_PARTIAL_RESET == preserveSetting_t::ENABLE) &&
+                (type == factoryResetType_t::PARTIAL))
             {
                 continue;
             }
 
-            uint32_t startAddress = sectionAddress(i, j);
+            uint32_t startAddress = sectionAddress(block, section);
 
-            auto parameterType      = LAYOUT_ACCESS[i]._sections[j].PARAMETER_TYPE;
-            auto defaultValue       = LAYOUT_ACCESS[i]._sections[j].DEFAULT_VALUE;
-            auto numberOfParameters = LAYOUT_ACCESS[i]._sections[j].NUMBER_OF_PARAMETERS;
+            auto parameterType      = LAYOUT_ACCESS[block]._sections[section].PARAMETER_TYPE;
+            auto defaultValue       = LAYOUT_ACCESS[block]._sections[section].DEFAULT_VALUE;
+            auto numberOfParameters = LAYOUT_ACCESS[block]._sections[section].NUMBER_OF_PARAMETERS;
 
             switch (parameterType)
             {
@@ -551,11 +553,11 @@ bool LESSDB::initData(factoryResetType_t type)
             case sectionParameterType_t::WORD:
             case sectionParameterType_t::DWORD:
             {
-                for (size_t k = 0; k < numberOfParameters; k++)
+                for (size_t parameter = 0; parameter < numberOfParameters; parameter++)
                 {
-                    if (LAYOUT_ACCESS[i]._sections[j].AUTO_INCREMENT == autoIncrementSetting_t::ENABLE)
+                    if (LAYOUT_ACCESS[block]._sections[section].AUTO_INCREMENT == autoIncrementSetting_t::ENABLE)
                     {
-                        if (!write(startAddress, defaultValue + k, parameterType))
+                        if (!write(startAddress, defaultValue + parameter, parameterType))
                         {
                             return false;
                         }
@@ -590,13 +592,15 @@ bool LESSDB::initData(factoryResetType_t type)
                 size_t loops = (numberOfParameters / 8) + ((numberOfParameters % 8) != 0);
 
                 // optimize the writing - merge values into single byte
-                for (size_t k = 0; k < loops; k++)
+                for (size_t loop = 0; loop < loops; loop++)
                 {
                     uint8_t value = 0;
 
-                    for (uint8_t parameter = 0; parameter < 8; parameter++)
+                    for (uint8_t bit = 0; bit < 8; bit++)
                     {
-                        if (((k * 8) + parameter) >= numberOfParameters)
+                        const size_t PARAMETER = (loop * 8) + bit;
+
+                        if (PARAMETER >= numberOfParameters)
                         {
                             break;
                         }
@@ -621,13 +625,15 @@ bool LESSDB::initData(factoryResetType_t type)
                 size_t loops = (numberOfParameters / 2) + ((numberOfParameters % 2) != 0);
 
                 // optimize the writing - merge values into single byte
-                for (size_t k = 0; k < loops; k++)
+                for (size_t loop = 0; loop < loops; loop++)
                 {
                     uint8_t value = 0;
 
-                    for (uint8_t parameter = 0; parameter < 2; parameter++)
+                    for (uint8_t halfByte = 0; halfByte < 2; halfByte++)
                     {
-                        if (((k * 2) + parameter) >= numberOfParameters)
+                        const size_t PARAMETER = (loop * 2) + halfByte;
+
+                        if (PARAMETER >= numberOfParameters)
                         {
                             break;
                         }
