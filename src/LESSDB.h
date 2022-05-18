@@ -79,6 +79,20 @@ class LESSDB
             , PRESERVE_ON_PARTIAL_RESET(preserveOnPartialReset)
             , AUTO_INCREMENT(autoIncrement)
             , DEFAULT_VALUE(defaultValue)
+            , DEFAULT_VALUES(std::vector<int32_t>{})
+        {}
+
+        Section(size_t                 numberOfParameters,
+                sectionParameterType_t parameterType,
+                preserveSetting_t      preserveOnPartialReset,
+                autoIncrementSetting_t autoIncrement,
+                std::vector<int32_t>   defaultValues)
+            : NUMBER_OF_PARAMETERS(numberOfParameters)
+            , PARAMETER_TYPE(parameterType)
+            , PRESERVE_ON_PARTIAL_RESET(preserveOnPartialReset)
+            , AUTO_INCREMENT(autoIncrement)
+            , DEFAULT_VALUE(0)
+            , DEFAULT_VALUES(std::move(defaultValues))
         {}
 
         private:
@@ -89,6 +103,7 @@ class LESSDB
         const preserveSetting_t      PRESERVE_ON_PARTIAL_RESET;
         const autoIncrementSetting_t AUTO_INCREMENT;
         const int32_t                DEFAULT_VALUE;
+        const std::vector<int32_t>   DEFAULT_VALUES;
         uint32_t                     _address = 0;
     };
 
