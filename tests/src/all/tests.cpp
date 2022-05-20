@@ -25,12 +25,12 @@ namespace
             public:
             DBstorageMock()
             {
-                _readCallback = [this](uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type)
+                _readCallback = [this](uint32_t address, uint32_t& value, LESSDB::sectionParameterType_t type)
                 {
                     return memoryRead(address, value, type);
                 };
 
-                _writeCallback = [this](uint32_t address, int32_t value, LESSDB::sectionParameterType_t type)
+                _writeCallback = [this](uint32_t address, uint32_t value, LESSDB::sectionParameterType_t type)
                 {
                     return memoryWrite(address, value, type);
                 };
@@ -52,27 +52,27 @@ namespace
                 return true;
             }
 
-            bool read(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type) override
+            bool read(uint32_t address, uint32_t& value, LESSDB::sectionParameterType_t type) override
             {
                 return _readCallback(address, value, type);
             }
 
-            bool write(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type) override
+            bool write(uint32_t address, uint32_t value, LESSDB::sectionParameterType_t type) override
             {
                 return _writeCallback(address, value, type);
             }
 
-            bool memoryReadFail(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type)
+            bool memoryReadFail(uint32_t address, uint32_t& value, LESSDB::sectionParameterType_t type)
             {
                 return false;
             }
 
-            bool memoryWriteFail(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type)
+            bool memoryWriteFail(uint32_t address, uint32_t value, LESSDB::sectionParameterType_t type)
             {
                 return false;
             }
 
-            bool memoryRead(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type)
+            bool memoryRead(uint32_t address, uint32_t& value, LESSDB::sectionParameterType_t type)
             {
                 switch (type)
                 {
@@ -109,7 +109,7 @@ namespace
                 return true;
             }
 
-            bool memoryWrite(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type)
+            bool memoryWrite(uint32_t address, uint32_t value, LESSDB::sectionParameterType_t type)
             {
                 switch (type)
                 {
@@ -141,8 +141,8 @@ namespace
                 return true;
             }
 
-            std::function<bool(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type)> _readCallback;
-            std::function<bool(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type)>  _writeCallback;
+            std::function<bool(uint32_t address, uint32_t& value, LESSDB::sectionParameterType_t type)> _readCallback;
+            std::function<bool(uint32_t address, uint32_t value, LESSDB::sectionParameterType_t type)>  _writeCallback;
 
             private:
             uint8_t _memoryArray[DatabaseTest::LESSDB_SIZE];
@@ -510,7 +510,7 @@ namespace
 
 TEST_F(DatabaseTest, Read)
 {
-    int32_t value;
+    uint32_t value;
 
     // bit section
     for (int i = 0; i < SECTION_PARAMS[0]; i++)
@@ -599,8 +599,8 @@ TEST_F(DatabaseTest, Read)
 
 TEST_F(DatabaseTest, Update)
 {
-    int32_t value;
-    bool    returnValue;
+    uint32_t value;
+    bool     returnValue;
 
     // section 0, index 0
     returnValue = _db.update(TEST_BLOCK_INDEX, 0, 0, 1);
@@ -693,7 +693,7 @@ TEST_F(DatabaseTest, ErrorCheck)
 
     // read
     // try calling read with invalid parameter index
-    int32_t value;
+    uint32_t value;
 
     returnValue = _db.read(TEST_BLOCK_INDEX, 0, SECTION_PARAMS[0], value);
     ASSERT_FALSE(returnValue);
@@ -752,8 +752,8 @@ TEST_F(DatabaseTest, ClearDB)
 {
     _db.clear();
 
-    bool    returnValue;
-    int32_t value;
+    bool     returnValue;
+    uint32_t value;
 
     // verify that any read value equals 0
     // bit section
@@ -852,8 +852,8 @@ TEST_F(DatabaseTest, FactoryReset)
 {
     // block 0, section 1 is configured to preserve values after partial reset
     // write some values first
-    bool    returnValue;
-    int32_t value;
+    bool     returnValue;
+    uint32_t value;
 
     returnValue = _db.update(0, 1, 0, 16);
     ASSERT_TRUE(returnValue);
@@ -895,9 +895,9 @@ TEST_F(DatabaseTest, AutoIncrement)
     // block 0, section 1 has autoincrement configured
     // verify
 
-    bool    returnValue;
-    int32_t value;
-    int32_t testValue;
+    bool     returnValue;
+    uint32_t value;
+    uint32_t testValue;
 
     for (int i = 0; i < SECTION_PARAMS[1]; i++)
     {
@@ -911,13 +911,13 @@ TEST_F(DatabaseTest, AutoIncrement)
 TEST_F(DatabaseTest, FailedRead)
 {
     // configure memory read callback to always return false
-    _dbStorageMock._readCallback = [this](uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type)
+    _dbStorageMock._readCallback = [this](uint32_t address, uint32_t& value, LESSDB::sectionParameterType_t type)
     {
         return _dbStorageMock.memoryReadFail(address, value, type);
     };
 
-    bool    returnValue;
-    int32_t value;
+    bool     returnValue;
+    uint32_t value;
 
     // check if reading now returns an error for all sections
     // block 0
@@ -932,7 +932,7 @@ TEST_F(DatabaseTest, FailedWrite)
 {
     // configure memory write callback to always return false
     _dbStorageMock._writeCallback =
-        [this](uint32_t address, int32_t value, LESSDB::sectionParameterType_t type)
+        [this](uint32_t address, uint32_t value, LESSDB::sectionParameterType_t type)
     {
         return _dbStorageMock.memoryWriteFail(address, value, type);
     };
@@ -1002,7 +1002,7 @@ TEST_F(DatabaseTest, CachingHalfByte)
 
     // read the values back
     // this will verify that the values are read properly and that caching doesn't influence the readout
-    int32_t readValue;
+    uint32_t readValue;
 
     for (int i = 0; i < TEST_CACHING_HALFBYTE_AMOUNT_OF_PARAMS; i++)
     {
@@ -1075,7 +1075,7 @@ TEST_F(DatabaseTest, CachingBit)
 
     // read the values back
     // this will verify that the values are read properly and that caching doesn't influence the readout
-    int32_t readValue;
+    uint32_t readValue;
 
     for (int i = 0; i < TEST_CACHING_BIT_AMOUNT_OF_PARAMS; i++)
     {

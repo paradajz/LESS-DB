@@ -41,11 +41,11 @@ class LESSDB
     class StorageAccess
     {
         public:
-        virtual bool     init()                                                                      = 0;
-        virtual uint32_t size()                                                                      = 0;
-        virtual bool     clear()                                                                     = 0;
-        virtual bool     read(uint32_t address, int32_t& value, LESSDB::sectionParameterType_t type) = 0;
-        virtual bool     write(uint32_t address, int32_t value, LESSDB::sectionParameterType_t type) = 0;
+        virtual bool     init()                                                                       = 0;
+        virtual uint32_t size()                                                                       = 0;
+        virtual bool     clear()                                                                      = 0;
+        virtual bool     read(uint32_t address, uint32_t& value, LESSDB::sectionParameterType_t type) = 0;
+        virtual bool     write(uint32_t address, uint32_t value, LESSDB::sectionParameterType_t type) = 0;
     };
 
     enum class factoryResetType_t : uint8_t
@@ -73,20 +73,20 @@ class LESSDB
                 sectionParameterType_t parameterType,
                 preserveSetting_t      preserveOnPartialReset,
                 autoIncrementSetting_t autoIncrement,
-                int32_t                defaultValue)
+                uint32_t               defaultValue)
             : NUMBER_OF_PARAMETERS(numberOfParameters)
             , PARAMETER_TYPE(parameterType)
             , PRESERVE_ON_PARTIAL_RESET(preserveOnPartialReset)
             , AUTO_INCREMENT(autoIncrement)
             , DEFAULT_VALUE(defaultValue)
-            , DEFAULT_VALUES(std::vector<int32_t>{})
+            , DEFAULT_VALUES(std::vector<uint32_t>{})
         {}
 
         Section(size_t                 numberOfParameters,
                 sectionParameterType_t parameterType,
                 preserveSetting_t      preserveOnPartialReset,
                 autoIncrementSetting_t autoIncrement,
-                std::vector<int32_t>   defaultValues)
+                std::vector<uint32_t>  defaultValues)
             : NUMBER_OF_PARAMETERS(numberOfParameters)
             , PARAMETER_TYPE(parameterType)
             , PRESERVE_ON_PARTIAL_RESET(preserveOnPartialReset)
@@ -102,8 +102,8 @@ class LESSDB
         const sectionParameterType_t PARAMETER_TYPE;
         const preserveSetting_t      PRESERVE_ON_PARTIAL_RESET;
         const autoIncrementSetting_t AUTO_INCREMENT;
-        const int32_t                DEFAULT_VALUE;
-        const std::vector<int32_t>   DEFAULT_VALUES;
+        const uint32_t               DEFAULT_VALUE;
+        const std::vector<uint32_t>  DEFAULT_VALUES;
         uint32_t                     _address = 0;
     };
 
@@ -129,9 +129,9 @@ class LESSDB
     bool            setLayout(std::vector<Block>& layout, uint32_t startAddress = 0);
     static uint16_t layoutUID(std::vector<Block>& layout, uint16_t magicValue = 0);
     bool            clear();
-    bool            read(size_t blockID, size_t sectionID, size_t parameterIndex, int32_t& value);
-    int32_t         read(size_t blockID, size_t sectionID, size_t parameterIndex);
-    bool            update(size_t blockID, size_t sectionID, size_t parameterIndex, int32_t newValue);
+    bool            read(size_t blockID, size_t sectionID, size_t parameterIndex, uint32_t& value);
+    uint32_t        read(size_t blockID, size_t sectionID, size_t parameterIndex);
+    bool            update(size_t blockID, size_t sectionID, size_t parameterIndex, uint32_t newValue);
     uint32_t        currentDBsize() const;
     uint32_t        currentDBparameters() const;
     uint32_t        dbSize() const;
@@ -140,7 +140,7 @@ class LESSDB
     bool            initData(factoryResetType_t type = factoryResetType_t::FULL);
 
     private:
-    bool     write(uint32_t address, int32_t value, sectionParameterType_t type);
+    bool     write(uint32_t address, uint32_t value, sectionParameterType_t type);
     bool     checkParameters(size_t blockID, size_t sectionID, size_t parameterIndex);
     uint32_t sectionAddress(size_t blockID, size_t sectionID);
 

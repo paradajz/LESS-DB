@@ -252,7 +252,7 @@ uint16_t LESSDB::layoutUID(std::vector<Block>& layout, uint16_t magicValue)
 /// param [in] parameterIndex  Parameter index.
 /// param [in, out] value      Reference to variable in which read value will be stored.
 /// returns: True on success.
-bool LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex, int32_t& value)
+bool LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex, uint32_t& value)
 {
     // sanity checks
     if (!checkParameters(blockID, sectionID, parameterIndex))
@@ -333,7 +333,7 @@ bool LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex, int32
         if (returnValue)
         {
             // sanitize
-            value &= static_cast<int32_t>(0x0F);
+            value &= static_cast<uint32_t>(0x0F);
         }
     }
     break;
@@ -345,7 +345,7 @@ bool LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex, int32
         if (_storageAccess.read(startAddress, value, sectionParameterType_t::WORD))
         {
             // sanitize
-            value &= static_cast<int32_t>(0xFFFF);
+            value &= static_cast<uint32_t>(0xFFFF);
         }
         else
         {
@@ -376,9 +376,9 @@ bool LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex, int32
 /// param [in] sectionID       Section index.
 /// param [in] parameterIndex  Parameter index.
 /// returns: Value from database. In case of read failure, 0 will be returned.
-int32_t LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex)
+uint32_t LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex)
 {
-    int32_t value = 0;
+    uint32_t value = 0;
     read(blockID, sectionID, parameterIndex, value);
     return value;
 }
@@ -389,7 +389,7 @@ int32_t LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex)
 /// param [in] parameterIndex  Parameter index.
 /// param [in] newValue        New value for parameter.
 /// returns: True on success, false otherwise.
-bool LESSDB::update(size_t blockID, size_t sectionID, size_t parameterIndex, int32_t newValue)
+bool LESSDB::update(size_t blockID, size_t sectionID, size_t parameterIndex, uint32_t newValue)
 {
     if (!LAYOUT_ACCESS.size())
     {
@@ -405,9 +405,9 @@ bool LESSDB::update(size_t blockID, size_t sectionID, size_t parameterIndex, int
     uint32_t               startAddress  = sectionAddress(blockID, sectionID);
     sectionParameterType_t parameterType = LAYOUT_ACCESS[blockID]._sections[sectionID].PARAMETER_TYPE;
 
-    uint8_t arrayIndex;
-    int32_t arrayValue;
-    uint8_t bitIndex;
+    uint8_t  arrayIndex;
+    uint32_t arrayValue;
+    uint8_t  bitIndex;
 
     switch (parameterType)
     {
@@ -416,7 +416,7 @@ bool LESSDB::update(size_t blockID, size_t sectionID, size_t parameterIndex, int
         // reset cached address to initiate new read
         _lastReadAddress = 0xFFFFFFFF;
         // sanitize input
-        newValue &= static_cast<int32_t>(0x01);
+        newValue &= static_cast<uint32_t>(0x01);
         arrayIndex = parameterIndex / 8;
         bitIndex   = parameterIndex - 8 * arrayIndex;
         startAddress += arrayIndex;
@@ -442,7 +442,7 @@ bool LESSDB::update(size_t blockID, size_t sectionID, size_t parameterIndex, int
     case sectionParameterType_t::BYTE:
     {
         // sanitize input
-        newValue &= static_cast<int32_t>(0xFF);
+        newValue &= static_cast<uint32_t>(0xFF);
         startAddress += parameterIndex;
         return write(startAddress, newValue, sectionParameterType_t::BYTE);
     }
@@ -453,7 +453,7 @@ bool LESSDB::update(size_t blockID, size_t sectionID, size_t parameterIndex, int
         // reset cached address to initiate new read
         _lastReadAddress = 0xFFFFFFFF;
         // sanitize input
-        newValue &= static_cast<int32_t>(0x0F);
+        newValue &= static_cast<uint32_t>(0x0F);
         startAddress += (parameterIndex / 2);
 
         // read old value first
@@ -480,7 +480,7 @@ bool LESSDB::update(size_t blockID, size_t sectionID, size_t parameterIndex, int
     case sectionParameterType_t::WORD:
     {
         // sanitize input
-        newValue &= static_cast<int32_t>(0xFFFF);
+        newValue &= static_cast<uint32_t>(0xFFFF);
         startAddress += (parameterIndex * 2);
         return write(startAddress, newValue, sectionParameterType_t::WORD);
     }
@@ -502,11 +502,11 @@ bool LESSDB::update(size_t blockID, size_t sectionID, size_t parameterIndex, int
 /// param [in] value   Value to write.
 /// param [in] type    Type of variable.
 /// returns: True if writing succedes and read value matches the specified value, false otherwise.
-bool LESSDB::write(uint32_t address, int32_t value, sectionParameterType_t type)
+bool LESSDB::write(uint32_t address, uint32_t value, sectionParameterType_t type)
 {
     if (_storageAccess.write(address, value, type))
     {
-        int32_t readValue;
+        uint32_t readValue;
 
         if (_storageAccess.read(address, readValue, type))
         {
