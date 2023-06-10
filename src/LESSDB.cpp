@@ -543,10 +543,10 @@ bool LESSDB::initData(factoryResetType_t type)
 
             uint32_t startAddress = sectionAddress(block, section);
 
-            auto        parameterType      = LAYOUT_ACCESS[block]._sections[section].PARAMETER_TYPE;
-            auto        defaultValue       = LAYOUT_ACCESS[block]._sections[section].DEFAULT_VALUE;
-            const auto& DEFAULT_VALUES     = LAYOUT_ACCESS[block]._sections[section].DEFAULT_VALUES;
-            auto        numberOfParameters = LAYOUT_ACCESS[block]._sections[section].NUMBER_OF_PARAMETERS;
+            auto  parameterType      = LAYOUT_ACCESS[block]._sections[section].PARAMETER_TYPE;
+            auto  defaultValue       = LAYOUT_ACCESS[block]._sections[section].DEFAULT_VALUE;
+            auto& defaultValues      = LAYOUT_ACCESS[block]._sections[section].DEFAULT_VALUES;
+            auto  numberOfParameters = LAYOUT_ACCESS[block]._sections[section].NUMBER_OF_PARAMETERS;
 
             switch (parameterType)
             {
@@ -569,9 +569,9 @@ bool LESSDB::initData(factoryResetType_t type)
                         // 1) auto-increment is disabled
                         // 2)vector size matches the amount of parameters
 
-                        if (DEFAULT_VALUES.size() == numberOfParameters)
+                        if (defaultValues.size() == numberOfParameters)
                         {
-                            defaultValue = DEFAULT_VALUES.at(parameter);
+                            defaultValue = defaultValues.at(parameter);
                         }
 
                         if (!write(startAddress, defaultValue, parameterType))
@@ -615,9 +615,9 @@ bool LESSDB::initData(factoryResetType_t type)
                             break;
                         }
 
-                        if (DEFAULT_VALUES.size() == numberOfParameters)
+                        if (defaultValues.size() == numberOfParameters)
                         {
-                            defaultValue = DEFAULT_VALUES.at(PARAMETER) & 0x01;
+                            defaultValue = defaultValues.at(PARAMETER) & 0x01;
                         }
 
                         value <<= 1;
@@ -653,9 +653,9 @@ bool LESSDB::initData(factoryResetType_t type)
                             break;
                         }
 
-                        if (DEFAULT_VALUES.size() == numberOfParameters)
+                        if (defaultValues.size() == numberOfParameters)
                         {
-                            defaultValue = DEFAULT_VALUES.at(PARAMETER) & 0x0F;
+                            defaultValue = defaultValues.at(PARAMETER) & 0x0F;
                         }
 
                         value <<= 4;

@@ -722,7 +722,7 @@ TEST_F(DatabaseTest, ErrorCheck)
     ASSERT_FALSE(returnValue);
 
     // try to init database with too many parameters
-    std::vector<LESSDB::Section> OUT_OF_BOUNDS_SECTION = {
+    std::vector<LESSDB::Section> outOfBoundsSection = {
         {
             LESSDB_SIZE + 1,
             LESSDB::sectionParameterType_t::BYTE,
@@ -732,13 +732,13 @@ TEST_F(DatabaseTest, ErrorCheck)
         },
     };
 
-    std::vector<LESSDB::Block> OUT_OF_BOUNDS_LAYOUT = {
+    std::vector<LESSDB::Block> outOfBoundsLayout = {
         {
-            OUT_OF_BOUNDS_SECTION,
+            outOfBoundsSection,
         },
     };
 
-    returnValue = _db.setLayout(OUT_OF_BOUNDS_LAYOUT, 0);
+    returnValue = _db.setLayout(outOfBoundsLayout, 0);
     ASSERT_FALSE(returnValue);
 
     // try to init database with zero blocks
