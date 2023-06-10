@@ -8,7 +8,7 @@
             "name": "Test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/tests/build/lessdb/src/all/all.out",
+            "program": "${workspaceFolder}/build/tests/src/test/lessdb-test",
             "args": [],
             "stopAtEntry": true,
             "environment": [],
@@ -22,7 +22,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "[Test] Build all tests"
+            "preLaunchTask": "[Build] Tests"
         }
     ]
 }

@@ -21,7 +21,7 @@
 */
 
 #include <stdlib.h>
-#include "LESSDB.h"
+#include "LESSDB/LESSDB.h"
 
 #define LAYOUT_ACCESS (*_layout)
 

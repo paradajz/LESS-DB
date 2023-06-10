@@ -1,6 +1,5 @@
-#include "framework/Framework.h"
-#include "LESSDB.h"
-#include <string.h>
+#include "tests/Common.h"
+#include "LESSDB/LESSDB.h"
 
 namespace
 {
