@@ -1,18 +1,18 @@
 find_package(glog 0.6.0 REQUIRED)
 
-add_library(lessdb-test-common)
+add_library(liblessdb-test-common)
 
-target_sources(lessdb-test-common
+target_sources(liblessdb-test-common
     PRIVATE
     main.cpp
 )
 
-target_include_directories(lessdb-test-common
+target_include_directories(liblessdb-test-common
     PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/../include
 )
 
-target_link_libraries(lessdb-test-common
+target_link_libraries(liblessdb-test-common
     PUBLIC
     glog::glog
     gtest

@@ -1,14 +1,14 @@
-add_executable(lessdb-test
+add_executable(liblessdb-test
     test.cpp
 )
 
-target_link_libraries(lessdb-test
+target_link_libraries(liblessdb-test
     PRIVATE
-    lessdb-test-common
-    lessdb-lib
+    liblessdb-test-common
+    liblessdb
 )
 
-target_compile_definitions(lessdb-test
+target_compile_definitions(liblessdb-test
     PRIVATE
     TEST
 )
@@ -19,7 +19,7 @@ add_test(
     "${CMAKE_COMMAND}"
     --build "${CMAKE_BINARY_DIR}"
     --config "$<CONFIG>"
-    --target lessdb-test
+    --target liblessdb-test
 )
 
 set_tests_properties(test_build
@@ -30,7 +30,7 @@ set_tests_properties(test_build
 
 add_test(
     NAME test
-    COMMAND $<TARGET_FILE:lessdb-test>
+    COMMAND $<TARGET_FILE:liblessdb-test>
 )
 
 set_tests_properties(test

@@ -20,16 +20,16 @@ all: cmake_config
 	@cmake --build $(LIB_BUILD_DIR)
 
 lib: cmake_config
-	@cmake --build $(LIB_BUILD_DIR) --target lessdb-lib
+	@cmake --build $(LIB_BUILD_DIR) --target liblessdb
 
 test: cmake_config
 	@cmake --build $(LIB_BUILD_DIR) --target test
 
 format: cmake_config
-	@cmake --build $(LIB_BUILD_DIR) --target lessdb-format
+	@cmake --build $(LIB_BUILD_DIR) --target liblessdb-format
 
 lint: cmake_config
-	@cmake --build $(LIB_BUILD_DIR) --target lessdb-lint
+	@cmake --build $(LIB_BUILD_DIR) --target liblessdb-lint
 
 clean:
 	@echo Cleaning up.

@@ -21,13 +21,15 @@
 */
 
 #include <stdlib.h>
-#include "LESSDB/LESSDB.h"
+#include "lib/lessdb/lessdb.h"
+
+using namespace lib::lessdb;
 
 #define LAYOUT_ACCESS (*_layout)
 
-bool LESSDB::init()
+bool LessDb::init()
 {
-    return _storageAccess.init();
+    return _hwa.init();
 }
 
 /// Calculates all addresses for specified blocks and sections.
@@ -35,9 +37,9 @@ bool LESSDB::init()
 /// param [in] startAddress     Address from which to start indexing blocks.
 ///                             Set to 0 by default.
 /// returns: True on success, false otherwise.
-bool LESSDB::setLayout(std::vector<Block>& layout, uint32_t startAddress)
+bool LessDb::setLayout(std::vector<Block>& layout, uint32_t startAddress)
 {
-    if (startAddress >= _storageAccess.size())
+    if (startAddress >= _hwa.size())
     {
         return false;
     }
@@ -152,7 +154,7 @@ bool LESSDB::setLayout(std::vector<Block>& layout, uint32_t startAddress)
 
         _memoryUsage += blockUsage;
 
-        if (_memoryUsage >= _storageAccess.size())
+        if (_memoryUsage >= _hwa.size())
         {
             return false;
         }
@@ -222,7 +224,7 @@ bool LESSDB::setLayout(std::vector<Block>& layout, uint32_t startAddress)
 /// param [in] magicValue   Additional optional value which will be appended
 ///                         to calculated UID. If ommited, it is set to 0
 ///                         by default.
-uint16_t LESSDB::layoutUID(std::vector<Block>& layout, uint16_t magicValue)
+uint16_t LessDb::layoutUid(std::vector<Block>& layout, uint16_t magicValue)
 {
     if (!layout.size())
     {
@@ -247,24 +249,24 @@ uint16_t LESSDB::layoutUID(std::vector<Block>& layout, uint16_t magicValue)
 }
 
 /// Reads a value from database.
-/// param [in] blockID         Block index.
-/// param [in] sectionID       Section index.
+/// param [in] blockIndex         Block index.
+/// param [in] sectionIndex       Section index.
 /// param [in] parameterIndex  Parameter index.
 /// param [in, out] value      Reference to variable in which read value will be stored.
 /// returns: True on success.
-bool LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex, uint32_t& value)
+bool LessDb::read(size_t blockIndex, size_t sectionIndex, size_t parameterIndex, uint32_t& value)
 {
     // sanity checks
-    if (!checkParameters(blockID, sectionID, parameterIndex))
+    if (!checkParameters(blockIndex, sectionIndex, parameterIndex))
     {
         return false;
     }
 
     bool     returnValue  = true;
-    uint32_t startAddress = LAYOUT_ACCESS[blockID]._address + LAYOUT_ACCESS[blockID]._sections[sectionID]._address;
+    uint32_t startAddress = LAYOUT_ACCESS[blockIndex]._address + LAYOUT_ACCESS[blockIndex]._sections[sectionIndex]._address;
     uint8_t  arrayIndex;
 
-    switch (LAYOUT_ACCESS[blockID]._sections[sectionID].PARAMETER_TYPE)
+    switch (LAYOUT_ACCESS[blockIndex]._sections[sectionIndex].PARAMETER_TYPE)
     {
     case sectionParameterType_t::BIT:
     {
@@ -275,7 +277,7 @@ bool LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex, uint3
         {
             value = static_cast<bool>(_lastReadValue & BIT_MASK[parameterIndex - (arrayIndex << 3)]);
         }
-        else if (_storageAccess.read(startAddress, value, sectionParameterType_t::BIT))
+        else if (_hwa.read(startAddress, value, sectionParameterType_t::BIT))
         {
             _lastReadValue = value;
             value          = static_cast<bool>(value & BIT_MASK[parameterIndex - (arrayIndex << 3)]);
@@ -291,7 +293,7 @@ bool LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex, uint3
     {
         startAddress += parameterIndex;
 
-        if (_storageAccess.read(startAddress, value, sectionParameterType_t::BYTE))
+        if (_hwa.read(startAddress, value, sectionParameterType_t::BYTE))
         {
             // sanitize
             value &= static_cast<int32_t>(0xFF);
@@ -316,7 +318,7 @@ bool LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex, uint3
                 value >>= 4;
             }
         }
-        else if (_storageAccess.read(startAddress, value, sectionParameterType_t::HALF_BYTE))
+        else if (_hwa.read(startAddress, value, sectionParameterType_t::HALF_BYTE))
         {
             _lastReadValue = value;
 
@@ -342,7 +344,7 @@ bool LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex, uint3
     {
         startAddress += parameterIndex * 2;
 
-        if (_storageAccess.read(startAddress, value, sectionParameterType_t::WORD))
+        if (_hwa.read(startAddress, value, sectionParameterType_t::WORD))
         {
             // sanitize
             value &= static_cast<uint32_t>(0xFFFF);
@@ -358,7 +360,7 @@ bool LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex, uint3
     {
         // case sectionParameterType_t::dword:
         startAddress += parameterIndex * 4;
-        return _storageAccess.read(startAddress, value, sectionParameterType_t::DWORD);
+        return _hwa.read(startAddress, value, sectionParameterType_t::DWORD);
     }
     break;
     }
@@ -372,24 +374,24 @@ bool LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex, uint3
 }
 
 /// Reads a value from database with reduced error checking.
-/// param [in] blockID         Block index.
-/// param [in] sectionID       Section index.
+/// param [in] blockIndex         Block index.
+/// param [in] sectionIndex       Section index.
 /// param [in] parameterIndex  Parameter index.
 /// returns: Value from database. In case of read failure, 0 will be returned.
-uint32_t LESSDB::read(size_t blockID, size_t sectionID, size_t parameterIndex)
+uint32_t LessDb::read(size_t blockIndex, size_t sectionIndex, size_t parameterIndex)
 {
     uint32_t value = 0;
-    read(blockID, sectionID, parameterIndex, value);
+    read(blockIndex, sectionIndex, parameterIndex, value);
     return value;
 }
 
 /// Updates value for specified block and section in database.
-/// param [in] blockID         Block index.
-/// param [in] sectionID       Section index.
+/// param [in] blockIndex         Block index.
+/// param [in] sectionIndex       Section index.
 /// param [in] parameterIndex  Parameter index.
 /// param [in] newValue        New value for parameter.
 /// returns: True on success, false otherwise.
-bool LESSDB::update(size_t blockID, size_t sectionID, size_t parameterIndex, uint32_t newValue)
+bool LessDb::update(size_t blockIndex, size_t sectionIndex, size_t parameterIndex, uint32_t newValue)
 {
     if (!LAYOUT_ACCESS.size())
     {
@@ -397,13 +399,13 @@ bool LESSDB::update(size_t blockID, size_t sectionID, size_t parameterIndex, uin
     }
 
     // sanity check
-    if (!checkParameters(blockID, sectionID, parameterIndex))
+    if (!checkParameters(blockIndex, sectionIndex, parameterIndex))
     {
         return false;
     }
 
-    uint32_t               startAddress  = sectionAddress(blockID, sectionID);
-    sectionParameterType_t parameterType = LAYOUT_ACCESS[blockID]._sections[sectionID].PARAMETER_TYPE;
+    uint32_t               startAddress  = sectionAddress(blockIndex, sectionIndex);
+    sectionParameterType_t parameterType = LAYOUT_ACCESS[blockIndex]._sections[sectionIndex].PARAMETER_TYPE;
 
     uint8_t  arrayIndex;
     uint32_t arrayValue;
@@ -422,7 +424,7 @@ bool LESSDB::update(size_t blockID, size_t sectionID, size_t parameterIndex, uin
         startAddress += arrayIndex;
 
         // read existing value first
-        if (_storageAccess.read(startAddress, arrayValue, sectionParameterType_t::BIT))
+        if (_hwa.read(startAddress, arrayValue, sectionParameterType_t::BIT))
         {
             // update value with new bit
             if (newValue)
@@ -457,7 +459,7 @@ bool LESSDB::update(size_t blockID, size_t sectionID, size_t parameterIndex, uin
         startAddress += (parameterIndex / 2);
 
         // read old value first
-        if (_storageAccess.read(startAddress, arrayValue, sectionParameterType_t::HALF_BYTE))
+        if (_hwa.read(startAddress, arrayValue, sectionParameterType_t::HALF_BYTE))
         {
             if (parameterIndex % 2)
             {
@@ -502,13 +504,13 @@ bool LESSDB::update(size_t blockID, size_t sectionID, size_t parameterIndex, uin
 /// param [in] value   Value to write.
 /// param [in] type    Type of variable.
 /// returns: True if writing succedes and read value matches the specified value, false otherwise.
-bool LESSDB::write(uint32_t address, uint32_t value, sectionParameterType_t type)
+bool LessDb::write(uint32_t address, uint32_t value, sectionParameterType_t type)
 {
-    if (_storageAccess.write(address, value, type))
+    if (_hwa.write(address, value, type))
     {
         uint32_t readValue;
 
-        if (_storageAccess.read(address, readValue, type))
+        if (_hwa.read(address, readValue, type))
         {
             return (value == readValue);
         }
@@ -518,9 +520,9 @@ bool LESSDB::write(uint32_t address, uint32_t value, sectionParameterType_t type
 }
 
 /// Clears entire memory.
-bool LESSDB::clear()
+bool LessDb::clear()
 {
-    return _storageAccess.clear();
+    return _hwa.clear();
 }
 
 /// Writes default values to memory.
@@ -528,7 +530,7 @@ bool LESSDB::clear()
 ///                     Full will simply overwrite currently existing data.
 ///                     Partial will leave data as is, but only if
 ///                     preserveOnPartialReset parameter is set to true.
-bool LESSDB::initData(factoryResetType_t type)
+bool LessDb::initData(factoryResetType_t type)
 {
     for (size_t block = 0; block < LAYOUT_ACCESS.size(); block++)
     {
@@ -680,56 +682,56 @@ bool LESSDB::initData(factoryResetType_t type)
 
 /// Checks for total memory usage of database.
 /// returns: Database size in bytes.
-uint32_t LESSDB::currentDBsize() const
+uint32_t LessDb::currentDatabaseSize() const
 {
     return _memoryUsage;
 }
 
 /// Checks for total amount of parameters stored in database.
 /// returns: Number of parameters.
-uint32_t LESSDB::currentDBparameters() const
+uint32_t LessDb::currentDatabaseParameters() const
 {
     return _memoryParameters;
 }
 
 /// Retrieves maximum database size.
 /// returns: Maximum database size in bytes.
-uint32_t LESSDB::dbSize() const
+uint32_t LessDb::dbSize() const
 {
-    return _storageAccess.size();
+    return _hwa.size();
 }
 
 /// Returns the database address at which last parameter is stored.
-uint32_t LESSDB::lastParameterAddress() const
+uint32_t LessDb::lastParameterAddress() const
 {
     return _nextBlockAddress - 1;
 }
 
 /// Returns first unused database address.
-uint32_t LESSDB::nextParameterAddress() const
+uint32_t LessDb::nextParameterAddress() const
 {
     return _nextBlockAddress;
 }
 
 /// Validates input parameters before attempting to read or write data.
-/// param [in] blockID         Block index.
-/// param [in] sectionID       Section index.
+/// param [in] blockIndex         Block index.
+/// param [in] sectionIndex       Section index.
 /// param [in] parameterID     Parameter index.
 /// returns: True if parameters are valid, false otherwise.
-bool LESSDB::checkParameters(size_t blockID, size_t sectionID, size_t parameterIndex)
+bool LessDb::checkParameters(size_t blockIndex, size_t sectionIndex, size_t parameterIndex)
 {
     // sanity check
-    if (blockID >= LAYOUT_ACCESS.size())
+    if (blockIndex >= LAYOUT_ACCESS.size())
     {
         return false;
     }
 
-    if (sectionID >= LAYOUT_ACCESS[blockID]._sections.size())
+    if (sectionIndex >= LAYOUT_ACCESS[blockIndex]._sections.size())
     {
         return false;
     }
 
-    if (parameterIndex >= LAYOUT_ACCESS[blockID]._sections[sectionID].NUMBER_OF_PARAMETERS)
+    if (parameterIndex >= LAYOUT_ACCESS[blockIndex]._sections[sectionIndex].NUMBER_OF_PARAMETERS)
     {
         return false;
     }
@@ -738,10 +740,10 @@ bool LESSDB::checkParameters(size_t blockID, size_t sectionID, size_t parameterI
 }
 
 /// Returns section address for specified section within block.
-/// param [in] blockID     Block index.
-/// param [in] sectionID   Section index.
+/// param [in] blockIndex     Block index.
+/// param [in] sectionIndex   Section index.
 /// returns: Section address.
-uint32_t LESSDB::sectionAddress(size_t blockID, size_t sectionID)
+uint32_t LessDb::sectionAddress(size_t blockIndex, size_t sectionIndex)
 {
-    return LAYOUT_ACCESS[blockID]._address + LAYOUT_ACCESS[blockID]._sections[sectionID]._address;
+    return LAYOUT_ACCESS[blockIndex]._address + LAYOUT_ACCESS[blockIndex]._sections[sectionIndex]._address;
 }
